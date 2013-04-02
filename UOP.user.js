@@ -100,52 +100,107 @@ var C_LOCATION_TIMES = [
 var S_skin,S_auto,S_schedule,S_solve,S_server;
 var S_ads,S_pause,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_numScript;
 var S_cacheKRstr,S_serverUrl;
+var S_settingGroupsLength = [415,0];
 
 //Object Variables
-var O_titleBar,O_titlePercentage;
-var O_huntTimer;
-var O_locationTimerParent;
+var O_titleBar,O_titlePercentage,O_huntTimer,O_locationTimerParent;
 var O_mode;
+var O_imageBox,O_imagePhoto;
+
 //Variables
 var user;
+var template = new Array;
+var cX = 0,cY = 0;
 
 /*******************INITIALIZATION********************/
-function initialization()
-{
+function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: facebook, login, turn, https, mobile, loaded with error,...==========
+	if (checkBrowser() == 1) return;
+	
+	//==========LOAD SETTINGS==========
+	loadSettings();
+	
+	//==========INIT VARIABLES & TEMPLATE==========
+	createTemplate();
+	
+	//==========CALL THE MAIN FUNCTION==========
+	main();
+}
+function checkBrowser() {
 	if (window.location.hostname.indexOf('facebook') != -1) {
-		return;
+		return 1;
 	}
 	else if (window.location.pathname.indexOf('/login.php') != -1) //at login.php
 	{
 		if (document.getElementsByClassName('login').length == 0) // && logged in
-			location.href = "/";
-		return;
+		location.href = "/";
+		return 1;
 	}
 	else if (window.location.pathname.indexOf('/turn.php') != -1) //at turn.php
 	{
 		location.href = "/";
-		return;
+		return 1;
 	}
 	else if (getCookie("switch_to") == "mobile") //mobile mode
 	{
-		return;
+		return 1;
 	}
 	else if ((location.pathname == "/index.php")|| (location.pathname == "/")) //at camp
 	{
 		if ((location.protocol == "https:") && (S_ForceNonHTTPS == 1)) //HTTPS
 		{
 			location.replace("http"+location.href.substr(5)); //force NON-HTTPS
-			return;
+			return 1;
 		}
 		if (document.getElementById('campButton') == null) // no camp button aka error
 		{
 			setTimeout(function () {location.reload();},10000);
-			return;
+			return 1;
 		}
 	}
+}
+function createTemplate()
+{
+	template[0] = document.getElementById('userGreeting').cloneNode(true);
+	template[0].className = "hgMenu";
+	template[0].style.paddingTop = "0px";
+	template[0].style.paddingLeft = "0px";
+	template[0].style.paddingRight = "8px";
+	template[0].style.cursor = "pointer";
+	template[0].style.height = "35px";
+	template[0].firstChild.style.cssFloat = "left";
+	template[0].firstChild.style.width = "40px";
+	template[0].firstChild.style.position = "relative";
 	
-	//==========LOAD SETTINGS==========
+	template[0].firstChild.firstChild.removeAttribute('href');
+	template[0].firstChild.firstChild.removeAttribute('onclick');
+	
+	template[0].firstChild.firstChild.removeChild(template[0].firstChild.firstChild.firstChild);
+	
+	template[0].firstChild.firstChild.firstChild.style.width = "29px";
+	template[0].firstChild.firstChild.firstChild.style.height = "29px";
+	template[0].firstChild.firstChild.firstChild.style.position = "relative";
+	template[0].firstChild.firstChild.firstChild.style.top = "3px";
+	template[0].firstChild.firstChild.firstChild.style.left = "0px";
+	template[0].firstChild.firstChild.firstChild.style.paddingLeft = "5px";
+	template[0].firstChild.firstChild.style.textDecoration = "none";
+	template[0].firstChild.firstChild.firstChild.removeAttribute('src');
+	
+	template[0].lastChild.style.cssFloat = "right";
+	template[0].lastChild.style.paddingTop = "10px";
+	template[0].lastChild.style.fontSize = "12px";
+	template[0].lastChild.style.color = "#64696D";
+	template[0].lastChild.style.fontFamily = '"lucida grande",tahoma,verdana,arial,sans-serif';
+	template[0].lastChild.style.fontWeight = "bold";
+}
+/*******************MAIN********************/
+function main()
+{
+	
+}
+/*******************CONTROL PANEL & SETTINGS*****************/
+function loadSettings()
+{
 	if ((!window.localStorage.UOP_versionCompatibleCode) || (window.localStorage.UOP_versionCompatibleCode != C_versionCompatibleCode))
 	{
 		window.localStorage.UOP_versionCompatibleCode = C_versionCompatibleCode;
@@ -197,18 +252,7 @@ function initialization()
 	
 	S_cacheKRstr = window.localStorage.UOP_cacheKRstr;
 	S_serverUrl = window.localStorage.UOP_serverUrl;
-	
-	//==========INIT VARIABLES==========
-	
-	//==========CALL THE MAIN FUNCTION==========
-	main();
 }
-/*******************MAIN********************/
-function main()
-{
-	
-}
-
 /*******************TOOLS********************/
 function getCookie(c_name)
 {
