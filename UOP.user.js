@@ -17,6 +17,19 @@
 // ==/UserScript==
 
 // The public prefix for this script is UOP_ . All of the outside variable and function will have this prefix.
+// init the script
+var documentLoadCounter = 0;
+checkDocumentState();
+window.addEventListener('DOMContentLoaded',main,false);
+function checkDocumentState()
+{
+	if (document.readyState == "loading")
+	{
+		if (documentLoadCounter > 15) location.reload();
+		++documentLoadCounter;
+		setTimeout(checkDocumentState,1000);
+	}
+}
 
 // Global Setting Variable
 var version = "2.1";
@@ -78,23 +91,19 @@ var O_titleBar,O_titlePercentage;
 var O_huntTimer;
 var O_locationTimerParent;
 var O_mode;
+// Global Variable
+
 
 // Global MAIN
 function main()
 {
 	priorityFunctions();
-	alert('OK');
 }
-
 function priorityFunctions()
 {
-	// if not loaded: reload
 	// if loaded but error: reload
 	// if not login: terminate script
-	function checkDocumentState()
-	{
-		if (
-	}
-	window.addEventListener('DOMContentLoaded',main,false);
-	
+	// load the saved settings
+	// init the things
 }
+
