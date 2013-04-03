@@ -122,6 +122,9 @@ function initialization() {
 	
 	//==========INIT VARIABLES & TEMPLATE==========
 	createTemplate();
+	addControlPanel();
+	UOP_global.UOP_objects.UOP_hornheader = document.getElementById('header'); //~~~~
+	UOP_huntTimer = document.createElement('div');//~~~~
 	
 	//==========CALL THE MAIN FUNCTION==========
 	main();
@@ -159,8 +162,7 @@ function checkBrowser() {
 		}
 	}
 }
-function createTemplate()
-{
+function createTemplate() {
 	template[0] = document.getElementById('userGreeting').cloneNode(true);
 	template[0].className = "hgMenu";
 	template[0].style.paddingTop = "0px";
@@ -194,13 +196,23 @@ function createTemplate()
 	template[0].lastChild.style.fontWeight = "bold";
 }
 /*******************MAIN********************/
-function main()
-{
+function main() {
+	syncTime(); //~~~~
 	
+	if (S_ads != 0 || S_skin == 2) removeAds();
+	switch (S_skin)
+	{
+		case 1: defaultSkin();break;
+		case 2: simpleSkin();break;
+		default: break;
+	}
+	
+	updateHud();
+	
+	if (S_auto == 0) initAuto();
 }
 /*******************CONTROL PANEL & SETTINGS*****************/
-function loadSettings()
-{
+function loadSettings() {
 	if ((!window.localStorage.UOP_versionCompatibleCode) || (window.localStorage.UOP_versionCompatibleCode != C_versionCompatibleCode))
 	{
 		window.localStorage.UOP_versionCompatibleCode = C_versionCompatibleCode;
@@ -254,8 +266,7 @@ function loadSettings()
 	S_serverUrl = window.localStorage.UOP_serverUrl;
 }
 /*******************TOOLS********************/
-function getCookie(c_name)
-{
+function getCookie(c_name) {
 	if (document.cookie.length > 0)
 	{
 		var c_start = document.cookie.indexOf(c_name + "=");
@@ -270,9 +281,7 @@ function getCookie(c_name)
 	}
 	return null;
 }
-
-function syncUser(callbackFunction)
-{
+function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
 	request.open("GET", "managers/ajax/abtest.php", true);
 	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
@@ -294,4 +303,17 @@ function syncUser(callbackFunction)
 		}
 	};
 	request.send(null);
+}
+function formatMinute(sec) {
+	var min = Math.floor(sec / 60);
+	sec = sec % 60;
+	var textTime = min+":"+(sec < 10 ? '0'+sec : sec);
+	return textTime;
+}
+function formatHour(sec) {
+	var hour = Math.floor(sec / 3600); 
+	var min = Math.floor(sec / 60) % 60;
+	sec = sec % 60;
+	var textTime = hour + ":" + (min<10?"0"+min:min) + ":" + (sec<10?"0"+sec:sec);
+	return textTime;
 }
