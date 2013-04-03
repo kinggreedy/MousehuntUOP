@@ -1,3 +1,47 @@
 //http://www.mousehuntgame.com/managers/ajax/users/changeenvironment.php?uh=v0Q59WTL&destination=cape_clawed
 
-//new todo
+
+//Todo //ads => Tournament + schedules + timers
+
+/* Schedule
+UOP_puzzleStandardReaction => pause schedule
+
+REFRESH change(
+trap check
+specific time
+interval
+)
+IF (
+location id
+Tower Amp
+gold/point/number of bait,charm,item
+on time
+after time
+tournament condition
+timer condition (internal timer, ex: AR is open)
+chess piece
+)
+THEN (
+arm/disarm bait,trap,charm
+buybait / trap
+travel
+craft
+potion
+self program
+)
+WHILE (condition) DO {THINGS}
+
+1. GUI
+2. save/load
+3. trapcheck setting
+*/
+
+/*server
+solve KR 2 types
+auto update
+UOP_server UOP_serverStr
+KRcache rountine (server)
+*/
+/*auto
+localsolve KR
+*/
