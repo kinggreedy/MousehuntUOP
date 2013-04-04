@@ -1,47 +1,32 @@
 //http://www.mousehuntgame.com/managers/ajax/users/changeenvironment.php?uh=v0Q59WTL&destination=cape_clawed
+sbplus.firstChild.firstChild.firstChild.src = "images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif";
 
-
-//Todo //ads => Tournament + schedules + timers
-
-/* Schedule
-UOP_puzzleStandardReaction => pause schedule
-
-REFRESH change(
-trap check
-specific time
-interval
-)
-IF (
-location id
-Tower Amp
-gold/point/number of bait,charm,item
-on time
-after time
-tournament condition
-timer condition (internal timer, ex: AR is open)
-chess piece
-)
-THEN (
-arm/disarm bait,trap,charm
-buybait / trap
-travel
-craft
-potion
-self program
-)
-WHILE (condition) DO {THINGS}
-
-1. GUI
-2. save/load
-3. trapcheck setting
-*/
-
-/*server
-solve KR 2 types
-auto update
-UOP_server UOP_serverStr
-KRcache rountine (server)
-*/
-/*auto
-localsolve KR
-*/
+	var inbox = document.getElementById('communityMenu').cloneNode(true);
+	inbox.id = "appInboxTab";
+	inbox.style.marginLeft = "0px";
+	inbox.style.cursor = "pointer";
+	inbox.firstChild.style.color = "#4DA55A";
+	inbox.firstChild.style.backgroundImage = "url(images/ui/hgbar/hgrow_middle_blue.png)";
+	inbox.firstChild.style.cursor = "pointer";
+	inboxnotification.style.backgroundImage = "url(images/ui/hgbar/alert_badge.png)";
+	inboxnotification.style.position = "absolute";
+	inboxnotification.style.right = "0px";
+	inboxnotification.style.top = "0px";
+	inboxnotification.style.zIndex = "10";
+	inboxnotification.style.width = "22px";
+	inboxnotification.style.height = "20px";
+	inboxnotification.style.paddingTop = "2px";
+	inboxnotification.style.color = "white";
+	inboxnotification.style.textAlign = "center";
+	inboxnotification.style.fontWeight = "bold";
+	inboxnotification.style.margin = "5px 205px 0px 0px";
+	inboxnotification.style.cursor = "pointer";
+	
+	freeSB = document.getElementById('UOP_appControlPanel').cloneNode(true);
+	freeSB.id = "UOP_freeSB";
+	freeSB.firstChild.style.width = "65px";
+	var freeSBchild = freeSB.firstChild;
+	freeSBchild.style.width = "54px";
+	freeSBchild = freeSBchild.firstChild.firstChild;
+	freeSBchild.src = "images/ui/buttons/free_sb_offers_btn.gif";
+	
