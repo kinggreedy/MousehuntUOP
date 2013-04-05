@@ -39,8 +39,6 @@ var C_versionCompatibleCode = "1";
 var C_ForceHTTPS = 1;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
-var C_ShortInterval = 5;
-var C_ModerateInterval= 30;
 var C_autoInterval = 1;
 var C_cpcontent,C_cpprefix,C_cpsuffix,C_tabNum,C_groupNum;
 //Constants
@@ -101,11 +99,10 @@ var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,0];
 
 //Object Variables
-var O_titleBar,O_hornHeader;
-var O_huntTimer,O_locationTimerParent,O_titlePercentage,O_LGSTimer;
+var O_titleBar,O_hornHeader,O_hornButton;
+var O_huntTimer,O_titlePercentage,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode;
-var O_imageBox,O_imagePhoto;
-var O_settingGroup;
+var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent;
 
 //Variables
 var data;
@@ -129,11 +126,35 @@ function initialization() {
 	createTemplate();
 	addControlPanel();
 	manageCSSJSAdder(0);
-	O_hornHeader = document.getElementById('header');
-	O_hgRow = document.getElementById('hgRow');
+	initVariables();
 	
 	//==========CALL THE MAIN FUNCTION==========
 	main();
+}
+function initVariables() {
+	O_hornHeader = document.getElementById('header');
+	O_hgRow = document.getElementById('hgRow');
+	O_hornButton = document.getElementsByClassName('hornbutton')[0].firstChild;
+	O_hornButton.addEventListener('click',soundHorn,false);
+	
+	O_receiveMessage = document.createElement('div');
+	O_receiveMessage.id = "UOP_toScriptMessage";
+	document.body.appendChild(O_receiveMessage);
+	O_receiveMessage.addEventListener('click',receiveMessage,false);
+	O_sendMessage = document.createElement('div');
+	O_sendMessage.id = "UOP_toWindowMessage";
+	document.body.appendChild(O_sendMessage);
+	O_sendMessage.setAttribute('onclick','UOP_messageReceiver');
+	var scriptstr = windowScript.toString().replace("function windowScript() {","").substring(0,my_src.length - 1);
+	scriptstr += sendMessage.toString().replace("function sendMessage","function UOP_sendMessage");
+	scriptstr += UOP_receiveMessage.toString();
+	var script = document.createElement('script');
+	script.setAttribute("type", "text/javascript");
+	script.innerHTML = scriptstr;
+	document.head.appendChild(script);
+	
+	registerSoundHornWaiting.push(updateTimeStamp);
+	if ((S_auto != 0) && (S_skin != 0)) registerSoundHornWaiting.push(skinSecondTimer);
 }
 function runTimeCreateConstant() {
 	C_tabNum = new Object;
@@ -159,10 +180,21 @@ function runTimeCreateConstant() {
 	 .UOP_hgMenu #UOP_appControlPanel {float: left; padding-right: 4px;}\
 	 #userGreeting.userText {padding-right: 8px;}\
 	 #UOP_appTabSuperBrie {float: right;}\
+	 #MHA_appTabSuperBrie.picture{background-image: url(images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif);}\
+	 #appInboxTab {margin-left: 0px; cursor: pointer;}\
+	 #appInboxTab span {color: #4DA55A; background-image: url(images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
+	 #appInboxTab.alerts {background-image: url(images/ui/hgbar/alert_badge.png); position: absolute; right: 0px; top: 0px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 5px 205px 0px 0px; cursor: pointer;}\
+	 #UOP_freeSB.userPic {width: 54px;background-image: url(images/ui/buttons/free_sb_offers_btn.gif);}\
+	 .marketplace_button {margin: 49px 0px 0px -514px;}\
+	 #hornArea {margin-left: 101px;}\
+	 #btn-friend {margin: 70px 0px 0px 20px; background: url("images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
+	 #campButton {height: 26px; width: 69px; background: url("images/ui/buttons/navbuttons.en.gif?v=5") no-repeat 0px 0px; background-size: 600%}\
+	 #hud_baitQuantity {position: absolute;right: 44px;z-index: 10;text-align: center;cursor: pointer;padding: 3px 5px;-moz-border-radius: 5px;border-radius: 5px;border: 0 none;color: #fff;background-color: #549906;background-image: -webkit-gradient(linear, center bottom, center top, from(#549906), to(#92c315));background-image: -moz-linear-gradient(90deg, #549906, #92c315);font-weight: bold;}\
+	 #UOP_imagePhotoZoomBox {display:none;padding-top: 5px;padding-right: 5px;padding-bottom: 5px;padding-left: 5px;-webkit-transition-duration: 0s;-moz-transition: opacity 0s ease-in-out;-webkit-transition: opacity 0s ease-in-out;transition: opacity 0s ease-in-out;position: absolute;overflow: hidden;font-size: 0;-moz-box-shadow: 0px 0px 10px rgba(0,0,0,1);-webkit-box-shadow: 0px 0px 10px rgba(0,0,0,1);box-shadow: 0px 0px 10px rgba(0,0,0,1);min-height: 50px;min-width: 50px;pointer-events: none;background: white url(data:image/gif;base64,R0lGODlhEAALALMMAOXp8a2503CHtOrt9L3G2+Dl7vL0+J6sy4yew1Jvp/T2+e/y9v///wAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFCwAMACwAAAAAEAALAAAEK5DJSau91KxlpObepinKIi2kyaAlq7pnCq9p3NZ0aW/47H4dBjAEwhiPlAgAIfkECQsADAAsAAAAAAQACwAABA9QpCQRmhbflPnu4HdJVAQAIfkECQsADAAsAAAAABAACwAABDKQySlSEnOGc4JMCJJk0kEQxxeOpImqIsm4KQPG7VnfbEbDvcnPtpINebJNByiTVS6yCAAh+QQJCwAMACwAAAAAEAALAAAEPpDJSaVISVQWzglSgiAJUBSAdBDEEY5JMQyFyrqMSMq03b67WY2x+uVgvGERp4sJfUyYCQUFJjadj3WzuWQiACH5BAkLAAwALAAAAAAQAAsAAAQ9kMlJq73hnGDWMhJQFIB0EMSxKMoiFcNQmKjKugws0+navrEZ49S7AXfDmg+nExIPnU9oVEqmLpXMBouNAAAh+QQFCwAMACwAAAAAEAALAAAEM5DJSau91KxlpOYSUBTAoiiLZKJSMQzFmjJy+8bnXDMuvO89HIuWs8E+HQYyNAJgntBKBAAh+QQFFAAMACwMAAIABAAHAAAEDNCsJZWaFt+V+ZVUBAA7) no-repeat center center;z-index: 99999;}\
+	 #UOP_imagePhotoZoomPhoto {position: relative; z-index: 2; width: auto; height: auto;}\
 	 #hgDropDownCommunity {right: 91px;}\
 	 #hgDropDownSupport {right: 5px;}\
 	 #MHA_appControlPanel.picture {background: url(data:image/png;base64,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)}\
-	 \
 	 \
 	 #UOP_cpdiv {width: 646px;}\
 	 #overlayPopup .jsDialogContainer .suffix {background-color: #3c454f;}\
@@ -188,7 +220,10 @@ function runTimeCreateConstant() {
 	 .UOPsettingvalue.editted li[aria-checked="true"] {background-color:#c84fd7}\
 	 .UOPsettingvalue li {min-width:46px;line-height:20px;padding:5px;text-align:center;text-transform:uppercase;color:#535353;cursor:default}\
 	 .UOPsettingvalue input[type="text"] {vertical-align: bottom;width: 36px;}',
-	'.itempurchase .purchasecontrol {width: 200px;}',
+	'.itempurchase .purchasecontrol {width: 200px;}\
+	 #MHA_tabbarControls_page {padding-left: 0px;}\
+	 #MHA_tabbarControls_page>ul {padding-top: 3px;}\
+	 .UOP_shopControl {width: auto; padding-left: 5px; padding-right: 5px;}',
 	'.inventoryitemview .potion .rightcol {margin-left: 98px;}\
 	 .inventoryitemview .potion .leftcol {margin-left: 0px;}\
 	 .inventoryitemview .potion .rightcol .radioContainer .radioItem {width:auto;}',
@@ -463,8 +498,9 @@ function createTemplate() {
 	template.hgRight = tmp;
 }
 /*******************MAIN********************/
-function main() { //~~~~
-	if (S_ads != 0 || S_skin == 2) removeAds();
+function main() {
+	if (S_auto == 0) initAuto();
+	
 	switch (S_skin)
 	{
 		case 1: defaultSkin();break;
@@ -472,10 +508,15 @@ function main() { //~~~~
 		default: break;
 	}
 	
-	if (S_auto == 0) initAuto();
-	
-	updateTime();
-	updateHud();
+	if ((S_ads == 0) && (S_skin == 2)) S_ads = 1;
+	switch (S_ads)
+	{
+		case 2:
+		case 1: removeAds();break;
+		default: break;
+	}
+
+	syncUser(soundHornWaiting);
 }
 /*******************CONTROL PANEL & SETTINGS*****************/
 function loadSettings() {
@@ -724,6 +765,19 @@ function formatHour(sec) {
 	var textTime = hour + ":" + (min<10?"0"+min:min) + ":" + (sec<10?"0"+sec:sec);
 	return textTime;
 }
+function formatWeek(sec) {
+	sec = Math.floor(sec / 60);
+	var min = sec % 60;sec = Math.floor(sec / 60);
+	var hour = sec % 24;sec = Math.floor(sec / 24);
+	var day = sec % 7;
+	var week = Math.floor(sec / 7);
+	
+	var textTime = "";
+	if (week != 0) textTime += week + "w ";
+	if (day != 0) textTime += day + "d ";
+	textTime += (hour<10?"0"+hour:hour) + ":" + (min<10?"0"+min:min);
+	return textTime;
+}
 function callArrayFunction(element, index, array) {
 	element();
 }
@@ -768,13 +822,10 @@ function soundHorn() {
 
 	syncUser(soundHornWaiting);
 }
-function soundHornWaiting() {//~~~~
-	//updateTime();
+function soundHornWaiting() {
 	registerSoundHornWaiting.forEach(callArrayFunction);
-	//skin = 1:updateJournalImageBox();
-	//UOP_global.UOP_callbackFunctions.UOP_updateHud();
 }
-function updateTime() {
+function updateTimeStamp() {
 	nextTurnTimestamp = data.user.next_activeturn_seconds * 1000 + new Date().getTime();
 }
 /*******************SYSTEM AREA********************/
@@ -818,92 +869,111 @@ function manageCSSJSAdder(num) {
 	
 	cssjsSetArr[num] = 1;
 }
+function sendMessage(str,callfunc) {
+	O_sendMessage.className = callfunc;
+	O_sendMessage.innerText = str;
+	O_sendMessage.click();
+}
+function receiveMessage() {
+	switch (O_receiveMessage.className)
+	{
+		default: break;
+	}
+}
+function UOP_receiveMessage() {
+	switch (O_receiveMessage.className)
+	{
+		case "UOP_userHash": UOP_updateUserHash();break;
+		default: break;
+	}
+}
+function windowScript() {
+	var O_sendMessage = document.getElementById('UOP_toScriptMessage'),O_receiveMessage = document.getElementById('UOP_toWindowMessage');
+	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.innerText;}
+}
 /*******************SKIN AREA********************/
 //TOOLS
-function UOP_secondTimerTasks() {
+function skinSecondTimer() {
 	//update sound timer
-	if (S_auto == 1)
+	if (data.user.has_puzzle)
 	{
-		if (UOP_global.UOP_user.user.has_puzzle) document.title = "King's Reward";
+		document.title = "King's Reward";
+		return;
+	}
+	else
+	{
+		nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
+		if (nextTurnSeconds > 0)
+		{
+			var textTime = formatMinute(nextTurnSeconds);
+			O_huntTimer.textContent = textTime;
+			document.title = textTime;
+		}
 		else
 		{
-			nextTurnSeconds = UOP_global.UOP_nextTurnTimestamp - new Date().getTime();
-			if (nextTurnSeconds > 0)
-			{
-				nextTurnSeconds = Math.ceil(nextTurnSeconds / 1000);
-				if (nextTurnSeconds > 1000) location.reload();  //if nextHorn is too high, something is wrong
-				var textTime = UOP_formatTime(nextTurnSeconds);
-				UOP_huntTimer.textContent = textTime;
-				document.title = textTime;
-			}
-			else
-			{
-				UOP_huntTimer.textContent = "Ready";
-				document.title = "Ready";
-			}
+			O_huntTimer.textContent = "Ready";
+			document.title = "Ready";
+			return;
 		}
 	}
 
 	//set the second time interval
-	setTimeout(function () { (UOP_secondTimerTasks)() }, UOP_S_SecondTimer * 1000);
+	setTimeout(function () { (skinSecondTimer)() }, C_SecondInterval * 1000);
 }
-function UOP_travelcontentLoad() {
-	var UOP_traveltarget = new XMLHttpRequest();
-	var UOP_freeTravel,UOP_freeTravelMeadow;
-	var UOP_travelcontentChild = UOP_global.UOP_objects.UOP_travelcontentChild;
-	UOP_traveltarget.open("GET", "travel.php?quick=1", true);
-	UOP_traveltarget.onreadystatechange = function()
+function travelcontentLoad() {
+	var request = new XMLHttpRequest();
+	var freeTravel,freeTravelMeadow;
+	var contentDiv = O_travelContent;
+	request.open("GET", "travel.php?quick=1", true);
+	request.onreadystatechange = function()
 	{
-		if (UOP_traveltarget.readyState === 4)
+		if (request.readyState === 4)
 		{
-			if (UOP_traveltarget.status == 200)
+			if (request.status == 200)
 			{
-				UOP_cleanObject(UOP_travelcontentChild);
-				UOP_travelcontentChild.innerHTML = UOP_traveltarget.responseText.substring(UOP_traveltarget.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),UOP_traveltarget.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>"));
-				if (UOP_traveltarget.responseText.indexOf("travel.php?freeTravel=true") != -1)
+				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
+				if (request.responseText.indexOf("travel.php?freeTravel=true") != -1)
 				{
-					appendbefore = UOP_travelcontentChild.firstChild.nextSibling;
-					UOP_freeTravel = appendbefore.cloneNode(true);
-					UOP_freeTravel.textContent = "Free Travel";
-					UOP_freeTravelMeadow = appendbefore.nextSibling.cloneNode(true);
-					UOP_cleanObject(UOP_freeTravelMeadow);
-					UOP_freeTravelMeadow.innerHTML = "<a href='" + UOP_traveltarget.responseText.substring(UOP_traveltarget.responseText.indexOf("travel.php?freeTravel=true"),UOP_traveltarget.responseText.indexOf("'>Follow Larry back to the Meadow")) + "'>Meadow</a> (0 gold)";
-					UOP_travelcontentChild.insertBefore(UOP_freeTravel,appendbefore);
-					UOP_travelcontentChild.insertBefore(UOP_freeTravelMeadow,appendbefore);
-					UOP_travelcontentChild.insertBefore(document.createElement("br"),appendbefore);
+					appendbefore = contentDiv.firstChild.nextSibling;
+					freeTravel = appendbefore.cloneNode(true);
+					freeTravel.textContent = "Free Travel";
+					freeTravelMeadow = appendbefore.nextSibling.cloneNode(true);
+					freeTravelMeadow.innerHTML = "<a href='" + request.responseText.substring(request.responseText.indexOf("travel.php?freeTravel=true"),request.responseText.indexOf("'>Follow Larry back to the Meadow")) + "'>Follow Larry to Meadow</a> (0 gold)";
+					contentDiv.insertBefore(freeTravel,appendbefore);
+					contentDiv.insertBefore(freeTravelMeadow,appendbefore);
+					contentDiv.insertBefore(document.createElement("br"),appendbefore);
 				}
-				var UOP_travelcontentChildArr = UOP_travelcontentChild.childNodes;
-				for (var _UOP_i = 0;_UOP_i < UOP_travelcontentChildArr.length;++_UOP_i)
-				if (UOP_travelcontentChildArr[_UOP_i].nodeName == "DIV")
-				{
-					UOP_travelcontentChildArr[_UOP_i].firstChild.target = "_blank";
-					UOP_travelcontentChildArr[_UOP_i].firstChild.setAttribute('onclick','UOP_global.UOP_callbackFunctions.UOP_travel(this.href); return false;');
-				}
+				var travelcontentChildArr = contentDiv.childNodes;
+				for (var i = 0;i < travelcontentChildArr.length;++i)
+					if (travelcontentChildArr[i].nodeName == "DIV")
+					{
+						travelcontentChildArr[i].firstChild.target = "_blank";
+						travelcontentChildArr[i].firstChild.addEventListener('click',travel,false);
+					}
 			}
 			else
 			{
-				UOP_cleanObject(UOP_travelcontentChild);
-				UOP_travelcontentChild.innerHTML = "Cannot load the page, please refresh";
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
 			}
 		}
 	};
-	UOP_traveltarget.send(null);
+	request.send(null);
 	return false;
 }
-function UOP_shopcontentLoad() {
+function shopcontentLoad() {
 	manageCSSJSAdder(1);
-	var UOP_shoptarget = new XMLHttpRequest();
-	var UOP_shopdiv = UOP_global.UOP_objects.UOP_shopcontentChild;
-	UOP_shoptarget.open("GET", "shops.php", true);
-	UOP_shoptarget.onreadystatechange = function()
+	var request = new XMLHttpRequest();
+	var contentDiv = O_shopContent;
+	request.open("GET", "shops.php", true);
+	request.onreadystatechange = function()
 	{
-		if (UOP_shoptarget.readyState === 4)
+		if (request.readyState === 4)
 		{
-			if (UOP_shoptarget.status == 200)
+			if (request.status == 200)
 			{
-				var HTMLText = UOP_shoptarget.responseText.substring(UOP_shoptarget.responseText.indexOf("<div class='pagetabbartop'>"),UOP_shoptarget.responseText.indexOf("</div></div><a href='#' name='hudbottom'></a>"));
-				HTMLText += UOP_shoptarget.responseText.substring(UOP_shoptarget.responseText.indexOf("<div class='contentcontainer'>"),UOP_shoptarget.responseText.indexOf("<div class='footer'>"));
-				var JSText = UOP_shoptarget.responseText.substring(UOP_shoptarget.responseText.indexOf("app.views.ItemPurchaseView"),UOP_shoptarget.responseText.indexOf("user = {"));
+				var HTMLText = request.responseText.substring(request.responseText.indexOf("<div class='pagetabbartop'>"),request.responseText.indexOf("</div></div><a href='#' name='hudbottom'></a>"));
+				HTMLText += request.responseText.substring(request.responseText.indexOf("<div class='contentcontainer'>"),request.responseText.indexOf("<div class='footer'>"));
+				var JSText = request.responseText.substring(request.responseText.indexOf("app.views.ItemPurchaseView"),request.responseText.indexOf("user = {"));
 				
 				eval(JSText);
 				HTMLText = HTMLText.replace(/app.views.TabBarView.page.show/g,'UOP_global.UOP_callbackFunctions.UOP_SimulateTabBar');
@@ -920,94 +990,93 @@ function UOP_shopcontentLoad() {
 				tmp = HTMLdiv.getElementsByClassName('anchorLink');while(tmp.length > 0) UOP_removeObject(tmp[0],null);
 				tmp = HTMLdiv.getElementsByClassName('journalContainer');while(tmp.length > 0) UOP_removeObject(tmp[0],null);
 				tmp = HTMLdiv.getElementsByClassName('control');tmp[tmp.length - 1].parentNode.style.display = "inline-block";
+				tmp[0].firstChild.innerText = "Cheese";tmp[4].firstChild.innerText = "Charm";
+				for (var i = 0;i < tmp.length;++i) tmp[i].className += "UOP_shopControl";
 				
-				UOP_cleanObject(UOP_shopdiv);
-				UOP_shopdiv.appendChild(HTMLdiv);
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
 			}
 			else
 			{
-				UOP_cleanObject(UOP_shopdiv);
-				UOP_shopdiv.innerHTML = "Cannot load the page, please refresh";
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
 			}
 		}
 	};
-	UOP_shoptarget.send(null);
+	request.send(null);
 	return false;
 }
-function UOP_potcontentLoad() {
+function potcontentLoad() {
 	manageCSSJSAdder(2);
-	var UOP_pottarget = new XMLHttpRequest();
-	var UOP_potdiv = UOP_global.UOP_objects.UOP_potcontentChild;
-	UOP_pottarget.open("GET", "/inventory.php?tab=3", true);
-	UOP_pottarget.onreadystatechange = function()
+	var request = new XMLHttpRequest();
+	var contentDiv = O_potContent;
+	request.open("GET", "/inventory.php?tab=3", true);
+	request.onreadystatechange = function()
 	{
-		if (UOP_pottarget.readyState === 4)
+		if (request.readyState === 4)
 		{
-			if (UOP_pottarget.status == 200)
+			if (request.status == 200)
 			{
-				var HTMLText = UOP_pottarget.responseText.substring(UOP_pottarget.responseText.indexOf("<div id='tabbarContent_page'"),UOP_pottarget.responseText.indexOf("</script></div></div>"));
-				var JSText = "inventoryItemView1 = new ViewInventoryItem(1);" + UOP_pottarget.responseText.substring(UOP_pottarget.responseText.indexOf("inventoryItemView1.setValidItemClassifications"),UOP_pottarget.responseText.indexOf("inventoryItemView1.render();") + 28);
+				var HTMLText = request.responseText.substring(request.responseText.indexOf("<div id='tabbarContent_page'"),request.responseText.indexOf("</script></div></div>"));
+				var JSText = "inventoryItemView1 = new ViewInventoryItem(1);" + request.responseText.substring(request.responseText.indexOf("inventoryItemView1.setValidItemClassifications"),request.responseText.indexOf("inventoryItemView1.render();") + 28);
 
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
-				UOP_cleanObject(UOP_potdiv);
-				UOP_potdiv.appendChild(HTMLdiv);
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
 				
 				eval(JSText);
 			}
 			else
 			{
-				UOP_cleanObject(UOP_potdiv);
-				UOP_potdiv.innerHTML = "Cannot load the page, please refresh";
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
 			}
 		}
 	};
-	UOP_pottarget.send(null);
+	request.send(null);
 	return false;
 }
-function UOP_craftcontentLoad() {
+function craftcontentLoad() {
 	manageCSSJSAdder(3);
-	var UOP_crafttarget = new XMLHttpRequest();
-	var UOP_craftdiv = UOP_global.UOP_objects.UOP_craftcontentChild;
-	UOP_crafttarget.open("GET", "/inventory.php?tab=2", true);
-	UOP_crafttarget.onreadystatechange = function()
+	var request = new XMLHttpRequest();
+	var contentDiv = O_craftContent;
+	request.open("GET", "/inventory.php?tab=2", true);
+	request.onreadystatechange = function()
 	{
-		if (UOP_crafttarget.readyState === 4)
+		if (request.readyState === 4)
 		{
-			if (UOP_crafttarget.status == 200)
+			if (request.status == 200)
 			{
 				var HTMLText = '<div id="recipeContainer" class="craftingContainer"><div class="top"><div class="loading"></div></div></div><div id="craftingContainer" class="craftingContainer" style="display:none;"><div class="top"><div class="loading"></div></div></div>';
-				var JSUnknownStringStart = UOP_crafttarget.responseText.indexOf("app.views.RecipeView.");
-				var JSUnknownStringEnd = UOP_crafttarget.responseText.indexOf(" =",JSUnknownStringStart);
-				var JSUnknownString = UOP_crafttarget.responseText.substring(JSUnknownStringStart,JSUnknownStringEnd);
+				var JSUnknownStringStart = request.responseText.indexOf("app.views.RecipeView.");
+				var JSUnknownStringEnd = request.responseText.indexOf(" =",JSUnknownStringStart);
+				var JSUnknownString = request.responseText.substring(JSUnknownStringStart,JSUnknownStringEnd);
 				var JSUnknownRenderString = JSUnknownString + ".render();";
 				var JSText = "app.views.CraftingView.CraftingInstance = new hg.views.CraftingView(); " + JSUnknownString + " = new hg.views.RecipeView();";
-				JSText += UOP_crafttarget.responseText.substring(UOP_crafttarget.responseText.indexOf(JSUnknownString + ".addRecipe"),UOP_crafttarget.responseText.indexOf(JSUnknownRenderString) + JSUnknownRenderString.length);
-				JSText += UOP_crafttarget.responseText.substring(UOP_crafttarget.responseText.indexOf("app.views.CraftingView.CraftingInstance.init"),UOP_crafttarget.responseText.indexOf("app.views.CraftingView.CraftingInstance.render();"));
+				JSText += request.responseText.substring(request.responseText.indexOf(JSUnknownString + ".addRecipe"),request.responseText.indexOf(JSUnknownRenderString) + JSUnknownRenderString.length);
+				JSText += request.responseText.substring(request.responseText.indexOf("app.views.CraftingView.CraftingInstance.init"),request.responseText.indexOf("app.views.CraftingView.CraftingInstance.render();"));
 				JSText += JSUnknownString + ".clippingMaskWidth = 350;";
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
-				UOP_cleanObject(UOP_craftdiv);
-				UOP_craftdiv.appendChild(HTMLdiv);
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
 				
 				eval(JSText);
 				tmp = HTMLdiv.getElementsByClassName('recipeitemnamediv');
 				for (var i = tmp.length - 1;i >= 0;--i)
 				{
-					UOP_removeObject(tmp[i]);
+					tmp[i].parentNode.removeChild(tmp[i]);
 				}
 			}
 			else
 			{
-				UOP_cleanObject(UOP_craftdiv);
-				UOP_craftdiv.innerHTML = "Cannot load the page, please refresh";
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
 			}
 		}
 	};
-	UOP_crafttarget.send(null);
+	request.send(null);
 	return false;
 }
-function UOP_travelToTabBar() {
+function travelToTabBar() {
 	//travel => tabbar
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
 	if (tabbar.length > 0)
@@ -1019,7 +1088,8 @@ function UOP_travelToTabBar() {
 		var travelbarChild = travelbar.firstChild.firstChild;
 
 		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
-		travelbarChild.setAttribute('onclick',travelbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_travelcontentLoad();return false;"));
+		travelbarChild.setAttribute('onclick',travelbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+		travelbarChild.addEventListener('click',travelcontentLoad,false);
 		
 		travelbarChild = travelbarChild.childNodes[1];
 		travelbarChild.id = "UOP_travelCampTab";
@@ -1030,61 +1100,49 @@ function UOP_travelToTabBar() {
 		travelcontent.appendChild(document.getElementById('huntingTips').cloneNode(true));
 		travelcontent.id = travelcontent.id.substring(0,travelcontent.id.length - 1) + numOfTabbar;
 		var travelcontentChild = travelcontent.lastChild;
-		UOP_global.UOP_objects.UOP_campTravel = travelcontentChild;
-		UOP_global.UOP_objects.UOP_campTravelcontent = travelcontentChild.getElementsByClassName('content')[0];
+		O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
 		travelcontentChild.id = "UOP_campTravel";
-		travelcontentChild.style.background = "transparent url('images/ui/camp/trap/head_larry.png') no-repeat scroll left top";
-		travelcontentChild.firstChild.style.height = "50px";
-		travelcontentChild.firstChild.style.marginBottom = "4px";
-		travelcontentChild.firstChild.style.padding = "25px 0 8px 90px";
-		travelcontentChild.firstChild.firstChild.style.fontSize = "16px";
-		travelcontentChild.firstChild.firstChild.style.fontWeight = "bold";
 		travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
-		travelcontentChild.firstChild.lastChild.style.padding = "1px 0 2px";
 		travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a>';
-		travelcontentChild.lastChild.style.marginTop = "0px";
-		travelcontentChild.lastChild.style.background = "transparent url('images/ui/camp/trap/content_foot.png') 0 0 no-repeat";
 		travelcontentChild = travelcontentChild.firstChild.nextSibling;
-		travelcontentChild.style.background = "transparent url('images/ui/camp/trap/content_body.png') 0 0 repeat-y";
-		travelcontentChild.style.padding = "1px 15px 2px";
 		travelcontentChild.id = "UOP_travelcontentChild";
-		UOP_global.UOP_objects.UOP_travelcontentChild = travelcontentChild;
-		travelcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
+		O_travelContent = travelcontentChild;
+		travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 		tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
 	}
 }
-function UOP_shopToTabBar() {
+function shopToTabBar() {
 	//shop => tabbar
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
 	if (tabbar.length > 0)
 	{
 		tabbar = tabbar[0].firstChild;
 		
-		var shopbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		shopbar.className = "inactive";
-		shopbar.style.display = "inline-block";
-		var shopbarChild = shopbar.firstChild.firstChild;
+		var addbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+		addbar.className = "inactive";
+		addbar.style.display = "inline-block";
+		var addbarChild = addbar.firstChild.firstChild;
 		
 		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
-		UOP_global.UOP_shopLoaded = false;
-		shopbarChild.setAttribute('onclick',shopbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_shopcontentLoad();return false;"));
+		addbarChild.setAttribute('onclick',addbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+		addbarChild.addEventListener('click',shopcontentLoad,false)
 		
-		shopbarChild = shopbarChild.childNodes[1];
-		shopbarChild.id = "UOP_shopCampTab";
-		shopbarChild.textContent = "Shop";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(shopbar);
+		addbarChild = addbarChild.childNodes[1];
+		addbarChild.id = "UOP_shopCampTab";
+		addbarChild.textContent = "Shop";
+		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(addbar);
 		
-		var shopcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		shopcontent.appendChild(document.createElement("div"));
-		shopcontent.id = shopcontent.id.substring(0,shopcontent.id.length - 1) + numOfTabbar;
-		var shopcontentChild = shopcontent.lastChild;
-		shopcontentChild.id = "UOP_shopcontentChild";
-		UOP_global.UOP_objects.UOP_shopcontentChild = shopcontentChild;
-		shopcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(shopcontent);
+		var addcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+		addcontent.appendChild(document.createElement("div"));
+		addcontent.id = addcontent.id.substring(0,addcontent.id.length - 1) + numOfTabbar;
+		var addcontentChild = addcontent.lastChild;
+		addcontentChild.id = "UOP_shopcontentChild";
+		O_shopContent = addcontentChild;
+		addcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+		tabbar.getElementsByClassName('tabbody')[0].appendChild(addcontent);
 	}
 }
-function UOP_potToTabBar() {
+function potToTabBar() {
 	//pot => tabbar
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
 	if (tabbar.length > 0)
@@ -1098,11 +1156,12 @@ function UOP_potToTabBar() {
 		
 		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
 		UOP_global.UOP_potLoaded = false;
-		potbarChild.setAttribute('onclick',potbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_potcontentLoad();return false;"));
+		potbarChild.setAttribute('onclick',potbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+		potbarChild.addEventListener('click',potcontentLoad,false);
 		
 		potbarChild = potbarChild.childNodes[1];
 		potbarChild.id = "UOP_potCampTab";
-		potbarChild.textContent = "Potion";
+		potbarChild.textContent = "Pot";
 		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(potbar);
 		
 		var potcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
@@ -1110,12 +1169,12 @@ function UOP_potToTabBar() {
 		potcontent.id = potcontent.id.substring(0,potcontent.id.length - 1) + numOfTabbar;
 		var potcontentChild = potcontent.lastChild;
 		potcontentChild.id = "UOP_potcontentChild";
-		UOP_global.UOP_objects.UOP_potcontentChild = potcontentChild;
-		potcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
+		O_potContent = potcontentChild;
+		potcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 		tabbar.getElementsByClassName('tabbody')[0].appendChild(potcontent);
 	}
 }
-function UOP_craftToTabBar() {
+function craftToTabBar() {
 	//craft => tabbar
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
 	if (tabbar.length > 0)
@@ -1129,7 +1188,8 @@ function UOP_craftToTabBar() {
 		
 		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
 		UOP_global.UOP_craftLoaded = false;
-		craftbarChild.setAttribute('onclick',craftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_craftcontentLoad();return false;"));
+		craftbarChild.setAttribute('onclick',craftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+		craftbarChild.addEventListener('click',craftcontentLoad,false);
 		
 		craftbarChild = craftbarChild.childNodes[1];
 		craftbarChild.id = "UOP_craftCampTab";
@@ -1141,73 +1201,71 @@ function UOP_craftToTabBar() {
 		craftcontent.id = craftcontent.id.substring(0,craftcontent.id.length - 1) + numOfTabbar;
 		var craftcontentChild = craftcontent.lastChild;
 		craftcontentChild.id = "UOP_craftcontentChild";
-		UOP_global.UOP_objects.UOP_craftcontentChild = craftcontentChild;
-		craftcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
+		O_craftContent = craftcontentChild;
+		craftcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 		tabbar.getElementsByClassName('tabbody')[0].appendChild(craftcontent);
 	}
 }
-function UOP_updateHud() {
-	//update precious title advancing
-	O_titlePercentage.textContent = data.user.title_percentage.toString();
-	
-	if (UOP_global.UOP_objects.UOP_baitnum != null) UOP_global.UOP_objects.UOP_baitnum.innerText = UOP_global.UOP_user.user.bait_quantity;
-	if ((S_skin == 2) && (UOP_global.UOP_objects.UOP_hud != null)) UOP_global.UOP_callbackFunctions.UOP_updateSimpleHud();
-}
-function UOP_travel(url) {
-	var travelTab;
-	if (UOP_mode == 0) travelTab = UOP_global.UOP_objects.UOP_campTravel.getElementsByClassName('content')[0]; else travelTab = UOP_global.UOP_objects.UOP_travelcontentChild;
-	UOP_cleanObject(travelTab);
-	travelTab.innerHTML = "Travelling...";
-	var target = new XMLHttpRequest();
-	target.open("GET", url, true);
-	target.onreadystatechange = function()
+function travel(e) {
+	var url = e.target.href;
+	O_travelTab.innerHTML = "Travelling...";
+	var request = new XMLHttpRequest();
+	var htmlstr;
+	request.open("GET", url, true);
+	request.onreadystatechange = function()
 	{
-		if (target.readyState === 4)
+		if (request.readyState === 4)
 		{
-			if (target.status == 200)
+			O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+			if (request.status == 200)
 			{
-				travelTab.innerHTML = "Travel successful, refreshing....";
-				travelTab.innerHTML += '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
-				if (UOP_mode == 0) document.getElementById('UOP_travelCampTab').parentNode.click(); else UOP_global.UOP_objects.UOP_tab.childNodes[3].click();
-				UOP_cleanObject(UOP_global.UOP_objects.UOP_shopcontentChild);
-				UOP_global.UOP_objects.UOP_shopcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
-				UOP_global.UOP_callbackFunctions.UOP_syncUser(true,null);
+				var tmpRespondJSON = JSON.parse(request.responseText);
+				if (tmpRespondJSON.success == 1) htmlstr = "Success ! "; else htmlstr = "Not success ! ";
+				htmlstr += tmpRespondJSON.result;
+				htmlstr += "<br>Refreshing....";
+				htmlstr += '<div class="UOP_waitingTab"></div>';
+				O_travelTab.innerHTML = htmlstr;
+				travelcontentLoad();
+				if (url.indexOf('freeTravel=true') != -1) syncUser(updateUserHash);
 			}
 			else
 			{
-				travelTab.innerHTML = "Something is wrong, please <a href='#' onclick='reload()'>refresh</a> the page. Automatic refresh page in 5 sec";
-				setTimeout(function(){location.reload();}, 5000);
+				O_travelTab.innerHTML = "Network error, refreshing...";
+				O_travelTab.innerHTML += '<div class="UOP_waitingTab"></div>';
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+				travelcontentLoad();
 			}
 		}
 	};
-	target.send(null);
+	request.send(null);
 }
-//SIMPLE skin
-function UOP_simpleSkin() { //~~~~
+function updateUserHash() {
+	sendMessage(data.user.unique_hash,'UOP_userHash');
+}
+//DEFAULT skin
+//Simple
+function simpleSkin() {
+	if ((location.pathname != "/index.php") && (location.pathname != "/")) return;
 	//=======================add things============================
 	//add mobile button
-	var mobile = document.getElementById('UOP_appControlPanel').cloneNode(true);
-	mobile.id = "UOP_appMobile";
-	mobile.className = "hgMenu";
-	mobile.removeAttribute('onclick');
-	mobile.firstChild.firstChild.href = document.getElementsByClassName('switch')[0].firstChild.href;
-	mobile.firstChild.firstChild.firstChild.src = "data:image/png;base64,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";
-	O_hgRow.appendChild(mobile);
+	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
+	simpleSkinButton.id = "UOP_simpleSkin";
+	simpleSkinButton.className = "hgMenu";
+	simpleSkinButton.removeAttribute('onclick');
+	simpleSkinButton.firstChild.firstChild.href = document.getElementsByClassName('switch')[0].firstChild.href;
+	O_hgRow.appendChild(simpleSkinButton);
 	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
 	
 	//add hud
-	var UOP_hud = document.createElement('div');
-	UOP_hud.id = "UOP_hud";
-	UOP_global.UOP_objects.UOP_hud = UOP_hud;
+	O_simpleHud = document.createElement('div');
+	O_simpleHud.id = "UOP_simpleHud";
 	var tmp = document.getElementById('tabbarContent_page');
-	tmp.parentNode.insertBefore(UOP_hud,tmp);
+	tmp.parentNode.insertBefore(O_simpleHud,tmp);
 	
 	//add journal
-	var cleanup;
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
 	if (tabbar.length > 0)
 	{
-		cleanup = 1;
 		tabbar = tabbar[0].firstChild;
 		var journalbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 		journalbar.className = "inactive";
@@ -1233,37 +1291,17 @@ function UOP_simpleSkin() { //~~~~
 		journalcontentChild.id = "UOP_campjournal";
 		tabbar.getElementsByClassName('tabbody')[0].appendChild(journalcontent);
 		
-		//add travel
-		UOP_travelToTabBar();
+		//add tab bars
+		travelToTabBar();
+		shopToTabBar();
+		potToTabBar();
+		craftToTabBar();
 		
-		//add shop tab
-		UOP_shopToTabBar();
-		
-		//add pot tab
-		UOP_potToTabBar();
-		
-		//add craft tab
-		UOP_craftToTabBar();
-		
-		//remove them
-		tmp = tabbar.getElementsByClassName('tabbody')[0];
-		UOP_removeObject(tmp.firstChild.nextSibling,tmp);
-		UOP_removeObject(tmp.firstChild.nextSibling,tmp);
-		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive'); //delete 0 1
-		UOP_removeObject(tmp[0],null);
-		UOP_removeObject(tmp[0],null);
-		tmp = document.getElementById('UOP_journalCampTab').parentNode;
-		tmp.setAttribute('onclick',tmp.getAttribute('onclick').replace("show(3)","show(1)"));
-		tmp = document.getElementById('UOP_campjournal').parentNode;
-		tmp.id = tmp.id.substring(0,tmp.id.length - 1) + "1";
-		tmp = document.getElementById('UOP_travelCampTab').parentNode;
-		tmp.setAttribute('onclick',tmp.getAttribute('onclick').replace("show(4)","show(2)"));
-		tmp = UOP_global.UOP_objects.UOP_campTravel.parentNode;
-		tmp.id = tmp.id.substring(0,tmp.id.length - 1) + "2";
-		tmp = document.getElementById('UOP_shopCampTab').parentNode;
-		tmp.setAttribute('onclick',tmp.getAttribute('onclick').replace("show(5)","show(3)"));
-		tmp = document.getElementById('UOP_shopcontentChild').parentNode;
-		tmp.id = tmp.id.substring(0,tmp.id.length - 1) + "3";
+		//hide them
+		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
+		tmp[0].style.display = "none";
+		tmp[1].style.display = "none";
+		tmp[2].click();
 	}
 	
 	//clean up king reward
@@ -1272,79 +1310,75 @@ function UOP_simpleSkin() { //~~~~
 	if (tmp2.length > 0)
 	{
 		tmp2 = tmp2[0];
-		cleanup = 1;
 		tmp = document.getElementsByClassName('puzzleImageContainer')[0].nextSibling;
-		UOP_removeObject(tmp.firstChild,tmp);
-		UOP_removeObject(tmp.firstChild,tmp);
+		tmp.removeChild(tmp.firstChild);
+		tmp.removeChild(tmp.firstChild);
 		tmp.insertBefore(tmp2,tmp.firstChild);
 		tmp2 = document.createElement("div");
 		tmp2.id = "pagemessage";
 		tmp.insertBefore(tmp2,tmp.firstChild);
 		tmp = document.getElementsByClassName('puzzleImageContainer')[0];
-		UOP_removeObject(tmp,null);
+		tmp.parentNode.removeChild(tmp);
 	}
 	tmp = document.getElementById('pagemessage');
 	if (tmp != null) tmp.style.width = "375px";
 	
 	//cleanup heading
 	tmp = document.getElementById('hgbar');
-	UOP_removeObject(document.getElementById('appRow'),tmp);
-	UOP_removeObject(document.getElementById('newsRowHolder'),tmp);
+	tmp.removeChild(document.getElementById('appRow'));
+	tmp.removeChild(document.getElementById('newsRowHolder'));
 	
-	if (cleanup == 1)
+	//cleanup hud
+	tmp = document.getElementsByClassName('gameinfo')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('gamelogo')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('donatebuttonarea')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('campbutton')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('dropdownmenu')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('marblesplash')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementsByClassName('switch')[0];if(tmp != null) {tmp=tmp.parentNode;tmp.parentNode.removeChild(tmp);}
+	tmp = document.getElementById('trapSpecialBar');if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementById('questBar');if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementById('huntingTips');if(tmp != null) tmp.parentNode.removeChild(tmp);
+	tmp = document.getElementById('journalContainer');if(tmp != null) tmp.parentNode.removeChild(tmp.nextSibling);
+	tmp = document.getElementById('overlayContainer');if(tmp != null) 
+	for (i=0;i < 3;)
 	{
-		//cleanup hud
-		tmp = document.getElementsByClassName('gameinfo')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('gamelogo')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('donatebuttonarea')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('campbutton')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('dropdownmenu')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('marblesplash')[0];if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementsByClassName('switch')[0];if(tmp != null) {tmp=tmp.parentNode;UOP_removeObject(tmp,null);}
-		tmp = document.getElementById('trapSpecialBar');if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementById('questBar');if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementById('huntingTips');if(tmp != null) UOP_removeObject(tmp,null);
-		tmp = document.getElementById('journalContainer');if(tmp != null) UOP_removeObject(tmp.nextSibling,null);
-		tmp = document.getElementById('overlayContainer');if(tmp != null) 
-		for (i=0;i < 3;)
-		{
-			if ((tmp.lastChild.tagName != null) && (tmp.lastChild.tagName.toUpperCase() == "A")) ++i;
-			UOP_removeObject(tmp.lastChild,tmp);
-		}
-		
-		//==========================cleanup things=================
-		tmp = document.getElementById('hgSideBar');
-		if (tmp != null)
-		{
-			tmp.style.margin = "auto";
-			tmp.style.display = "inline-block";
-			tmp2 = 170;
-		}
-		else tmp2 = 0;
-		tmp = document.getElementById('hgAppContainer');
-		tmp.style.width = "375px";
-		tmp.parentNode.style.width = (tmp2 + 375) + "px";
-		document.getElementsByClassName('container')[0].style.width = "inherit";
-		document.getElementsByClassName('headertop')[0].style.height = "auto";
-		var headercontrol = document.getElementsByClassName('headercontrols')[0];
-		headercontrol.style.width = "inherit";
-		headercontrol.style.cssFloat = "none";
-		headercontrol.style.height = "auto";
-		headercontrol.style.backgroundColor = "white";
-		document.getElementById('huntTimer').style.margin = "auto";
+		if ((tmp.lastChild.tagName != null) && (tmp.lastChild.tagName.toUpperCase() == "A")) ++i;
+		tmp.removeChild(tmp.lastChild);
 	}
+	
+	//==========================cleanup things=================
+	tmp = document.getElementById('hgSideBar');
+	if (tmp != null)
+	{
+		tmp.style.margin = "auto";
+		tmp.style.display = "inline-block";
+		tmp2 = 170;
+	}
+	else tmp2 = 0;
+	tmp = document.getElementById('hgAppContainer');
+	tmp.style.width = "375px";
+	tmp.parentNode.style.width = (tmp2 + 375) + "px";
+	document.getElementsByClassName('container')[0].style.width = "inherit";
+	document.getElementsByClassName('headertop')[0].style.height = "auto";
+	var headercontrol = document.getElementsByClassName('headercontrols')[0];
+	headercontrol.style.width = "inherit";
+	headercontrol.style.cssFloat = "none";
+	headercontrol.style.height = "auto";
+	headercontrol.style.backgroundColor = "white";
+	document.getElementById('huntTimer').style.margin = "auto";
 	
 	//cleanup hgRow
 	var rightbanner = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
 	UOP_cleanObject(rightbanner); //rightbanner.innerHTML = "";
 	rightbanner.setAttribute('class','rightEdge');
 	
-	UOP_removeObject(document.getElementById('appLogo'),O_hgRow);
-	UOP_removeObject(document.getElementById('communityMenu'),O_hgRow); 
-	UOP_removeObject(document.getElementById('supportMenu'),O_hgRow);
+	O_hgRow.removeChild(document.getElementById('appLogo'));
+	O_hgRow.removeChild(document.getElementById('communityMenu')); 
+	O_hgRow.removeChild(document.getElementById('supportMenu'));
 	var userGreeting = document.getElementById('userGreeting');
-	UOP_removeObject(userGreeting.nextSibling,O_hgRow); 
-	UOP_removeObject(userGreeting,O_hgRow); 
+	O_hgRow.removeChild(userGreeting.nextSibling); 
+	O_hgRow.removeChild(userGreeting); 
 	
 	separator_right = O_hgRow.getElementsByClassName('hgSeparator right');
 	for (i = 1;i < separator_right.length;++i)
@@ -1357,36 +1391,29 @@ function UOP_simpleSkin() { //~~~~
 		tmp = tmpArr[i].getElementsByTagName('img')[0];
 		if (tmp != null)
 		{
-			UOP_removeObject(tmpArr[i].firstChild,tmpArr[i]);
+			tmpArr[i].removeChild(tmpArr[i].firstChild);
 			tmpArr[i].appendChild(tmp);
 		}
 	}
 	
 	//detailed timer
-	UOP_huntTimer = document.getElementById('huntTimer').cloneNode(true);
-	document.getElementById('hornArea').appendChild(UOP_huntTimer);
+	O_huntTimer = document.getElementById('huntTimer').cloneNode(true);
 	document.getElementById('huntTimer').style.display = "none";
-	UOP_huntTimer.id = "UOP_huntTimerParent";
-	UOP_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt:</span> <span id='UOP_huntTimer'></span>";
-	UOP_huntTimer = document.getElementById('UOP_huntTimer');
-	if (UOP_global.UOP_objects.UOP_hornbutton == undefined)
-	{
-		var hornbutton = document.getElementsByClassName('hornbutton')[0].firstChild;
-		hornbutton.setAttribute("onclick",hornbutton.getAttribute("onclick").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_sound(); return false;"));
-		UOP_global.UOP_objects.UOP_hornbutton = hornbutton;
-	}
+	O_huntTimer.id = "UOP_huntTimerParent";
+	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
+	document.getElementById('hornArea').appendChild(O_huntTimer);
+	O_huntTimer = O_huntTimer.lastChild;
 
-	//start the timers
-	UOP_secondTimerTasks();
+	//register hudupdater
+	registerSoundHornWaiting.push(updateSimpleHud);
 }
-function UOP_updateSimpleHud() { //~~~~
-	var UOP_hud = UOP_global.UOP_objects.UOP_hud;
-	UOP_cleanObject(UOP_hud); //UOP_hud.innerHTML = "";
+function updateSimpleHud() {
+	O_simpleHud.innerHTML = "";
 	
 	//=================add hud=====================
 	//gold point
-	var userObj = UOP_global.UOP_user.user;
-	UOP_hud.innerHTML += "<span class='hudstatlabel'>Gold:</span> " + userObj.gold + " ";
+	var userObj = data.user;
+	O_simpleHud.innerHTML += "<span class='hudstatlabel'>Gold:</span> " + userObj.gold + " ";
 	//timer
 	var locationTimerObject,states,hour,min,timetmp;
 	var currentTime = Math.floor(new Date().getTime() / 1000);
@@ -1408,9 +1435,9 @@ function UOP_updateSimpleHud() { //~~~~
 		hour = Math.floor(timetmp / 3600);
 		min = Math.floor((timetmp % 3600) / 60);
 		
-		UOP_hud.innerHTML += "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].shortstate[j]+ "</span>" + " - " + hour + ":" + (min < 10 ? "0"+min : min) + " ";
+		O_simpleHud.innerHTML += "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].shortstate[j]+ "</span>" + " - " + hour + ":" + (min < 10 ? "0"+min : min) + " ";
 	}
-	UOP_hud.innerHTML += "<br>";
+	O_simpleHud.innerHTML += "<br>";
 	
 	//add tour
 	if(userObj.viewing_atts.hasOwnProperty('tournament')){
@@ -1421,55 +1448,55 @@ function UOP_updateSimpleHud() { //~~~~
 		minleft = Math.floor(timeleft / 60) % 60;
 		secleft = timeleft % 60;
 		var textTime = hourleft +":"+(minleft < 10 ? '0'+minleft : minleft)+":"+(secleft < 10 ? '0'+secleft : secleft);
-		UOP_hud.innerHTML += "<a href=\"tournament.php?tid=" + userObj.viewing_atts.tournament.tournament_id + "\" data-ajax=\"false\" target=\"_blank\" style='font-weight: bold;'>Tournament</a>" + " : " + userObj.viewing_atts.tournament.status[0].toUpperCase() + userObj.viewing_atts.tournament.status.slice(1) + " - " + textTime + " <span class='hudstatlabel'>Rank:</span> " + userObj.viewing_atts.tournament.rank + " <span class='hudstatlabel'>Score:</span> " + userObj.viewing_atts.tournament.score + "<br>";
-		UOP_hud.innerHTML += '<a href=\"team.php\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Team</a> online:' + userObj.viewing_atts.tournament.team_members_online + ' <a href=\"team.php?tab=2\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Journals</a>' + " - Hunts left: " + huntsleft + ' <a href=\"team.php?invite=true\" data-ajax=\"false\" target=\"_blank\"  style="font-weight: bold;">Invite</a><br>'; 
+		O_simpleHud.innerHTML += "<a href=\"tournament.php?tid=" + userObj.viewing_atts.tournament.tournament_id + "\" data-ajax=\"false\" target=\"_blank\" style='font-weight: bold;'>Tournament</a>" + " : " + userObj.viewing_atts.tournament.status[0].toUpperCase() + userObj.viewing_atts.tournament.status.slice(1) + " - " + textTime + " <span class='hudstatlabel'>Rank:</span> " + userObj.viewing_atts.tournament.rank + " <span class='hudstatlabel'>Score:</span> " + userObj.viewing_atts.tournament.score + "<br>";
+		O_simpleHud.innerHTML += '<a href=\"team.php\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Team</a> online:' + userObj.viewing_atts.tournament.team_members_online + ' <a href=\"team.php?tab=2\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Journals</a>' + " - Hunts left: " + huntsleft + ' <a href=\"team.php?invite=true\" data-ajax=\"false\" target=\"_blank\"  style="font-weight: bold;">Invite</a><br>'; 
 	}
 	//SG: Amplifier
 	if (userObj.environment_id == 31){
-		UOP_hud.innerHTML += "<span class='hudstatlabel'>Amplifier:</span> " + userObj.viewing_atts.zzt_amplifier + "<br>";
+		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Amplifier:</span> " + userObj.viewing_atts.zzt_amplifier + "<br>";
 	}
 	
 	//ZT: piece
 	if (userObj.environment_id == 32){
 		var piece = ['None','Pawn1','Pawn2','Pawn3','Pawn4','Pawn5','Pawn6','Pawn7','Pawn8','Kight1','Kight2','Bishop1','Bishop2','Rook1','Rook2','Queen','King']; 
-		UOP_hud.innerHTML += "<span class='hudstatlabel'>Amplifier: </span>" + userObj.viewing_atts.zzt_amplifier + " - <span class='hudstatlabel'>Tech:</span> " + piece[userObj.viewing_atts.zzt_tech_progress] + " - <span class='hudstatlabel'>Mystic:</span> " + piece[userObj.viewing_atts.zzt_mage_progress] + "<br>";
+		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Amplifier: </span>" + userObj.viewing_atts.zzt_amplifier + " - <span class='hudstatlabel'>Tech:</span> " + piece[userObj.viewing_atts.zzt_tech_progress] + " - <span class='hudstatlabel'>Mystic:</span> " + piece[userObj.viewing_atts.zzt_mage_progress] + "<br>";
 	}
 	
 	//Iceberg: Phase, ft
 	if (userObj.environment_id == 40){
-		UOP_hud.innerHTML += "<span class='hudstatlabel'>Phase:</span> " + userObj.quests.QuestIceberg.current_phase + " - " + userObj.quests.QuestIceberg.user_progress + " ft - " + userObj.quests.QuestIceberg.turns_taken + " hunts<br>";
+		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Phase:</span> " + userObj.quests.QuestIceberg.current_phase + " - " + userObj.quests.QuestIceberg.user_progress + " ft - " + userObj.quests.QuestIceberg.turns_taken + " hunts<br>";
 	}
 	
 	//FW
 	if (userObj.environment_id == 33){
 		var fwObj = userObj.viewing_atts.desert_warpath;
-		UOP_hud.innerHTML += "<span class='hudstatlabel'>Victories:</span> " + fwObj.victories + " - <span class='hudstatlabel'>Friends:</span> " + fwObj.friends_in_area + " - <span class='hudstatlabel'>Wave " + fwObj.wave + ":</span><br>";
+		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Victories:</span> " + fwObj.victories + " - <span class='hudstatlabel'>Friends:</span> " + fwObj.friends_in_area + " - <span class='hudstatlabel'>Wave " + fwObj.wave + ":</span><br>";
 		
 		for (var wp in fwObj.wave_population)
-		UOP_hud.innerHTML += "<p style=\"text-align:right;\">" + fwObj.wave_population[wp].name + " - <b style=\"color:blue;\">" + fwObj.wave_population[wp].population + "</b> [" + fwObj.wave_population[wp].status + "]<br>";
+		O_simpleHud.innerHTML += "<p style=\"text-align:right;\">" + fwObj.wave_population[wp].name + " - <b style=\"color:blue;\">" + fwObj.wave_population[wp].population + "</b> [" + fwObj.wave_population[wp].status + "]<br>";
 		
 		for (var wp in fwObj.common_population)
-		UOP_hud.innerHTML += fwObj.common_population[wp].name + " [" + fwObj.common_population[wp].status + "]<br>";
+		O_simpleHud.innerHTML += fwObj.common_population[wp].name + " [" + fwObj.common_population[wp].status + "]<br>";
 		
-		UOP_hud.innerHTML += "<span class='hudstatlabel'>Streak:</span> - " + fwObj.streak.mouse_type + " - <b style=\"color:green;\">" + fwObj.streak.quantity + "</b><br>";
+		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Streak:</span> - " + fwObj.streak.mouse_type + " - <b style=\"color:green;\">" + fwObj.streak.quantity + "</b><br>";
 		
-		UOP_hud.innerHTML += JSON.stringify(userObj.viewing_atts.desert_warpath.streak,null,'\t') ;
+		O_simpleHud.innerHTML += JSON.stringify(userObj.viewing_atts.desert_warpath.streak,null,'\t') ;
 	}
 	
 	//LG
 	if ((userObj.environment_id == 35)||(userObj.environment_id == 41)||(userObj.environment_id == 42)){
 		for (var key in userObj.quests){
 			if (userObj.quests[key].hasOwnProperty('essences')) {
-				UOP_hud.innerHTML += '<em style=\"font-size:1.1em;color:limegreen;\" >Petals : ' + userObj.quests[key].loot_drops.dewthief_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.dreamfluff_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.duskshade_petal_crafting_item.quantity + ']-' + userObj.quests[key].loot_drops.graveblossom_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.plumepearl_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.lunaria_petal_crafting_item.quantity + ']</em><br>';
+				O_simpleHud.innerHTML += '<em style=\"font-size:1.1em;color:limegreen;\" >Petals : ' + userObj.quests[key].loot_drops.dewthief_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.dreamfluff_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.duskshade_petal_crafting_item.quantity + ']-' + userObj.quests[key].loot_drops.graveblossom_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.plumepearl_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.lunaria_petal_crafting_item.quantity + ']</em><br>';
 				i=8;
 				while (userObj.quests[key].essences[i].quantity==0) i--;
 				var sum=0;
 				for (var j=0; j<9; j++){// j<=i
-					if (j<=i) UOP_hud.innerHTML += '<em style=\"color:dodgerblue;\" >['+String.fromCharCode(j+65) + ':'+userObj.quests[key].essences[j].quantity + ']&emsp;</em>';
+					if (j<=i) O_simpleHud.innerHTML += '<em style=\"color:dodgerblue;\" >['+String.fromCharCode(j+65) + ':'+userObj.quests[key].essences[j].quantity + ']&emsp;</em>';
 					if (j<7) sum = sum/3 + userObj.quests[key].essences[j].quantity;//Gur
 				}
-				UOP_hud.innerHTML += '<br>= ' + sum + '&emsp;<em style=\"color:dodgerblue;\" >' +  userObj.quests[key].essences[6].name + '<br></em>';//Gur
-				UOP_hud.innerHTML += '<em style=\"font-size:0.8em;color:grey;\">' + JSON.stringify(userObj.quests[key].minigame ,null,'\t') + '</em><br>';
+				O_simpleHud.innerHTML += '<br>= ' + sum + '&emsp;<em style=\"color:dodgerblue;\" >' +  userObj.quests[key].essences[6].name + '<br></em>';//Gur
+				O_simpleHud.innerHTML += '<em style=\"font-size:0.8em;color:grey;\">' + JSON.stringify(userObj.quests[key].minigame ,null,'\t') + '</em><br>';
 			} 
 			break;
 		}
@@ -1480,11 +1507,11 @@ function UOP_updateSimpleHud() { //~~~~
 			if (smallObj.is_normal){
 				if (smallObj.minigame.bucket_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
-						UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
+						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
 						UOP_alarm(null,null);
 						}else{// <35
 						if (userObj.trinket_item_id != 1020){//sponge id
-							UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****20 charms only****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****20 charms only****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 							UOP_alarm(null,null);
 						}
 					}
@@ -1492,11 +1519,11 @@ function UOP_updateSimpleHud() { //~~~~
 				}else{
 				if (smallObj.minigame.vials_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
-						UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
+						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
 						UOP_alarm(null,null);
 						}else{// <35
 						if ((userObj.trinket_item_id != 1017) && (userObj.trinket_item_id != 1022)){
-							UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****10 charms each****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****10 charms each****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 							UOP_alarm(null,null);
 						}
 					}
@@ -1508,12 +1535,12 @@ function UOP_updateSimpleHud() { //~~~~
 			var smallObj = userObj.quests.QuestLostCity;
 			if (smallObj.is_normal){
 				if (smallObj.minigame.curses[0].active && !smallObj.minigame.curses[0].charm.equipped){
-					UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 					UOP_alarm(null,null);
 				}
 				}else{
 				if (smallObj.minigame.is_cursed && !((smallObj.minigame.curses[0].active && smallObj.minigame.curses[0].charm.equipped) || (smallObj.minigame.curses[1].active && smallObj.minigame.curses[1].charm.equipped) || (smallObj.minigame.curses[2].active && smallObj.minigame.curses[2].charm.equipped) )){
-					UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 					UOP_alarm(null,null);
 				}
 			}
@@ -1523,7 +1550,7 @@ function UOP_updateSimpleHud() { //~~~~
 			var smallObj = userObj.quests.QuestSandDunes;
 			if (smallObj.is_normal){
 				if (smallObj.minigame.has_stampede && (userObj.trinket_item_id != 1016)){
-					UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 					UOP_alarm(null,null);
 				}
 				}else{
@@ -1532,16 +1559,16 @@ function UOP_updateSimpleHud() { //~~~~
 					window.localStorage.setItem("KGSalt", 20);
 					salt = 20;
 				}
-				UOP_hud.innerHTML += 'min Salt to alert : <input type="number" id="SaltInput" name="Salt" value="' + salt.toString() + '"/>';
-				UOP_hud.innerHTML += '&emsp;&emsp;&emsp;&emsp;<input type="button" value="Save" onclick="window.localStorage.setItem(\'KGSalt\', document.getElementById(\'SaltInput\').value);window.location.href=\'/\';"/><br>';
-				UOP_hud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
+				O_simpleHud.innerHTML += 'min Salt to alert : <input type="number" id="SaltInput" name="Salt" value="' + salt.toString() + '"/>';
+				O_simpleHud.innerHTML += '&emsp;&emsp;&emsp;&emsp;<input type="button" value="Save" onclick="window.localStorage.setItem(\'KGSalt\', document.getElementById(\'SaltInput\').value);window.location.href=\'/\';"/><br>';
+				O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
 				if ((smallObj.minigame.salt_charms_used >= salt)&&(userObj.trinket_item_id != 1015)) UOP_alarm(null,null);
 				if ((smallObj.minigame.salt_charms_used == 0)&&(userObj.trinket_item_id == 1015)) UOP_alarm(null,null);
 			}
 		}
 	}
 }
-//DEFAULT skin
+//Full
 function hideImageBox() {
 	O_imageBox.style.display = "none";
 }
@@ -1561,7 +1588,7 @@ function showImageBox(e) {
 	O_imageBox.style.left = (((cX+10+oW)>vW) ? (cX-10-oW) : (cX+10)) + "px";
 	if ((cY-oHd2) < uH) state += 1;
 	if ((cY+oHd2) > vH) state -= 1;
-	O_imageBox.style.top = ((state == 0) ? (cY-oHd2+10) : ((state == 1) ? (uH+10) : (vH-10))) + "px";
+	O_imageBox.style.top = ((state == 0) ? (cY-oHd2+10) : ((state == 1) ? (uH+10) : (vH-oHd2-10))) + "px";
 	
 	O_imageBox.style.display = "block";
 }
@@ -1580,7 +1607,47 @@ function updateJournalImageBox() {
 		else break;
 	}
 }
-function UOP_defaultSkin() { //~~~~
+function updateMinuteTimer() {
+	//update location timer
+	var locationTimerObject,states,timetmp,t1,t2;
+	var currentDate = new Date();
+	var currentTime = Math.floor(currentDate.getTime() / 1000);
+	var i,j;
+	for (i = 0;i < C_LOCATION_TIMES.length;++i)
+	{
+		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
+		for (j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
+		{
+			timetmp -= C_LOCATION_TIMES[i].length[j];
+			if (timetmp < 0) break;
+			else if (timetmp == 0)
+			{
+				j = (j + 1) % C_LOCATION_TIMES[i].length.length;
+				timetmp = -C_LOCATION_TIMES[i].length[j];
+				break;
+			}
+		}
+		timetmp = formatMinute(Math.floor(-timetmp / 60));
+		
+		locationTimerObject = document.getElementById(C_LOCATION_TIMES[i].id);
+		locationTimerObject.innerHTML = "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].state[j]+ "</span>" + " - " + timetmp;
+	}
+	if (data.user.has_shield == false) UOP_LGSTimer.innerHTML = "Expired";
+	else
+	{
+		timetmp = Math.floor((new Date(user.shield_expiry + "UTC+0000") - currentDate) / 1000);
+		timetmp = formatWeek(timetmp);
+		O_LGSTimer.innerText = timetmp;
+	}
+	
+	//set the minute time interval
+	setTimeout(function () { (updateMinuteTimer)() }, C_MinuteInterval * 1000);
+}
+function updateHud() {
+	//update precious title advancing
+	O_titlePercentage.textContent = data.user.title_percentage.toString();
+}
+function defaultSkin() {
 	//===========Change the top row of mousehunt=================
 	var tmp = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
 	tmp.innerHTML = "";
@@ -1606,7 +1673,7 @@ function UOP_defaultSkin() { //~~~~
 	inbox.firstChild.textContent = "INBOX";
 	
 	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
-	simpleSkinButton.id = "UOP_appMobile";
+	simpleSkinButton.id = "UOP_simpleSkin";
 	simpleSkinButton.className = "hgMenu";
 	simpleSkinButton.removeAttribute('onclick');
 	simpleSkinButton.firstChild.firstChild.href = document.getElementsByClassName('switch')[0].firstChild.href;
@@ -1709,7 +1776,8 @@ function UOP_defaultSkin() { //~~~~
 	//=======gameinfo changes=======
 	//add Golden shield expires day (more obvious)
 	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.innerHTML = "<span style='font-weight: bold;'>LGS:</span> <span id='UOP_LGSTimer' style='color: #3B5998; font-weight: bold;'></span>";
-	O_LGSTimer = UOP_LGSTimer;
+	O_LGSTimer = document.getElementById('UOP_LGSTimer');
+	
 	//=======NAVIGATOR changes======
 	//move camp and marketplace button
 	var campbtn = document.getElementsByClassName('campbutton')[0];
@@ -1717,40 +1785,32 @@ function UOP_defaultSkin() { //~~~~
 	campbtn.parentNode.removeChild(campbtn);//move the camp button to donation area for moving easier
 	donationarea.insertBefore(campbtn,donationarea.firstChild);
 	
-	document.getElementsByClassName('marketplace_button')[0].style.margin = "49px 0px 0px -514px"; //move Marketplace
-	document.getElementById('hornArea').style.marginLeft = "101px";
-	
-	//on the last version, we can't make button friend go a bit far because of list limited but
+	//on the last version, we can't make button friend go a bit far because of the limit of list but
 	//on this version, we will change the travel button into campbutton, so it look like the camp button moved back to it place
 	//and camp button (on the right side) to friend button and have the toggle animation so it look like the old friend button
 	//and so we just hide the friend button
 	////change camp => friend
 	campbtn = document.getElementById('campButton');
-	campbtn.style.margin = "70px 0px 0px 20px";
 	campbtn.id = "btn-friend";
-	campbtn.parentNode.setAttribute('onmouseover',"javascript:toggleNavCategory('nav1.friends', 'visible');");
-	campbtn.parentNode.setAttribute('onmouseout',"javascript:toggleNavCategory('nav1.friends', 'hidden');");
-	campbtn.style.background = "url('images/ui/buttons/navbuttons.en.gif?v=4') no-repeat -313px -38px";
-	campbtn.style.width = "74px";
-	campbtn.style.height = "26px";
+	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('nav1.friends', 'visible');");
+	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('nav1.friends', 'hidden');");
+
 	////change travel => camp
 	var travelbtn = document.getElementById('btn-travel');
 	travelbtn.className = "navitem";
-	travelbtn.style.height = "26px";
-	travelbtn.style.width = "69px";
-	travelbtn.style.background = "url('images/ui/buttons/navbuttons.en.gif?v=5') no-repeat 0px 0px";
-	travelbtn.style.backgroundSize = "600%";
 	travelbtn.id = "campButton";
 	////change their href
 	travelbtn.href = campbtn.href;
-	campbtn.href = document.getElementById('btn-friends').href;
+	friendbtn = document.getElementById('btn-friends');
+	campbtn.href = friendbtn.href;
 	
-	
-	//combining friend & team
+	//combining friend & team & add scoreboard from lore
 	var teamnav = document.getElementById('nav1.teams');
 	var teamnavarr = teamnav.childNodes;
 	var friendnav = document.getElementById('nav1.friends');
 	var friendnavarr = friendnav.childNodes;
+	var lorenav = document.getElementById('nav1.lore');
+	var lorenavarr = lorenav.childNodes;
 	for (i = 0;i < friendnavarr.length;++i)
 		if (friendnavarr[i].firstChild.textContent == "Invite Friends")//remove invite friend
 		{
@@ -1770,6 +1830,7 @@ function UOP_defaultSkin() { //~~~~
 			--i;
 		}
 	}
+	friendnav.appendChild(lorenavarr[0]); //add scoreboard from lore
 	
 	//add Mice to inventory
 	var inventory = document.getElementById('nav1.inventory');
@@ -1782,11 +1843,11 @@ function UOP_defaultSkin() { //~~~~
 	//remove the following button, it will be replaced on a different place: Donate, travel, mice, lore, forum, friend
 	UOP_removeObject(document.getElementsByClassName('donatebutton')[0],donationarea);
 	var mainnav = document.getElementsByClassName('navitem lorebutton')[0].parentNode.parentNode;
-	document.getElementById('btn-friends').style.display = "none";	//mainnav.removeChild(document.getElementsByClassName('navitem travelbutton')[0].parentNode);
-	UOP_removeObject(document.getElementsByClassName('navitem micebutton')[0].parentNode,mainnav);
-	UOP_removeObject(document.getElementsByClassName('navitem lorebutton')[0].parentNode,mainnav);
-	UOP_removeObject(document.getElementsByClassName('navitem newsbutton')[0].parentNode,mainnav);
-	UOP_removeObject(document.getElementsByClassName('navitem forumsbutton')[0].parentNode,mainnav);
+	friendbtn.style.display = "none";	//mainnav.removeChild(document.getElementsByClassName('navitem travelbutton')[0].parentNode);
+	mainnav.removeChild(document.getElementsByClassName('navitem micebutton')[0].parentNode);
+	mainnav.removeChild(document.getElementsByClassName('navitem lorebutton')[0].parentNode);
+	mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
+	mainnav.removeChild(document.getElementsByClassName('navitem forumsbutton')[0].parentNode);
 	//fix the dropdown
 	document.getElementById('nav1.shops').style.left = "308px";
 	document.getElementById('nav1.inventory').style.left = "213px";
@@ -1808,101 +1869,70 @@ function UOP_defaultSkin() { //~~~~
 		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
 	}
 	
-	UOP_travelToTabBar();
-	UOP_shopToTabBar();
-	UOP_potToTabBar();
-	UOP_craftToTabBar();
+	travelToTabBar();
+	shopToTabBar();
+	potToTabBar();
+	craftToTabBar();
+	
+	//hide daily & friends
+	tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
+	tmp[0].style.display = "none";
+	tmp[1].style.display = "none";
 	
 	//precious title advancing
-	UOP_titleBar = document.getElementById('hud_titlebar');
-	UOP_titlePercentage = document.getElementById('hud_titlePercentage');
+	O_titleBar = document.getElementById('hud_titlebar');
+	O_titlePercentage = document.getElementById('hud_titlePercentage');
 	
 	//detailed timer
-	UOP_huntTimer = document.getElementById('huntTimer').cloneNode(true);
-	document.getElementById('hornArea').appendChild(UOP_huntTimer);
+	O_huntTimer = document.getElementById('huntTimer').cloneNode(true);
 	document.getElementById('huntTimer').style.display = "none";
-	UOP_huntTimer.id = "UOP_huntTimerParent";
-	UOP_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt:</span> <span id='UOP_huntTimer'></span>";
-	UOP_huntTimer = document.getElementById('UOP_huntTimer');
-	if (UOP_global.UOP_objects.UOP_hornbutton == undefined)
-	{
-		var hornbutton = document.getElementsByClassName('hornbutton')[0].firstChild;
-		hornbutton.setAttribute("onclick",hornbutton.getAttribute("onclick").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_sound(); return false;"));
-		UOP_global.UOP_objects.UOP_hornbutton = hornbutton;
-	}
+	O_huntTimer.id = "UOP_huntTimerParent";
+	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
+	document.getElementById('hornArea').appendChild(O_huntTimer);
+	O_huntTimer = O_huntTimer.lastChild;
+	
 	//location timer
 	var headsup = document.getElementById('hud_statList1').parentNode;
 	var headsuparr = headsup.getElementsByClassName('hudstatlist');
-	UOP_locationTimerParent = document.createElement('div');
-	UOP_locationTimerParent.className = 'hudstatlist';
-	headsup.insertBefore(UOP_locationTimerParent,headsuparr[1].nextSibling);
-	UOP_locationTimerParent.appendChild(document.createElement('ul'));
-	UOP_locationTimerParent = UOP_locationTimerParent.firstChild;
-	UOP_locationTimerParent.id = "UOP_locationTimerParent";
+	var locationTimerParent = document.createElement('div');
+	locationTimerParent.className = 'hudstatlist';
+	headsup.insertBefore(locationTimerParent,headsuparr[1].nextSibling);
+	locationTimerParent.appendChild(document.createElement('ul'));
+	locationTimerParent = locationTimerParent.firstChild;
+	locationTimerParent.id = "UOP_locationTimerParent";
 	
 	var locationTimerObject;
-	UOP_global.UOP_objects.locationTimer = new Array;
+	O_locationTimer = new Array;
 	for (var i = 0;i < 3;++i)
 	{
 		locationTimerObject = document.createElement('li');
-		UOP_locationTimerParent.appendChild(locationTimerObject);
-		locationTimerObject.innerHTML = "<span class='hudstatlabel'>" + C_LOCATION_TIMES[i].name + ":</span> <span id='" + C_LOCATION_TIMES[i].id + "'></span>";
-		UOP_global.UOP_objects.locationTimer[i] = locationTimerObject.lastChild;
+		locationTimerParent.appendChild(locationTimerObject);
+		locationTimerObject.innerHTML = "<span class='hudstatlabel'>" + C_LOCATION_TIMES[i].name + ": </span><span id='" + C_LOCATION_TIMES[i].id + "'></span>";
+		O_locationTimer[i] = locationTimerObject.lastChild;
 	}
-	
-	document.getElementsByClassName('gameinfo')[0].firstChild.firstChild.innerHTML = "<span style='font-weight: bold;'>" + C_LOCATION_TIMES[3].name + ":</span> <span id='" + C_LOCATION_TIMES[3].id + "'></span>";
-	UOP_global.UOP_objects.locationTimer[3] = locationTimerObject.lastChild;
+	document.getElementsByClassName('gameinfo')[0].firstChild.firstChild.innerHTML = "<span style='font-weight: bold;'>" + C_LOCATION_TIMES[3].name + ": </span><span id='" + C_LOCATION_TIMES[3].id + "'></span>";
+	O_locationTimer[3] = locationTimerObject.lastChild;
 	
 	//New bait number location
-	var UOP_baitnum = document.getElementById('hud_baitIcon').parentNode;
-	UOP_baitnum.insertBefore(document.createElement('div'),UOP_baitnum.firstChild);
-	UOP_baitnum = UOP_baitnum.firstChild;
-	UOP_baitnum.id = "UOP_baitnum";
-	UOP_baitnum.setAttribute('style','position: absolute;right: 44px;z-index: 10;text-align: center;cursor: pointer;padding: 3px 5px;-moz-border-radius: 5px;border-radius: 5px;border: 0 none;color: #fff;background-color: #549906;background-image: -webkit-gradient(linear, center bottom, center top, from(#549906), to(#92c315));background-image: -moz-linear-gradient(90deg, #549906, #92c315);font-weight: bold;');
-	UOP_baitnum.innerText = UOP_global.UOP_user.user.bait_quantity;
-	UOP_global.UOP_objects.UOP_baitnum = UOP_baitnum;
+	var baitnum = document.getElementById('hud_baitIcon').parentNode;
+	baitnum.insertBefore(document.createElement('div'),baitnum.firstChild);
+	baitnum = baitnum.firstChild;
+	baitnum.id = "hud_baitQuantity";
+	baitnum.innerText = data.user.bait_quantity;
 	
 	//mouse autozoom
-	UOP_global.UOP_imageBox = document.createElement("div");
-	UOP_global.UOP_imageBox.id = "UOP__global.UOP_imagePhotoZoomBox";
-	UOP_global.UOP_imageBox.setAttribute("style","display:none;padding-top: 5px;padding-right: 5px;padding-bottom: 5px;padding-left: 5px;-webkit-transition-duration: 0s;-moz-transition: opacity 0s ease-in-out;-webkit-transition: opacity 0s ease-in-out;transition: opacity 0s ease-in-out;position: absolute;overflow: hidden;font-size: 0;-moz-box-shadow: 0px 0px 10px rgba(0,0,0,1);-webkit-box-shadow: 0px 0px 10px rgba(0,0,0,1);box-shadow: 0px 0px 10px rgba(0,0,0,1);min-height: 50px;min-width: 50px;pointer-events: none;background: white url(data:image/gif;base64,R0lGODlhEAALALMMAOXp8a2503CHtOrt9L3G2+Dl7vL0+J6sy4yew1Jvp/T2+e/y9v///wAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFCwAMACwAAAAAEAALAAAEK5DJSau91KxlpObepinKIi2kyaAlq7pnCq9p3NZ0aW/47H4dBjAEwhiPlAgAIfkECQsADAAsAAAAAAQACwAABA9QpCQRmhbflPnu4HdJVAQAIfkECQsADAAsAAAAABAACwAABDKQySlSEnOGc4JMCJJk0kEQxxeOpImqIsm4KQPG7VnfbEbDvcnPtpINebJNByiTVS6yCAAh+QQJCwAMACwAAAAAEAALAAAEPpDJSaVISVQWzglSgiAJUBSAdBDEEY5JMQyFyrqMSMq03b67WY2x+uVgvGERp4sJfUyYCQUFJjadj3WzuWQiACH5BAkLAAwALAAAAAAQAAsAAAQ9kMlJq73hnGDWMhJQFIB0EMSxKMoiFcNQmKjKugws0+navrEZ49S7AXfDmg+nExIPnU9oVEqmLpXMBouNAAAh+QQFCwAMACwAAAAAEAALAAAEM5DJSau91KxlpOYSUBTAoiiLZKJSMQzFmjJy+8bnXDMuvO89HIuWs8E+HQYyNAJgntBKBAAh+QQFFAAMACwMAAIABAAHAAAEDNCsJZWaFt+V+ZVUBAA7) no-repeat center center;z-index: 99999;");
-	UOP_global.UOP_imageBox.innerHTML = "<img id=\"UOP__global.UOP_imagePhotoZoomPhoto\" style=\"position: relative; z-index: 2; width: auto; height: auto;\">";
-	UOP_global.UOP_imagePhoto = UOP_global.UOP_imageBox.firstChild;
-	document.body.appendChild(UOP_global.UOP_imageBox);
-	updateJournalImageBox();
+	O_imageBox = document.createElement("div");
+	O_imageBox.id = "UOP_imagePhotoZoomBox";
+	O_imageBox.innerHTML = '<img id="UOP_imagePhotoZoomPhoto">';
+	O_imagePhoto = O_imageBox.firstChild;
+	document.body.appendChild(O_imageBox);
 	
 	//start the timers
-	UOP_secondTimerTasks();
-	UOP_shortTimerTasks();
-	UOP_minuteTimerTasks();
-}
-function updateMinuteTimer() {
-	//update location timer
-	var locationTimerObject,states,timetmp;
-	var currentTime = Math.floor(new Date().getTime() / 1000);
-	var i,j;
-	for (var i = 0;i < C_LOCATION_TIMES.length;++i)
-	{
-		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
-		for (var j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
-		{
-			timetmp -= C_LOCATION_TIMES[i].length[j];
-			if (timetmp < 0) break;
-			else if (timetmp == 0)
-			{
-				j = (j + 1) % C_LOCATION_TIMES[i].length.length;
-				timetmp = -C_LOCATION_TIMES[i].length[j];
-				break;
-			}
-		}
-		timetmp = formatMinute(Math.floor(-timetmp / 60));
-		
-		locationTimerObject = document.getElementById(C_LOCATION_TIMES[i].id);
-		locationTimerObject.innerHTML = "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].state[j]+ "</span>" + " - " + timetmp;
-	}
+	updateMinuteTimer();
 	
-	//set the minute time interval
-	setTimeout(function () { (updateMinuteTimer)() }, UOP_S_MinuteTimer * 1000);
+	//register callbacks
+	registerSoundHornWaiting.push(updateJournalImageBox);
+	registerSoundHornWaiting.push(updateHud);
 }
 //ADS replace
 function removeAds() {
@@ -1915,6 +1945,7 @@ function removeAds() {
 	}
 }
 /*******************AUTO AREA********************/
+//~~~~register callbacks
 function UOP_initStandardAuto() {
 	var autopanel = UOP_global.UOP_objects.UOP_leftPanelTemplate.cloneNode(true);
 	autopanel.id = "UOP_appAutoPanel";
@@ -1948,14 +1979,7 @@ function UOP_initStandardAuto() {
 	css.type = "text/css";
 	css.innerHTML = ".UOPplaying .UOPautopauseimg {display:none;} .UOPpausing .UOPautoplayimg {display:none;}";
 	document.head.appendChild(css);
-	
-	if (UOP_global.UOP_objects.UOP_hornbutton == undefined)
-	{
-		var hornbutton = document.getElementsByClassName('hornbutton')[0].firstChild;
-		hornbutton.setAttribute("onclick",hornbutton.getAttribute("onclick").replace("return false;","UOP_global.UOP_callbackFunctions.UOP_sound(); return false;"));
-		UOP_global.UOP_objects.UOP_hornbutton = hornbutton;
-	}
-	UOP_genDelayTime();
+
 	UOP_autoCoreInit();
 }
 function UOP_autoCoreInit() {
@@ -1964,14 +1988,15 @@ function UOP_autoCoreInit() {
 	UOP_global.UOP_autoVar.UOP_hornRetryCounter = 0;
 	UOP_global.UOP_autoVar.UOP_autoPaused = 0;
 	UOP_autoKRInit();
+	UOP_genDelayTime();
 	UOP_autoCoreAction();
 }
 function UOP_autoCoreDecide(nextTurnSeconds,nextDelaySeconds) {
 	//0 = PAUSE; 1 = KR; 2 = MAIN COUNT; 3 = DELAY COUNT; 4 = HORN; 5 = TIME OUT BUT HORN IS NOT READY
 	if (UOP_global.UOP_autoVar.UOP_autoPaused == 1) return 0; //paused
 	if ((location.pathname != "/index.php") && (location.pathname != "/")) return 0; //not on camp
-	if (UOP_global.UOP_user.user.bait_quantity == 0) return 0; //no bait
-	if (UOP_global.UOP_user.user.has_puzzle == true) return 1; //KR
+	if (data.user.bait_quantity == 0) return 0; //no bait
+	if (data.user.has_puzzle == true) return 1; //KR
 	if (nextTurnSeconds > 0) return 2; //still counting
 	if (nextDelaySeconds > 0) return 3; //count is done, delaying
 	if (UOP_mode == 1)
@@ -1998,7 +2023,7 @@ function UOP_autoCoreAction() {
 		UOP_global.UOP_objects.UOPautoCounter.style.display = "none";
 		UOP_global.UOP_objects.UOPautoSounding.style.display = "none";
 		document.title = "Paused";
-		if (UOP_global.UOP_user.user.bait_quantity == 0) UOP_alarm(null,null); //no bait //~~~~ remove on schedule implement
+		if (data.user.bait_quantity == 0) UOP_alarm(null,null); //no bait //~~~~ remove on schedule implement
 		return;
 	}
 	else if (autoState == 1) //if APPROACHING KR then call puzzleReaction core
@@ -2031,7 +2056,7 @@ function UOP_autoCoreAction() {
 	}
 	else if (autoState == 5) //TIME OUT BUT NOT READY
 	{
-		if (((S_aggressive == 2) && (UOP_global.UOP_user.user.viewing_atts.hasOwnProperty('tournament')) && (UOP_global.UOP_user.user.viewing_atts.tournament.status == "active")) || //if: aggressive in tour AND joined tour AND tour is active
+		if (((S_aggressive == 2) && (data.user.viewing_atts.hasOwnProperty('tournament')) && (data.user.viewing_atts.tournament.status == "active")) || //if: aggressive in tour AND joined tour AND tour is active
 		(S_aggressive == 0))
 		{
 			if (UOP_mode == 1)
@@ -2050,7 +2075,7 @@ function UOP_autoCoreAction() {
 	setTimeout(function () { (UOP_autoCoreAction)() }, UOP_global.UOP_autoVar.UOP_S_AutoTimer * 1000);
 }
 function UOP_autoCoreCallback() {
-	if (UOP_global.UOP_user.user.next_activeturn_seconds == 0)
+	if (data.user.next_activeturn_seconds == 0)
 	{
 		if (UOP_mode == 1)
 		{
@@ -2065,7 +2090,7 @@ function UOP_autoCoreCallback() {
 	}
 	else
 	{
-		UOP_global.UOP_nextTurnTimestamp = UOP_global.UOP_user.user.next_activeturn_seconds * 1000 + new Date().getTime();
+		UOP_global.UOP_nextTurnTimestamp = data.user.next_activeturn_seconds * 1000 + new Date().getTime();
 		UOP_genDelayTime();
 		setTimeout(function () { (UOP_autoCoreAction)() }, UOP_global.UOP_autoVar.UOP_S_AutoTimer * 1000);
 	}
@@ -2099,13 +2124,13 @@ function UOP_autosounded() {
 	{
 		UOP_global.UOP_objects.UOPautoSounding.innerText = "New message !";
 		UOP_global.UOP_callbackFunctions.UOP_syncUser(false,null);
-		if (UOP_global.UOP_user.user.has_puzzle == true) UOP_puzzleStandardReaction();
+		if (data.user.has_puzzle == true) UOP_puzzleStandardReaction();
 	}
 	
 }
 function UOP_autohornwaiting() {
-	if (UOP_global.UOP_user.user.has_puzzle == true) UOP_puzzleStandardReaction();
-	if (UOP_global.UOP_user.user.next_activeturn_seconds == 0)
+	if (data.user.has_puzzle == true) UOP_puzzleStandardReaction();
+	if (data.user.next_activeturn_seconds == 0)
 	{
 		++UOP_global.UOP_autoVar.UOP_hornRetryCounter;
 		if (UOP_global.UOP_autoVar.UOP_hornRetryCounter > 1) location.reload();
@@ -2115,16 +2140,15 @@ function UOP_autohornwaiting() {
 	UOP_global.UOP_objects.UOPautoPauseCounter.style.display = "none";
 	UOP_global.UOP_objects.UOPautoSounding.style.display = "none";
 	UOP_global.UOP_objects.UOPautoCounter.style.display = "block";
-	UOP_genDelayTime();
 	UOP_autoCoreInit();
 }
 function UOP_genDelayTime() {
 	var delaymin = S_delaymin;
 	var delaymax = S_delaymax;
-	if (((S_aggressive == 2) && (UOP_global.UOP_user.user.viewing_atts.hasOwnProperty('tournament')) && (UOP_global.UOP_user.user.viewing_atts.tournament.status == "active")) || //if: aggressive in tour AND joined tour AND tour is active
+	if (((S_aggressive == 2) && (data.user.viewing_atts.hasOwnProperty('tournament')) && (data.user.viewing_atts.tournament.status == "active")) || //if: aggressive in tour AND joined tour AND tour is active
 		(S_aggressive == 0))
 		delaymin = delaymax = 0;
-	if (UOP_global.UOP_user.user.next_activeturn_seconds == 0)
+	if (data.user.next_activeturn_seconds == 0)
 		delaymin = delaymax = 3;
 	if (delaymax > delaymin) UOP_global.UOP_autoVar.UOP_delayTime = Math.floor((Math.random()*(delaymax - delaymin))+delaymin);
 	else UOP_global.UOP_autoVar.UOP_delayTime = delaymin;
@@ -2143,7 +2167,7 @@ function UOP_autoChangeState() {
 		UOP_global.UOP_objects.UOPautoSounding.style.display = "none";
 		UOP_global.UOP_objects.UOPautoPauseCounter.style.display = "none";
 		UOP_global.UOP_objects.UOPautoCounter.style.display = "block";
-		UOP_autoCoreInit();
+		UOP_autoCoreAction();
 	}
 }
 function UOP_puzzleCoreReaction() {
@@ -2258,7 +2282,7 @@ function UOP_autoKRInit() {
 	window.localStorage.UOP_puzzleReloaded = 0;
 }
 function UOP_loadSettingKRimage() {
-	var imageLoadStr = 'puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + UOP_global.UOP_user.user.sn_user_id + '&hash='+UOP_global.UOP_user.user.unique_hash;
+	var imageLoadStr = 'puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
 	document.getElementById('UOP_loadKRimage').src = imageLoadStr;
 	
 	var len = S_settingGroupsLength[0] = 461;

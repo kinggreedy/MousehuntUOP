@@ -1,32 +1,20 @@
-//http://www.mousehuntgame.com/managers/ajax/users/changeenvironment.php?uh=v0Q59WTL&destination=cape_clawed
-sbplus.firstChild.firstChild.firstChild.src = "images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif";
+//managers/ajax/users/solvePuzzle.php?puzzle_answer=<answer>&uh=<hash>
 
-	var inbox = document.getElementById('communityMenu').cloneNode(true);
-	inbox.id = "appInboxTab";
-	inbox.style.marginLeft = "0px";
-	inbox.style.cursor = "pointer";
-	inbox.firstChild.style.color = "#4DA55A";
-	inbox.firstChild.style.backgroundImage = "url(images/ui/hgbar/hgrow_middle_blue.png)";
-	inbox.firstChild.style.cursor = "pointer";
-	inboxnotification.style.backgroundImage = "url(images/ui/hgbar/alert_badge.png)";
-	inboxnotification.style.position = "absolute";
-	inboxnotification.style.right = "0px";
-	inboxnotification.style.top = "0px";
-	inboxnotification.style.zIndex = "10";
-	inboxnotification.style.width = "22px";
-	inboxnotification.style.height = "20px";
-	inboxnotification.style.paddingTop = "2px";
-	inboxnotification.style.color = "white";
-	inboxnotification.style.textAlign = "center";
-	inboxnotification.style.fontWeight = "bold";
-	inboxnotification.style.margin = "5px 205px 0px 0px";
-	inboxnotification.style.cursor = "pointer";
-	
-	freeSB = document.getElementById('UOP_appControlPanel').cloneNode(true);
-	freeSB.id = "UOP_freeSB";
-	freeSB.firstChild.style.width = "65px";
-	var freeSBchild = freeSB.firstChild;
-	freeSBchild.style.width = "54px";
-	freeSBchild = freeSBchild.firstChild.firstChild;
-	freeSBchild.src = "images/ui/buttons/free_sb_offers_btn.gif";
-	
+travelcontentChild.id = "UOP_campTravel";
+travelcontentChild.style.background = "transparent url('images/ui/camp/trap/head_larry.png') no-repeat scroll left top";
+travelcontentChild.firstChild.style.height = "50px";
+travelcontentChild.firstChild.style.marginBottom = "4px";
+travelcontentChild.firstChild.style.padding = "25px 0 8px 90px";
+travelcontentChild.firstChild.firstChild.style.fontSize = "16px";
+travelcontentChild.firstChild.firstChild.style.fontWeight = "bold";
+travelcontentChild.firstChild.lastChild.style.padding = "1px 0 2px";
+travelcontentChild.lastChild.style.marginTop = "0px";
+travelcontentChild.lastChild.style.background = "transparent url('images/ui/camp/trap/content_foot.png') 0 0 no-repeat";
+
+travelcontentChild.id = "UOP_travelcontentChild";
+travelcontentChild.style.background = "transparent url('images/ui/camp/trap/content_body.png') 0 0 repeat-y";
+travelcontentChild.style.padding = "1px 15px 2px";
+
+travelcontentChild.innerHTML = '<div style="background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;"></div>';
+travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+
