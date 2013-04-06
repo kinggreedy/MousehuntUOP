@@ -12,6 +12,8 @@
 // @include     https://mousehuntgame.com/*
 // @include     http://www.mousehuntgame.com/*
 // @include     https://www.mousehuntgame.com/*
+// @include     http://apps.facebook.com/mousehunt/*
+// @include     https://apps.facebook.com/mousehunt/*
 // ==/UserScript==
 
 // The public prefix for this script is UOP_ . All of the outside variable and function will have this prefix.
@@ -100,7 +102,7 @@ var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,0];
 
 //Object Variables
-var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage;
+var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
 var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode;
 var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent;
@@ -161,7 +163,6 @@ function initVariables() {
 	document.head.appendChild(script);
 	
 	registerSoundHornWaiting.push(updateTimeStamp);
-	if ((S_auto != 0) && (S_skin != 0)) registerSoundHornWaiting.push(skinSecondTimer);
 }
 function runTimeCreateConstant() {
 	C_tabNum = new Object;
@@ -247,7 +248,8 @@ function runTimeCreateConstant() {
 	 #appInboxTab {margin-left: 0px; cursor: pointer;}\
 	 #appInboxTab span {color: #4DA55A; background-image: url(images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
 	 #appInboxTab .alerts {background-image: url(images/ui/hgbar/alert_badge.png); position: relative; right: -33px; top: -23px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 0; cursor: pointer;}\
-	 #UOP_freeSB .userPic {width: 54px;background-size: 100%;background-image: url(images/ui/buttons/free_sb_offers_btn.gif);}\
+	 #UOP_freeSB {padding-top: 3px;}\
+	 #UOP_freeSB .picture {width: 54px;}\
 	 .marketplace_button {margin: 49px 0px 0px -514px!important;}\
 	 #btn-friend {margin: 70px 0px 0px 20px; background: url("images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
 	 #campButton {height: 26px; width: 69px; background: url("images/ui/buttons/navbuttons.en.gif?v=5") no-repeat 0px 0px; background-size: 600%}\
@@ -502,7 +504,7 @@ function checkBrowser() {
 	{
 		return 1;
 	}
-	else if ((location.pathname == "/index.php")|| (location.pathname == "/")) //at camp
+	else if ((location.pathname == "/index.php") || (location.pathname == "/")) //at camp
 	{
 		if ((location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //NON-HTTPS
 		{
@@ -515,6 +517,17 @@ function checkBrowser() {
 			return 1;
 		}
 	}
+	else if (window.location.hostname.indexOf('facebook') != -1)
+	{
+		var tmp = document.getElementById('rightCol');
+		tmp.parentNode.removeChild(tmp);
+		tmp = document.createElement('style');
+		tmp.rel = 'text/css';
+		tmp.innerHTML = "#iframe_canvas {min-height: 3036px;";
+		document.head.appendChild(tmp);
+		return 1;
+	}
+	return 0;
 }
 function createTemplate() {
 	var tmp;
@@ -569,7 +582,7 @@ function loadSettings() {
 		window.localStorage.UOP_server = 1;
 		
 		window.localStorage.UOP_simple = 0;
-		window.localStorage.UOP_pause = 0;
+		window.localStorage.UOP_autoPaused = 0;
 		window.localStorage.UOP_aggressive = 2;
 		window.localStorage.UOP_delaymin = 5;
 		window.localStorage.UOP_delaymax = 60;
@@ -933,26 +946,22 @@ function windowScript() {
 //TOOLS
 function skinSecondTimer() {
 	//update sound timer
-	if (data.user.has_puzzle)
+	var nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
+	if (nextTurnSeconds > 0)
 	{
-		document.title = "King's Reward";
-		return;
+		var textTime = formatMinute(nextTurnSeconds);
+		O_huntTimer.textContent = textTime;
+		if (S_auto == 1)
+		{
+			document.title = textTime;
+			if (data.user.has_puzzle) document.title = "King's Reward";
+		}
 	}
 	else
 	{
-		nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
-		if (nextTurnSeconds > 0)
-		{
-			var textTime = formatMinute(nextTurnSeconds);
-			O_huntTimer.textContent = textTime;
-			document.title = textTime;
-		}
-		else
-		{
-			O_huntTimer.textContent = "Ready";
-			document.title = "Ready";
-			return;
-		}
+		O_huntTimer.textContent = "Ready";
+		if (S_auto == 1) document.title = "Ready";
+		return;
 	}
 
 	//set the second time interval
@@ -1305,10 +1314,12 @@ function toggleSkin() {
 function defaultSkin() {
 	manageCSSJSAdder(4);
 	if (S_simple == 0) defaultFullSkin(); else defaultSimpleSkin();
+	
+	registerSoundHornWaiting.push(skinSecondTimer);
 }
 //Simple
 function defaultSimpleSkin() {
-	if ((location.pathname != "/index.php") && (location.pathname != "/")) return;
+	if ((location.pathname != "/index.php") && (location.pathname != "/") && (location.pathname != "/canvas/") && (location.pathname != "/canvas/index.php") ) return;
 	//=======================add things============================
 	//add mobile button
 	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
@@ -1765,6 +1776,7 @@ function defaultFullSkin() {
 		freeSB.id = "UOP_freeSB";
 		freeSB.className = "hgMenu";
 		freeSB.setAttribute('onclick',tmp.getAttribute('onclick'));
+		freeSB.firstChild.firstChild.firstChild.src = "images/ui/buttons/free_sb_offers_btn.gif";
 		tmp.parentNode.removeChild(tmp);
 	}
 	
@@ -1968,18 +1980,14 @@ function defaultFullSkin() {
 	potToTabBar();
 	craftToTabBar();
 	
-	//hide daily & friends
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0];
-	tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
-	tmp[0].style.display = "none";
-	
 	//precious title advancing
 	O_titleBar = document.getElementById('hud_titlebar');
 	O_titlePercentage = document.getElementById('hud_titlePercentage');
 	
 	//detailed timer
-	O_huntTimer = document.getElementById('huntTimer').cloneNode(true);
-	document.getElementById('huntTimer').style.display = "none";
+	O_oldHuntTimer = document.getElementById('huntTimer');
+	O_huntTimer = O_oldHuntTimer.cloneNode(true);
+	O_oldHuntTimer.style.display = "none";
 	O_huntTimer.id = "UOP_huntTimerParent";
 	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
 	document.getElementById('hornArea').appendChild(O_huntTimer);
@@ -2019,6 +2027,14 @@ function defaultFullSkin() {
 	O_imageBox.innerHTML = '<img id="UOP_imagePhotoZoomPhoto">';
 	O_imagePhoto = O_imageBox.firstChild;
 	document.body.appendChild(O_imageBox);
+	
+	if ((location.pathname == "/index.php") || (location.pathname == "/") || (location.pathname == "/canvas/") || (location.pathname == "/canvas/index.php"))
+	{
+		//hide daily & friends
+		var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0];
+		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
+		tmp[0].style.display = "none";
+	}
 	
 	//register callbacks
 	registerSoundHornWaiting.push(updateJournalImageBox);
@@ -2062,7 +2078,8 @@ function initAuto() {
 function autoCoreInit() {
 	A_soundingCounter = 0;
 	A_soundedCounter = 0;
-	A_autoPaused = Number(window.localStorage.UOP_pause);
+	A_autoPaused = Number(window.localStorage.UOP_autoPaused);
+	if (A_autoPaused == 1) O_playing.className = "UOP_pausing";
 	
 	if (data.user.has_puzzle == false)
 	{
@@ -2078,7 +2095,7 @@ function autoCoreInit() {
 function autoCoreDecide(nextTurnSeconds,nextDelaySeconds) {
 	//0 = PAUSE; 1 = KR; 2 = MAIN COUNT; 3 = DELAY COUNT; 4 = HORN; 5 = TIME OUT BUT HORN IS NOT READY
 	if (A_autoPaused == 1) return 0; //paused
-	if ((location.pathname != "/index.php") && (location.pathname != "/")) return 0; //not on camp
+	if ((location.pathname != "/index.php") && (location.pathname != "/") && (location.pathname != "/canvas/") && (location.pathname != "/canvas/index.php")) return 0; //not on camp
 	if (data.user.bait_quantity == 0) return 0; //no bait
 	if (data.user.has_puzzle == true) return 1; //KR
 	if (nextTurnSeconds > 0) return 2; //still counting
@@ -2113,7 +2130,6 @@ function autoCoreAction() {
 		delayTimeText = formatMinute(nextDelaySeconds);
 		O_autoMainCounter.innerText = hornTimeText;
 		O_autoDelayCounter.innerText = delayTimeText;
-		if (O_huntTimer != null) O_huntTimer.textContent = hornTimeText;
 		document.title = hornTimeText + " + " + delayTimeText;
 	}
 	else if (autoState == 3) //if (UPDATE DELAYER) UPDATE DELAYER
@@ -2122,7 +2138,6 @@ function autoCoreAction() {
 		delayTimeText = formatMinute(nextDelaySeconds);
 		O_autoMainCounter.innerText = hornTimeText;
 		O_autoDelayCounter.innerText = delayTimeText;
-		if (O_huntTimer != null) O_huntTimer.textContent = hornTimeText;
 		document.title = delayTimeText;
 	}
 	else if (autoState == 4) //if HORN => HORN
@@ -2220,12 +2235,12 @@ function genDelayTime() {
 function autoChangeState() {
 	if (A_autoPaused == 0)
 	{
-		window.localStorage.UOP_pause = A_autoPaused = 1;
+		window.localStorage.UOP_autoPaused = A_autoPaused = 1;
 		O_playing.className = "UOP_pausing";
 	}
 	else
 	{
-		window.localStorage.UOP_pause = A_autoPaused = 0;
+		window.localStorage.UOP_autoPaused = A_autoPaused = 0;
 		O_playing.className = "UOP_playing";
 		O_autoSounding.style.display = "none";
 		O_autoPauseCounter.style.display = "none";
