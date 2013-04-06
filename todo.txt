@@ -1,1 +1,1 @@
-skin inbox&name,bait,links
+fix empty bait
