@@ -2391,7 +2391,7 @@ function puzzleStandardReaction() {
 			location.reload();
 		}
 	}
-	document.getElementById('puzzle_submit').addEventListener('click',puzzleUserSubmit,false);
+	document.getElementById('puzzle_form').addEventListener('submit',puzzleUserSubmit,false);
 	
 	puzzleCoreReaction();
 		
