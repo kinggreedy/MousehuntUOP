@@ -1,4 +1,2 @@
 friend tab
-dev
-
 KR
