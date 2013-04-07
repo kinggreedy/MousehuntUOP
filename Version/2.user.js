@@ -37,7 +37,7 @@ function checkDocumentState() {
 //==========Constants==========
 //Setting Constants
 var C_version = "2.1";
-var C_versionCompatibleCode = "2";
+var C_versionCompatibleCode = "0";
 var C_ForceNonHTTPS = 1;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -97,7 +97,7 @@ var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 //==========Variables==========
 //Setting Variables
 var S_skin,S_simple,S_auto,S_schedule,S_solve,S_server;
-var S_ads,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_numScript;
+var S_ads,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_numScript;
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,0];
 
@@ -120,6 +120,7 @@ var registerSoundHornWaiting = new Array;
 var nextTurnTimestamp;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var initHud = 0;
+var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr;
 
 /*******************INITIALIZATION********************/
 function initialization() {
@@ -203,7 +204,7 @@ function runTimeCreateConstant() {
 	 .UOP_buttontext {text-align: center;text-transform: uppercase;line-height: 1em;word-wrap: break-word;padding: 0 2px;}\
 	 .UOP_section h2 {border: 0;float: left;margin-bottom: 0;padding-bottom: 5px;font-size: 20px;border-bottom: 2px solid #88b9e3;margin: 10px 0 22px 0;font-family: "Segoe UI Light";font-weight: normal;min-width: 100%;}\
 	 .UOP_settinggroup {transition: all 0.7s ease-in-out;-moz-transition: all 0.7s ease-in-out;-webkit-transition: all 0.7s ease-in-out;-o-transition: all 0.7s ease-in-out;opacity: 1;overflow: hidden;}\
-	 .UOP_setting >label {display: block;padding-top: 10px;font-size: 11px;font-family: "Segoe UI Semibold";text-transform: uppercase;float: left;width: 158px;word-wrap: break-word;}\
+	 .UOP_setting >label {display: block;padding-top: 10px;font-size: 11px;font-family: "Segoe UI Semibold";text-transform: uppercase;float: left;width: 218px;word-wrap: break-word;}\
 	 .UOP_setting ul {list-style-type: none;}\
 	 .UOP_setting {position: relative;border-bottom: 1px solid #d8d8d8;padding-bottom: 18px;margin-top: 18px;min-height: 37px;display: block;clear: both;display: block;}\
 	 .UOP_settingvalue {display: inline-block;}\
@@ -398,6 +399,7 @@ function runTimeCreateConstant() {
 						<label>Data/URL: </label>\
 						<input id="UOP_alarmSrc" type="text">\
 						<button id="UOP_buttonAlarmTest">Test</button>\
+						<br><input type="checkbox" id="UOP_alarmNoti"><label> Notification (Google Chrome only)</label>\
 					</div>\
 				</div>\
 			</div>\
@@ -588,6 +590,7 @@ function loadSettings() {
 		window.localStorage.UOP_delaymax = 60;
 		window.localStorage.UOP_alarm = 0;
 		window.localStorage.UOP_alarmSrc = "";
+		window.localStorage.UOP_alarmNoti = 1;
 		window.localStorage.UOP_alarmStop = 1;
 		window.localStorage.UOP_alarmStopTime = 600;
 		window.localStorage.UOP_trapCheck = 1;
@@ -615,6 +618,7 @@ function loadSettings() {
 	S_delaymax = Number(window.localStorage.UOP_delaymax);
 	S_alarm = Number(window.localStorage.UOP_alarm);
 	S_alarmSrc = window.localStorage.UOP_alarmSrc;
+	S_alarmNoti = Number(window.localStorage.UOP_alarmNoti);
 	S_alarmStop = Number(window.localStorage.UOP_alarmStop);
 	S_alarmStopTime = Number(window.localStorage.UOP_alarmStopTime);
 	S_trapCheck = Number(window.localStorage.UOP_trapCheck);
@@ -653,6 +657,7 @@ function saveSettings() {
 	S_delaymin = document.getElementById("UOP_delaymin").value;
 	S_delaymax = document.getElementById("UOP_delaymax").value;
 	S_alarmSrc = document.getElementById("UOP_alarmSrc").value;
+	S_alarmNoti = document.getElementById("UOP_alarmNoti").checked ? 1 : 0;
 	S_alarmStopTime = document.getElementById("UOP_alarmStopTime").value;
 	S_trapCheckTime = document.getElementById("UOP_trapCheckTime").value;
 	S_cacheKRstr = document.getElementById("UOP_cacheKRstr").value;
@@ -670,6 +675,7 @@ function saveSettings() {
 	window.localStorage.UOP_delaymax = S_delaymax;
 	window.localStorage.UOP_alarm = S_alarm;
 	window.localStorage.UOP_alarmSrc = S_alarmSrc;
+	window.localStorage.UOP_alarmNoti = S_alarmNoti;
 	window.localStorage.UOP_alarmStop = S_alarmStop;
 	window.localStorage.UOP_alarmStopTime = S_alarmStopTime;
 	window.localStorage.UOP_trapCheck = S_trapCheck;
@@ -714,6 +720,7 @@ function initControlPanel() {
 	tmp = document.getElementById("UOP_server").getElementsByTagName('li')[S_server];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	document.getElementById("UOP_cacheKRstr").value = S_cacheKRstr;
 	document.getElementById("UOP_alarmSrc").value = S_alarmSrc;
+	document.getElementById("UOP_alarmNoti").checked = ((S_alarmNoti == 1) ? true : false);
 	document.getElementById("UOP_serverUrl").value = S_serverUrl;
 	document.getElementById("UOP_delaymin").value = S_delaymin;
 	document.getElementById("UOP_delaymax").value = S_delaymax;
@@ -779,11 +786,14 @@ function loadControlPanel() {
 function alarmTest() {
 	var str = window.localStorage.UOP_alarmSrc;
 	var num = S_alarm;
+	var alarmNoti = S_alarmNoti;
 	window.localStorage.UOP_alarmSrc = document.getElementById("UOP_alarmSrc").value;
 	S_alarm = document.getElementById("UOP_alarm").getElementsByClassName("tick")[0].value;
+	S_alarmNoti = document.getElementById("UOP_alarmNoti").checked ? 1 : 0;
 	alarm(null,null);
 	window.localStorage.UOP_alarmSrc = str;
 	S_alarm = num;
+	S_alarmNoti = alarmNoti;
 }
 /*******************TOOLS********************/
 function getCookie(c_name) {
@@ -995,6 +1005,7 @@ function travelcontentLoad() {
 					if (travelcontentChildArr[i].nodeName == "DIV")
 					{
 						travelcontentChildArr[i].firstChild.target = "_blank";
+						travelcontentChildArr[i].firstChild.setAttribute('onclick','return false;');
 						travelcontentChildArr[i].firstChild.addEventListener('click',travel,false);
 					}
 			}
@@ -1264,7 +1275,7 @@ function travel(e) {
 	var url = e.target.href;
 	O_travelTab.innerHTML = "Travelling...";
 	var request = new XMLHttpRequest();
-	var htmlstr;
+	var htmlstr = "";
 	request.open("GET", url, true);
 	request.onreadystatechange = function()
 	{
@@ -1273,9 +1284,13 @@ function travel(e) {
 			O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
 			if (request.status == 200)
 			{
-				var tmpRespondJSON = JSON.parse(request.responseText);
-				if (tmpRespondJSON.success == 1) htmlstr = "Success ! "; else htmlstr = "Not success ! ";
-				htmlstr += tmpRespondJSON.result;
+				try
+				{
+					var tmpRespondJSON = JSON.parse(request.responseText);
+					if (tmpRespondJSON.success == 1) htmlstr = "Success ! "; else htmlstr = "Not success ! ";
+					htmlstr += tmpRespondJSON.result;
+				}
+				catch (excep) {}
 				htmlstr += "<br>Refreshing....";
 				htmlstr += '<div class="UOP_waitingTab"></div>';
 				O_travelTab.innerHTML = htmlstr;
@@ -1431,6 +1446,11 @@ function defaultSimpleSkin() {
 		if ((tmp.lastChild.tagName != null) && (tmp.lastChild.tagName.toUpperCase() == "A")) ++i;
 		tmp.removeChild(tmp.lastChild);
 	}
+	//add hud_baitName because it cause error
+	tmp = document.createElement('span');
+	tmp.id = "hud_baitName";
+	tmp.setAttribute("style","display: none;");
+	document.body.appendChild(tmp);
 	
 	//==========================cleanup things=================
 	tmp = document.getElementById('hgSideBar');
@@ -1483,7 +1503,7 @@ function defaultSimpleSkin() {
 	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
 	document.getElementById('hornArea').appendChild(O_huntTimer);
 	O_huntTimer = O_huntTimer.lastChild;
-
+	
 	//register hudupdater
 	registerSoundHornWaiting.push(updateSimpleHud);
 	journalbarChild.parentNode.click();
@@ -1800,21 +1820,25 @@ function defaultFullSkin() {
 	
 	var arr = support.getElementsByClassName('hgDropDownItem');
 	arr[0].firstChild.href = "/chat.php";
+	arr[0].firstChild.target = "_blank";
 	arr[0].firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
 	arr[0].firstChild.firstChild.nextSibling.textContent = "Chat room";
 	arr[0].firstChild.lastChild.innerHTML = "Join the Mousehunt<br>Chat room";
 	
 	arr[1].firstChild.href = "/forum/index.php?hgref=hgbar";
+	arr[1].firstChild.target = "_blank";
 	arr[1].firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
 	arr[1].firstChild.firstChild.nextSibling.textContent = "Forum";
 	arr[1].firstChild.lastChild.innerHTML = "Take part in discussions<br>with your fellow players.";
 	
 	arr[2].firstChild.href = "/news.php";
+	arr[2].firstChild.target = "_blank";
 	arr[2].firstChild.firstChild.src = "images/ui/hgbar/icon_offense_appeals.png"
 	arr[2].firstChild.firstChild.nextSibling.textContent = "News";
 	arr[2].firstChild.lastChild.innerHTML = "News and updates<br>from ALL the TIME !";
 	
 	arr[3].firstChild.href = "/support.php";
+	arr[3].firstChild.target = "_blank";
 	arr[3].firstChild.firstChild.src = "images/ui/hgbar/icon_technical_support.png"
 	arr[3].firstChild.firstChild.nextSibling.textContent = "Support";
 	arr[3].firstChild.lastChild.innerHTML = "Support from devs<br>for FREE !";
@@ -1822,6 +1846,7 @@ function defaultFullSkin() {
 	hgdropdownitem = support.firstChild.cloneNode(true);
 	hgdropdownitem.className = "hgDropDownItem first";
 	hgdropdownitem.firstChild.href = "/livefeed.php";
+	hgdropdownitem.firstChild.target = "_blank";
 	hgdropdownitem.firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
 	hgdropdownitem.firstChild.firstChild.nextSibling.textContent = "Live Dev Chat";
 	hgdropdownitem.firstChild.lastChild.innerHTML = "Chat with the devs<br>on each friday.";
@@ -1830,16 +1855,19 @@ function defaultFullSkin() {
 	
 	var arr = community.getElementsByClassName('hgDropDownItem');
 	arr[0].firstChild.href = "http://www.mousehuntguide.com/mh-index.php";
+	arr[0].firstChild.target = "_blank";
 	arr[0].firstChild.firstChild.src = "images/ui/hgbar/icon_game_rules.png"
 	arr[0].firstChild.firstChild.nextSibling.textContent = "Spheniscine's Guide";
 	arr[0].firstChild.lastChild.innerHTML = "Spheniscine<br>MouseHunt Walkthrough";
 	
 	arr[1].firstChild.href = "http://amhuguide.com/";
+	arr[1].firstChild.target = "_blank";
 	arr[1].firstChild.firstChild.src = "images/ui/hgbar/icon_fan_page.png"
 	arr[1].firstChild.firstChild.nextSibling.textContent = "AsiaMHU's Guide";
 	arr[1].firstChild.lastChild.innerHTML = "AsiaMH Union<br>MouseHunt Guide";
 	
 	arr[2].firstChild.href = "http://mhwiki.hitgrab.com/wiki/";
+	arr[2].firstChild.target = "_blank";
 	arr[2].firstChild.firstChild.src = "images/ui/hgbar/icon_hitgrab_store.png"
 	arr[2].firstChild.firstChild.nextSibling.textContent = "Hunter's Wiki";
 	arr[2].firstChild.lastChild.innerHTML = "This is<br>Mousehuntpedia";
@@ -2028,10 +2056,11 @@ function defaultFullSkin() {
 	O_imagePhoto = O_imageBox.firstChild;
 	document.body.appendChild(O_imageBox);
 	
-	if ((location.pathname == "/index.php") || (location.pathname == "/") || (location.pathname == "/canvas/") || (location.pathname == "/canvas/index.php"))
+	//hide daily & friends
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
+	if (tabbar.length > 0)
 	{
-		//hide daily & friends
-		var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0];
+		tabbar = tabbar[0];
 		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
 		tmp[0].style.display = "none";
 	}
@@ -2196,6 +2225,7 @@ function autoSounded() {
 	if (A_soundedCounter == 1) //first time
 	{
 		O_autoSounding.innerText = "Completed !";
+		syncUser(null);
 	}
 	else if (A_soundedCounter > 50)
 	{
@@ -2273,16 +2303,19 @@ function alarm(parent,insertPoint) {
 		setTimeout(function() {if (typeof window.home == 'function') window.home(); else window.location.href = "about:home";},S_alarmStopTime * 1000);
 	}
 	
-	if (window.webkitNotifications)
+	if (S_alarmNoti == 1)
 	{
-		var havePermission = window.webkitNotifications.checkPermission();
-		if (havePermission == 0) { // 0 is PERMISSION_ALLOWED
-			var notification = window.webkitNotifications.createNotification('http://www.mousehuntgame.com/images/items/stats/272be17ea6205e914d207e1ccac5bbc3.gif','Toe toe toe!','Có King\'s Reward kìa em ey');
-			notification.onclick = function () {
-				notification.close();
-			}
-			notification.show();
-		} else window.webkitNotifications.requestPermission();
+		if (window.webkitNotifications)
+		{
+			var havePermission = window.webkitNotifications.checkPermission();
+			if (havePermission == 0) { // 0 is PERMISSION_ALLOWED
+				var notification = window.webkitNotifications.createNotification('http://www.mousehuntgame.com/images/items/stats/272be17ea6205e914d207e1ccac5bbc3.gif','Toe toe toe!','Có King\'s Reward kìa em ey');
+				notification.onclick = function () {
+					notification.close();
+				}
+				notification.show();
+			} else window.webkitNotifications.requestPermission();
+		}
 	}
 }
 function KRSolverCache() {
@@ -2310,12 +2343,31 @@ function submitPuzzle(str) {
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerText = "Network error"; //~~~~
-				location.reload();
+				document.getElementById('pagemessage').innerText = "Network error, retrying";
+				puzzleSubmitErrorStr = str;
+				puzzleSubmitErrorHash = data.user.unique_hash;
+				submitPuzzleErrorHandle();
 			}
 		}
 	};
 	request.send(null);
+}
+function submitPuzzleErrorHandle() {
+	switch (puzzleSubmitErrorStage)
+	{
+		case 0: //initStage
+			puzzleSubmitErrorStage = 1;
+			syncUser(submitPuzzleErrorHandle);
+			break;
+		case 1: //userSynced, test our hash
+			puzzleSubmitErrorStage = 2;
+			if (data.user.unique_hash == puzzleSubmitErrorHash) submitPuzzle(puzzleSubmitErrorStr);
+			break;
+		case 2: //already, but our hash changed, and we don't have reset the stage, if KR solved, the page will reload and the stage will be zero again
+			location.reload();
+			break;
+		defafult: break;
+	}
 }
 function puzzleCoreReaction() {
 	switch (A_solveStage)
