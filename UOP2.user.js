@@ -2460,7 +2460,12 @@ function eventAuto() {
 		{
 			var minutetillatertrapcheck = (trapchecktimestamp + 61 - new Date().getMinutes())%60;
 			settimeoutreload = 1;
-			setTimeout(function () {syncUser(null);},minutetillatertrapcheck * 60 * 1000);
+			setTimeout(eventAutoSync,minutetillatertrapcheck * 60 * 1000);
 		}
 	}
+}
+
+function eventAutoSync() {
+	var minutetillatertrapcheck = (trapchecktimestamp + 61 - new Date().getMinutes())%60;
+	setTimeout(eventAutoSync,minutetillatertrapcheck * 60 * 1000);
 }
