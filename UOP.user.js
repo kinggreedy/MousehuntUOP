@@ -20,10 +20,20 @@
 /**************INIT THE SCRIPT****************
  * Attach the init function to DOMContentLoaded
  * And check if the page fail to load in 15 sec.
+ * 
+ * force the non-HTTPS page if we're at camp
  */
+
+if (((location.pathname == "/index.php") || (location.pathname == "/")) && (location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //at camp
+{
+	location.replace("http"+location.href.substr(5)); //force HTTPS
+}
+else
+{
+	checkDocumentState();
+	window.addEventListener('DOMContentLoaded',initialization,false);
+}
 var documentLoadCounter = 0;
-checkDocumentState();
-window.addEventListener('DOMContentLoaded',initialization,false);
 function checkDocumentState() {
 	if (document.readyState == "loading")
 	{
@@ -120,7 +130,7 @@ var registerSoundHornWaiting = new Array;
 var nextTurnTimestamp;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var initHud = 0;
-var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr;
+var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 
 /*******************INITIALIZATION********************/
 function initialization() {
@@ -266,6 +276,7 @@ function runTimeCreateConstant() {
 	 #UOP_campTravel .environment {font-size: 16px; font-weight: bold;}\
 	 #UOP_campTravel .byline {padding: 1px 0 2px;}\
 	 #UOP_campTravel>.footer {margin-top: 0px; background: transparent url("images/ui/camp/trap/content_foot.png") 0 0 no-repeat;}\
+	 #UOP_campTravel .content div {display: inline-block;margin-right: 5px;}\
 	 #UOP_travelcontentChild {background: transparent url("images/ui/camp/trap/content_body.png") 0 0 repeat-y; padding: 1px 15px 2px;}\
 	 .UOP_waitingTab {background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;}',
 	'#UOP_appAutoPanel {float:left;}\
@@ -843,7 +854,8 @@ function callArrayFunction(element, index, array) {
 /*******************SYNC********************/
 function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
-	request.open("GET", "managers/ajax/abtest.php", true);
+	var url = "managers/ajax/abtest.php";
+	request.open("GET", url, true);
 	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
 	request.setRequestHeader("Pragma","no-cache");
 	request.setRequestHeader("If-Modified-Since","Sat, 1 Jan 2000 00:00:00 GMT");
@@ -858,7 +870,8 @@ function syncUser(callbackFunction) {
 			}
 			else
 			{
-				location.reload();
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				setTimeout(function() {location.reload();},5000);//location.reload();
 			}
 		}
 	};
@@ -988,14 +1001,14 @@ function travelcontentLoad() {
 		{
 			if (request.status == 200)
 			{
-				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
+				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/ gold/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
 				if (request.responseText.indexOf("travel.php?freeTravel=true") != -1)
 				{
 					appendbefore = contentDiv.firstChild.nextSibling;
 					freeTravel = appendbefore.cloneNode(true);
 					freeTravel.textContent = "Free Travel";
 					freeTravelMeadow = appendbefore.nextSibling.cloneNode(true);
-					freeTravelMeadow.innerHTML = "<a href='" + request.responseText.substring(request.responseText.indexOf("travel.php?freeTravel=true"),request.responseText.indexOf("'>Follow Larry back to the Meadow")) + "'>Follow Larry to Meadow</a> (0 gold)";
+					freeTravelMeadow.innerHTML = "<a href='" + request.responseText.substring(request.responseText.indexOf("travel.php?freeTravel=true"),request.responseText.indexOf("'>Follow Larry back to the Meadow")) + "'>Follow Larry to Meadow</a> (0)";
 					contentDiv.insertBefore(freeTravel,appendbefore);
 					contentDiv.insertBefore(freeTravelMeadow,appendbefore);
 					contentDiv.insertBefore(document.createElement("br"),appendbefore);
@@ -2359,9 +2372,9 @@ function submitPuzzleErrorHandle() {
 			puzzleSubmitErrorStage = 1;
 			syncUser(submitPuzzleErrorHandle);
 			break;
-		case 1: //userSynced, test our hash
+		case 1: //userSynced, let's try again
 			puzzleSubmitErrorStage = 2;
-			if (data.user.unique_hash == puzzleSubmitErrorHash) submitPuzzle(puzzleSubmitErrorStr);
+			submitPuzzle(puzzleSubmitErrorStr);
 			break;
 		case 2: //already, but our hash changed, and we don't have reset the stage, if KR solved, the page will reload and the stage will be zero again
 			location.reload();
@@ -2391,6 +2404,7 @@ function puzzleStandardReaction() {
 			location.reload();
 		}
 	}
+	puzzleContainer = document.getElementById('puzzleContainer');
 	document.getElementById('puzzle_form').addEventListener('submit',puzzleUserSubmit,false);
 	
 	puzzleCoreReaction();
@@ -2415,7 +2429,7 @@ function puzzleCounter() {
 	setTimeout(function() {puzzleCounter()},C_autoInterval * 1000);
 }
 function puzzleUserSubmit() {
-	var linkElementList = document.getElementById('puzzleContainer').getElementsByTagName('img');
+	var linkElementList = puzzleContainer.getElementsByTagName('img');
 	if (linkElementList.length > 0)
 	{
 		var i;
@@ -2433,4 +2447,5 @@ function puzzleUserSubmit() {
 			}
 		}
 	}
+	setTimeout(puzzleUserSubmit, 1000);
 }
