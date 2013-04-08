@@ -23,7 +23,7 @@
  * 
  * force the non-HTTPS page if we're at camp
  */
-
+var C_ForceNonHTTPS = 1;
 if (((location.pathname == "/index.php") || (location.pathname == "/")) && (location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //at camp
 {
 	location.replace("http"+location.href.substr(5)); //force HTTPS
@@ -48,7 +48,6 @@ function checkDocumentState() {
 //Setting Constants
 var C_version = "2.1";
 var C_versionCompatibleCode = "0";
-var C_ForceNonHTTPS = 1;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
