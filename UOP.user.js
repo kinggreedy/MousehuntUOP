@@ -277,7 +277,7 @@ function runTimeCreateConstant() {
 	 #UOP_campTravel>.footer {margin-top: 0px; background: transparent url("images/ui/camp/trap/content_foot.png") 0 0 no-repeat;}\
 	 #UOP_campTravel .content div {display: inline-block;margin-right: 5px;}\
 	 #UOP_travelcontentChild {background: transparent url("images/ui/camp/trap/content_body.png") 0 0 repeat-y; padding: 1px 15px 2px;}\
-	 .UOP_waitingTab {background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;}',
+	 .UOP_waitingTab {display: block!important;background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;}',
 	'#UOP_appAutoPanel {float:left;}\
 	 #UOP_appAutoPanel label {cursor: pointer;}\
 	 .UOP_playing .UOP_autopauseimg {display:none;}\
@@ -292,7 +292,7 @@ function runTimeCreateConstant() {
 	 #UOP_autoDelayCounter {color: Green;}',
 	'#supplytransfer .tabs {width: auto;}\
 	 #supplytransfer .tabs .tab {float: left;display: inline-block;margin-left: 8px;}\
-	 #supplytransfer .drawer {margin-left: 0; width:auto;padding: 5px;}\
+	 #supplytransfer .drawer {margin-left: 0; width:auto;padding: 5px;float: left;}\
 	 #supplytransfer .drawer .listContainer {width: auto;}\
 	 #supplytransfer .drawer .tabContent .summary {width: auto;}\
 	 #supplytransfer .drawer .tabContent h2 {white-space: nowrap;}\
@@ -817,7 +817,7 @@ function alarmTest() {
 	window.localStorage.UOP_alarmSrc = document.getElementById("UOP_alarmSrc").value;
 	S_alarm = document.getElementById("UOP_alarm").getElementsByClassName("tick")[0].value;
 	S_alarmNoti = document.getElementById("UOP_alarmNoti").checked ? 1 : 0;
-	alarm(null,null);
+	alarm();
 	window.localStorage.UOP_alarmSrc = str;
 	S_alarm = num;
 	S_alarmNoti = alarmNoti;
@@ -886,9 +886,9 @@ function syncUser(callbackFunction) {
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
-				document.title = "Error !!!";
-				//setTimeout(function() {location.reload();},5000);//location.reload();
+				//document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				//document.title = "Error !!!";
+				location.reload();
 			}
 		}
 	};
@@ -1427,7 +1427,7 @@ function giftToTabBar() {
 }
 function travel(e) {
 	var url = e.target.href;
-	O_travelTab.innerHTML = "Travelling...";
+	O_travelTab.innerHTML = "Travelling...<img src='images/ui/loaders/round_bar_green.gif'><div>";
 	var request = new XMLHttpRequest();
 	var htmlstr = "";
 	request.open("GET", url, true);
@@ -1435,7 +1435,6 @@ function travel(e) {
 	{
 		if (request.readyState === 4)
 		{
-			O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
 			if (request.status == 200)
 			{
 				try
@@ -1443,9 +1442,10 @@ function travel(e) {
 					var tmpRespondJSON = JSON.parse(request.responseText);
 					if (tmpRespondJSON.success == 1) htmlstr = "Success ! "; else htmlstr = "Not success ! ";
 					htmlstr += tmpRespondJSON.result;
+					htmlstr += "<br>";
 				}
 				catch (excep) {}
-				htmlstr += "<img src='images/ui/loaders/round_bar_green.gif'><div> Refreshing....</div>";
+				htmlstr += "Refreshing....";
 				htmlstr += '<div class="UOP_waitingTab"></div>';
 				O_travelTab.innerHTML = htmlstr;
 				travelcontentLoad();
@@ -1481,14 +1481,12 @@ function toggleSkin() {
 }
 //DEFAULT skin
 function defaultSkin() {
-	manageCSSJSAdder(4);
 	if (S_simple == 0) defaultFullSkin(); else defaultSimpleSkin();
-	
-	registerSoundHornWaiting.push(skinSecondTimer);
 }
 //Simple
 function defaultSimpleSkin() {
 	if ((location.pathname != "/index.php") && (location.pathname != "/") && (location.pathname != "/canvas/") && (location.pathname != "/canvas/index.php") ) return;
+	manageCSSJSAdder(4);
 	//=======================add things============================
 	//add mobile button
 	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
@@ -1557,7 +1555,7 @@ function defaultSimpleSkin() {
 		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
 		tmp[0].style.display = "none";
 		tmp[1].style.display = "none";
-		tmp[2].click();
+		journalbarChild.parentNode.click();
 	}
 	
 	//clean up king reward
@@ -1662,7 +1660,7 @@ function defaultSimpleSkin() {
 	
 	//register hudupdater
 	registerSoundHornWaiting.push(updateSimpleHud);
-	journalbarChild.parentNode.click();
+	registerSoundHornWaiting.push(skinSecondTimer);
 }
 function updateSimpleHud() {
 	O_simpleHud.innerHTML = "";
@@ -1765,11 +1763,11 @@ function updateSimpleHud() {
 				if (smallObj.minigame.bucket_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
 						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						alarm(null,null);
+						alarm();
 						}else{// <35
 						if (userObj.trinket_item_id != 1020){//sponge id
 							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****20 charms only****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-							alarm(null,null);
+							alarm();
 						}
 					}
 				}
@@ -1777,11 +1775,11 @@ function updateSimpleHud() {
 				if (smallObj.minigame.vials_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
 						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						alarm(null,null);
+						alarm();
 						}else{// <35
 						if ((userObj.trinket_item_id != 1017) && (userObj.trinket_item_id != 1022)){
 							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****10 charms each****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-							alarm(null,null);
+							alarm();
 						}
 					}
 				}
@@ -1793,12 +1791,12 @@ function updateSimpleHud() {
 			if (smallObj.is_normal){
 				if (smallObj.minigame.curses[0].active && !smallObj.minigame.curses[0].charm.equipped){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm(null,null);
+					alarm();
 				}
 				}else{
 				if (smallObj.minigame.is_cursed && !((smallObj.minigame.curses[0].active && smallObj.minigame.curses[0].charm.equipped) || (smallObj.minigame.curses[1].active && smallObj.minigame.curses[1].charm.equipped) || (smallObj.minigame.curses[2].active && smallObj.minigame.curses[2].charm.equipped) )){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm(null,null);
+					alarm();
 				}
 			}
 		}
@@ -1808,7 +1806,7 @@ function updateSimpleHud() {
 			if (smallObj.is_normal){
 				if (smallObj.minigame.has_stampede && (userObj.trinket_item_id != 1016)){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm(null,null);
+					alarm();
 				}
 				}else{
 				var salt = window.localStorage.getItem("KGSalt");
@@ -1819,8 +1817,8 @@ function updateSimpleHud() {
 				O_simpleHud.innerHTML += 'min Salt to alert : <input type="number" id="SaltInput" name="Salt" value="' + salt.toString() + '"/>';
 				O_simpleHud.innerHTML += '&emsp;&emsp;&emsp;&emsp;<input type="button" value="Save" onclick="window.localStorage.setItem(\'KGSalt\', document.getElementById(\'SaltInput\').value);window.location.href=\'/\';"/><br>';
 				O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-				if ((smallObj.minigame.salt_charms_used >= salt)&&(userObj.trinket_item_id != 1015)) alarm(null,null);
-				if ((smallObj.minigame.salt_charms_used == 0)&&(userObj.trinket_item_id == 1015)) alarm(null,null);
+				if ((smallObj.minigame.salt_charms_used >= salt)&&(userObj.trinket_item_id != 1015)) alarm();
+				if ((smallObj.minigame.salt_charms_used == 0)&&(userObj.trinket_item_id == 1015)) alarm();
 			}
 		}
 	}
@@ -1913,6 +1911,7 @@ function updateHud() {
 	}
 }
 function defaultFullSkin() {
+	manageCSSJSAdder(4);
 	//===========Change the top row of mousehunt=================
 	var tmp = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
 	tmp.innerHTML = "";
@@ -2234,6 +2233,7 @@ function defaultFullSkin() {
 	//register callbacks
 	registerSoundHornWaiting.push(updateJournalImageBox);
 	registerSoundHornWaiting.push(updateHud);
+	registerSoundHornWaiting.push(skinSecondTimer);
 }
 //ADS replace
 function removeAds() {
@@ -2451,13 +2451,12 @@ function loadSettingKRimage() {
 	var len = S_settingGroupsLength[0] = 461;
 	O_settingGroup[0].style.height = len + "px";
 }
-function alarm(parent,insertPoint) {
+function alarm() {
 	if (S_alarm == 1)
 	{
 		var audioDiv = document.createElement('div');
 		audioDiv.innerHTML = "<audio controls autoplay loop><source src='" + window.localStorage.UOP_alarmSrc + "'>Upgrade your browser please....this is HTML5</audio>";
-		if ((parent == null) && (insertPoint == null)) O_hornButton.parentNode.parentNode.insertBefore(audioDiv,O_hornButton.parentNode);
-		else parent.insertBefore(audioDiv,insertPoint);
+		O_hornButton.parentNode.parentNode.insertBefore(audioDiv,O_hornButton.parentNode);
 	}
 	else if (S_alarm == 2)
 	{
@@ -2485,13 +2484,14 @@ function alarm(parent,insertPoint) {
 	}
 }
 function KRSolverCache() {
+	--A_solveStage;
+	window.localStorage.UOP_solveStage = A_solveStage;
 	if (S_cacheKRstr != "")
 	{
 		submitPuzzle(S_cacheKRstr);
 		window.localStorage.UOP_cacheKRstr = S_cacheKRstr = "";
 	}
-	--A_solveStage;
-	window.localStorage.UOP_solveStage = A_solveStage;
+	else puzzleCoreReaction();
 }
 function submitPuzzle(str) {
 	var url = "managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
@@ -2539,7 +2539,7 @@ function puzzleCoreReaction() {
 	switch (A_solveStage)
 	{
 		case 2:KRSolverCache();break;
-		default:var puzzleAlarm = document.getElementById('puzzle_form');alarm(puzzleAlarm.parentNode,puzzleAlarm);document.getElementById('puzzle_answer').focus();
+		default:alarm();document.getElementById('puzzle_answer').focus();
 	}
 }
 function puzzleStandardReaction() {
