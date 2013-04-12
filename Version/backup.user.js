@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        A.R.L.T.K.S
+// @name        OTO Mousehunt
 // @author      GaCon
 // @version    	2.1
 // @namespace   GaCon
-// @description All roads lead to King's Stockade on a Bugatti Veyron. Rocket speed !!!
+// @description Bugatti Veyron for Mousehunt. Many gears, rocket speed !
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setValue
 // @grant       GM_getValue
@@ -37,7 +37,7 @@ var documentLoadCounter = 0;
 function checkDocumentState() {
 	if (document.readyState == "loading")
 	{
-		if (documentLoadCounter > 60) location.reload();
+		if (documentLoadCounter > 15) location.reload();
 		++documentLoadCounter;
 		setTimeout(checkDocumentState,1000);
 	}

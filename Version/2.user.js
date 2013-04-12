@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name        OTO Mousehunt
+// @name        A.R.L.T.K.S
 // @author      GaCon
 // @version    	2.1
 // @namespace   GaCon
-// @description Bugatti Veyron for Mousehunt. Many gears, rocket speed !
+// @description All roads lead to King's Stockade on a Bugatti Veyron. Rocket speed !!!
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setValue
 // @grant       GM_getValue
