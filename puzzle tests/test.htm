@@ -169,22 +169,40 @@ function KR_readimg() {
 }
 function KR_imgDataToArr(imgData) {
 	var arrData=KR_createImgArray();
+	var arrData2=KR_createImgArray();
 	var i,j,x,y,z;
 	for (i=0;i<imgData.data.length;i+=4)
 	{
 		j = Math.floor(i/4);
 		x = Math.floor(j/KR_m);
 		y = j%KR_m;
-		arrData[x][y] = (imgData.data[i]+imgData.data[i+1]+imgData.data[i+2] != 0) ? 1 : 0;
+		switch (imgData.data[i]+imgData.data[i+1]+imgData.data[i+2])
+		{
+			case 0: arrData[x][y] = 0;break;
+			case 255: arrData[x][y] = 1;break;
+			case 510: arrData[x][y] = 2;break;
+		}
 	}
-	for (j=0;j<KR_m;++j)
-	{
-		z = 0;
-		for (i = 0;i<KR_n;++i) if (arrData[i][j] == 1) ++z;
-		if (z < 6)
-			for (i = 0;i<KR_n;++i) arrData[i][j] = 0;
-	}
-	return arrData;
+	for (i=0;i<KR_n;++i)
+		for (j=0;j<KR_m;++j)
+			if (arrData[i][j] != 2) arrData2[i][j] = arrData[i][j];
+			else 
+			{
+				arrData2[i][j] = 0;
+				for (z = 0;z < 4;++z)
+				{
+					x = i + KR_dx[z];
+					y = j + KR_dy[z];
+					if ((x < 0) || (x > KR_n)) continue;
+					if ((y < 0) || (y > KR_m)) continue;
+					if (arrData[x][y] == 1)
+					{
+						arrData2[i][j] = 1;
+						break;
+					}
+				}
+			}
+	return arrData2;
 }
 function KR_adder(arrSrc,sfrom,sto,ssuper) {
 	var arrDes = KR_createImgArray();
@@ -373,15 +391,76 @@ function KR_solvecap(img) {
 	KR_context.clearRect(0,0,200,200);
 	KR_context.drawImage(img,0,0);
 	var imgData=KR_context.getImageData(0,0,KR_m,KR_n);
-	var i,j,k,str = "";
-	
+	var i,j,k,c,yy,y,z,s,pat,totalpat,str = "";
+	var bit = 2,ibit = 256 / bit;
 	for (i=0;i<imgData.data.length;i+=4)
 	{
 		if ((imgData.data[i] > 200) && (imgData.data[i+1] > 120)) imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = 0;
+		imgData.data[i] = Math.ceil(imgData.data[i] / ibit) * ibit; //
+		imgData.data[i+1] = Math.ceil(imgData.data[i+1] / ibit) * ibit; //
+		imgData.data[i+2] = Math.ceil(imgData.data[i+2] / ibit) * ibit; //
 	}
+	s = 0; //
+	pat = new Array; //
+	for (j=0;j<KR_m;++j)
+	{
+		c = 0;
+		for (i = 0;i<KR_n;++i)
+		{
+			k = (i*200+j)*4;
+			if (imgData.data[k]+imgData.data[k+1]+imgData.data[k+2] != 0) ++c;
+		}
+		if (c < 6)
+		{
+			for (i = 0;i<KR_n;++i) //remove the lines
+			{
+				k = (i*200+j)*4;
+				imgData.data[k] = imgData.data[k+1] = imgData.data[k+2] = 0;
+			}
+			if (s == 1) //
+			{
+				totalpat = 0;
+				for (i=0;i<bit*bit*bit;++i) pat[i] = 0;
+				for (y = yy;y < j;++y)
+					for (i = 0;i<KR_n;++i)
+					{
+						k = (i*200+y)*4;
+						if (imgData.data[k+2]+imgData.data[k+1]+imgData.data[k] != 0)
+						{
+							totalpat++;
+							z = Math.floor(imgData.data[k+2] / ibit)* bit * bit + Math.floor(imgData.data[k+1] / ibit) * bit + Math.floor(imgData.data[k] / ibit);
+							if (z != 0) pat[z]++;
+						}
+					}
+				for (i = 0;i<bit*bit*bit;++i) pat[i] = pat[i] / totalpat;
+				for (y = yy;y < j;++y)
+					for (i = 0;i<KR_n;++i)
+					{
+						k = (i*200+y)*4;
+						if (imgData.data[k+2]+imgData.data[k+1]+imgData.data[k] != 0)
+						{
+							z = Math.floor(imgData.data[k+2] / ibit)* bit * bit + Math.floor(imgData.data[k+1] / ibit) * bit + Math.floor(imgData.data[k] / ibit);
+							if (pat[z] <= 0.1)
+							{
+								imgData.data[k] = imgData.data[k+1] = 255;
+								imgData.data[k+2] = 0;
+							}
+							else
+							{
+								imgData.data[k] = 255;
+								imgData.data[k+1] = imgData.data[k+2] = 0;
+							}
+						}
+					}
+				s = 0;
+			}
+		}
+		else if (s == 0) {s = 1;yy = j;} //
+	}
+	//dbcontext.putImageData(imgData,0,0); //debug purpose
 	var arrData=KR_imgDataToArr(imgData);
 	
-	arrData = KR_superthinner(arrData);
+	//arrData = KR_superthinner(arrData); //
 	//arrData = KR_superthinner(arrData);
 	//arrData = KR_superfatter(arrData);
 	arrData = KR_cleardirt(arrData);
@@ -399,7 +478,6 @@ function KR_solvecap(img) {
 	//end of DEBUG
 	for (i = 0;i < charArr.n;++i) str += KR_solveChar(charArr.data[i]);
 
-	//dbcontext.putImageData(imgData,0,0); //debug purpose
 	return str;
 }
 
@@ -429,8 +507,8 @@ function initTests() {
 initTests();
 setTimeout(function() {KR_initKR(solvecap);},3000);
 function solvecap() {
-	document.body.appendChild(KR_canvas); //debug
-	document.body.appendChild(KR_canvas2); //debug
+	//document.body.appendChild(KR_canvas); //debug
+	//document.body.appendChild(KR_canvas2); //debug
 	var timestamp;
 	var stra,strb,strc,strre,x;
 	var i,j;
@@ -461,7 +539,7 @@ function solvecap() {
 		{
 			document.getElementById('status' + i).className = "accepted";
 			++totalMatch;
-			if ((stra == strb) && (strb == strc))
+			if ((stra.toUpperCase() == strb.toUpperCase()) && (strb.toUpperCase() == strc.toUpperCase()))
 			{
 				document.getElementById('status' + i).className = "perfect";
 				++totalExactMatch;
@@ -475,7 +553,7 @@ function solvecap() {
 	htmlstr += "Average time: " + ((totalTime/1000)/tests).toFixed(2) + "sec/test" + " - " + (((totalTime/1000)/tests)/3).toFixed(2) + "sec/captcha <br>";
 	document.getElementById('summary').innerHTML = htmlstr;
 	
-	document.getElementById('resulta10').value = KR_solvecap(document.getElementById('testa10'));//debug
+	//document.getElementById('resulta6').value = KR_solvecap(document.getElementById('testa6'));//debug
 }
 
 </script></body></html>
