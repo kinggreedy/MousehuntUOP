@@ -24,7 +24,7 @@
  * force the non-HTTPS page if we're at camp
  */
 var C_ForceNonHTTPS = 1;
-if (((location.pathname == "/index.php") || (location.pathname == "/")) && (location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //at camp
+if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //not at login.php & using HTTP, not HTTPS
 {
 	location.replace("http"+location.href.substr(5)); //force HTTPS
 }
@@ -37,7 +37,7 @@ var documentLoadCounter = 0;
 function checkDocumentState() {
 	if (document.readyState == "loading")
 	{
-		if (documentLoadCounter > 15) location.reload();
+		if (documentLoadCounter > 60) location.reload();
 		++documentLoadCounter;
 		setTimeout(checkDocumentState,1000);
 	}
@@ -126,11 +126,10 @@ var template = new Object;
 var registerSoundHornSounding = new Array;
 var registerSoundHornSounded = new Array;
 var registerSoundHornWaiting = new Array;
-var nextTurnTimestamp;
+var nextTurnTimestamp,atCamp = false;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var initHud = 0;
+var initHud = 0,refreshingByError = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
-
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
@@ -195,7 +194,7 @@ function runTimeCreateConstant() {
 	C_cssArr = ["css/views/en/ItemPurchaseView.css","css/views/en/InventoryItemView.css","css/views/en/CraftingView.css","platform/css/views/en/FlexibleDialogBoxView.css","css/views/en/GiftSelectorView.css","css/views/en/SupplyTransferView.css"];
 	C_jsArr = ["js/views/en/ItemPurchaseView.js","js/views/en/InventoryItemView.js","platform/js/jquery/en/jquery.tmpl.min.js","platform/js/classes/en/radioSelector.js","js/views/en/RecipeView.js", "js/views/en/CraftingView.js","platform/js/views/en/FlexibleDialogBoxView.js","platform/js/jquery/en/jquery.scrollTo-min.js","js/views/en/GiftSelectorView.js","js/views/en/SupplyTransferView.js"];
 	C_cssCustomArr = [
-	'.UOP_hgMenu {padding: 0px 8px 0px 0px;cursor: pointer;height: 35px;}\
+	'.UOP_hgMenu {padding: 0px 8px 0px 0px!important;cursor: pointer;height: 35px;}\
 	 .UOP_hgMenu .userPic {float: left; width :40px; position: relative;}\
 	 .UOP_hgMenu .picture {width: 29px; height: 29px; position: relative; top: 3px; left: 0px; margin-left: 5px}\
 	 .UOP_hgMenu .userText {float: right; padding-top: 10px; font-size: 12px; color: #64696D; font-family: "lucida grande",tahoma,verdana,arial,sans-serif; font-weight: bold;}\
@@ -254,15 +253,15 @@ function runTimeCreateConstant() {
 	 #recipeContentContainer {margin-left: 0px;}',
 	'#userGreeting .userText {padding-right: 8px;}\
 	 #UOP_appTabSuperBrie {float: right;}\
-	 #UOP_appTabSuperBrie .picture{background-size: 100%;background-image: url(images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif);}\
+	 #UOP_appTabSuperBrie .picture{background-size: 100%;background-image: url(/images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif);}\
 	 #appInboxTab {margin-left: 0px; cursor: pointer;}\
-	 #appInboxTab span {color: #4DA55A; background-image: url(images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
-	 #appInboxTab .alerts {background-image: url(images/ui/hgbar/alert_badge.png); position: relative; right: -33px; top: -23px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 0; cursor: pointer;}\
+	 #appInboxTab span {color: #4DA55A; background-image: url(/images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
+	 #appInboxTab .alerts {background-image: url(/images/ui/hgbar/alert_badge.png); position: relative; right: -33px; top: -23px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 0; cursor: pointer;}\
 	 #UOP_freeSB {padding-top: 3px;}\
 	 #UOP_freeSB .picture {width: 54px;}\
 	 .marketplace_button {margin: 49px 0px 0px -514px!important;}\
-	 #btn-friend {margin: 70px 0px 0px 20px; background: url("images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
-	 #campButton {height: 26px; width: 69px; background: url("images/ui/buttons/navbuttons.en.gif?v=5") no-repeat 0px 0px; background-size: 600%}\
+	 #btn-friend {margin: 70px 0px 0px 20px; background: url("/images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
+	 #campButton {height: 26px; width: 69px; background: url("/images/ui/buttons/navbuttons.en.gif?v=5") no-repeat 0px 0px; background-size: 600%}\
 	 #hud_baitQuantity {position: absolute;right: 44px;z-index: 10;text-align: center;cursor: pointer;padding: 3px 5px;-moz-border-radius: 5px;border-radius: 5px;border: 0 none;color: #fff;background-color: #549906;background-image: -webkit-gradient(linear, center bottom, center top, from(#549906), to(#92c315));background-image: -moz-linear-gradient(90deg, #549906, #92c315);font-weight: bold;}\
 	 #UOP_imagePhotoZoomBox {opacity: 0;padding-top: 5px;padding-right: 5px;padding-bottom: 5px;padding-left: 5px;-webkit-transition-duration: 0s;-moz-transition: opacity 0s ease-in-out;-webkit-transition: opacity 0s ease-in-out;transition: opacity 0s ease-in-out;position: absolute;overflow: hidden;font-size: 0;-moz-box-shadow: 0px 0px 10px rgba(0,0,0,1);-webkit-box-shadow: 0px 0px 10px rgba(0,0,0,1);box-shadow: 0px 0px 10px rgba(0,0,0,1);min-height: 50px;min-width: 50px;pointer-events: none;background: white url("data:image/gif;base64,R0lGODlhEAALALMMAOXp8a2503CHtOrt9L3G2+Dl7vL0+J6sy4yew1Jvp/T2+e/y9v///wAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQFCwAMACwAAAAAEAALAAAEK5DJSau91KxlpObepinKIi2kyaAlq7pnCq9p3NZ0aW/47H4dBjAEwhiPlAgAIfkECQsADAAsAAAAAAQACwAABA9QpCQRmhbflPnu4HdJVAQAIfkECQsADAAsAAAAABAACwAABDKQySlSEnOGc4JMCJJk0kEQxxeOpImqIsm4KQPG7VnfbEbDvcnPtpINebJNByiTVS6yCAAh+QQJCwAMACwAAAAAEAALAAAEPpDJSaVISVQWzglSgiAJUBSAdBDEEY5JMQyFyrqMSMq03b67WY2x+uVgvGERp4sJfUyYCQUFJjadj3WzuWQiACH5BAkLAAwALAAAAAAQAAsAAAQ9kMlJq73hnGDWMhJQFIB0EMSxKMoiFcNQmKjKugws0+navrEZ49S7AXfDmg+nExIPnU9oVEqmLpXMBouNAAAh+QQFCwAMACwAAAAAEAALAAAEM5DJSau91KxlpOYSUBTAoiiLZKJSMQzFmjJy+8bnXDMuvO89HIuWs8E+HQYyNAJgntBKBAAh+QQFFAAMACwMAAIABAAHAAAEDNCsJZWaFt+V+ZVUBAA7") no-repeat center center;z-index: 99999;}\
 	 #UOP_imagePhotoZoomPhoto {position: relative; z-index: 2; width: auto; height: auto;}\
@@ -270,14 +269,14 @@ function runTimeCreateConstant() {
 	 #hgDropDownSupport {right: 5px;}\
 	 #UOP_simpleSkin {float: left;}\
 	 #UOP_simpleSkin .picture {background: url("data:image/png;base64,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")}\
-	 #UOP_campTravel {background: transparent url("images/ui/camp/trap/head_larry.png") no-repeat scroll left top;}\
+	 #UOP_campTravel {background: transparent url("/images/ui/camp/trap/head_larry.png") no-repeat scroll left top;}\
 	 #UOP_campTravel>.header {height: 50px; margin-bottom: 4px; padding: 25px 0 8px 90px;}\
 	 #UOP_campTravel .environment {font-size: 16px; font-weight: bold;}\
 	 #UOP_campTravel .byline {padding: 1px 0 2px;}\
-	 #UOP_campTravel>.footer {margin-top: 0px; background: transparent url("images/ui/camp/trap/content_foot.png") 0 0 no-repeat;}\
+	 #UOP_campTravel>.footer {margin-top: 0px; background: transparent url("/images/ui/camp/trap/content_foot.png") 0 0 no-repeat;}\
 	 #UOP_campTravel .content div {display: inline-block;margin-right: 5px;}\
-	 #UOP_travelcontentChild {background: transparent url("images/ui/camp/trap/content_body.png") 0 0 repeat-y; padding: 1px 15px 2px;}\
-	 .UOP_waitingTab {display: block!important;background: url(images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;}',
+	 #UOP_travelcontentChild {background: transparent url("/images/ui/camp/trap/content_body.png") 0 0 repeat-y; padding: 1px 15px 2px;}\
+	 .UOP_waitingTab {display: block!important;background: url(/images/ui/loaders/mouse_loading_large.gif) center center no-repeat;height: 300px;}',
 	'#UOP_appAutoPanel {float:left;}\
 	 #UOP_appAutoPanel label {cursor: pointer;}\
 	 .UOP_playing .UOP_autopauseimg {display:none;}\
@@ -518,9 +517,11 @@ function runTimeCreateConstant() {
 	delete popup;";
 }
 function checkBrowser() {
+	if (window.self !== window.top) return 1; //fuck that iframe
+	if ((location.pathname == "/index.php") || (location.pathname == "/") || (location.pathname == "/canvas/") || (location.pathname == "/canvas/index.php")) atCamp = true;
 	if (window.location.pathname.indexOf('/login.php') != -1) //at login.php
 	{
-		if (document.getElementsByClassName('login').length == 0) // && logged in
+		if (document.getElementsByTagName('form').length == 0) // && logged in
 		location.href = "/";
 		return 1;
 	}
@@ -533,16 +534,11 @@ function checkBrowser() {
 	{
 		return 1;
 	}
-	else if ((location.pathname == "/index.php") || (location.pathname == "/")) //at camp
+	else if (atCamp)
 	{
-		if ((location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //NON-HTTPS
-		{
-			location.replace("http"+location.href.substr(5)); //force HTTPS
-			return 1;
-		}
 		if (document.getElementById('campButton') == null) // no camp button aka error
 		{
-			setTimeout(function () {location.reload();},10000);
+			setTimeout(function () {location.reload();},60000);
 			return 1;
 		}
 	}
@@ -870,7 +866,7 @@ function callArrayFunction(element, index, array) {
 /*******************SYNC********************/
 function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
-	var url = "managers/ajax/abtest.php";
+	var url = "/managers/ajax/abtest.php";
 	request.open("GET", url, true);
 	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
 	request.setRequestHeader("Pragma","no-cache");
@@ -960,7 +956,7 @@ function manageCSSJSAdder(num) {
 }
 function sendMessage(str,callfunc) {
 	O_sendMessage.className = callfunc;
-	O_sendMessage.innerText = str;
+	O_sendMessage.textContent = str;
 	O_sendMessage.click();
 }
 function receiveMessage() {
@@ -979,8 +975,8 @@ function UOP_receiveMessage() {
 }
 function windowScript() {
 	var O_sendMessage = document.getElementById('UOP_toScriptMessage'),O_receiveMessage = document.getElementById('UOP_toWindowMessage');
-	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.innerText;}
-	function UOP_eval() {eval(O_receiveMessage.innerText);}
+	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.textContent;}
+	function UOP_eval() {eval(O_receiveMessage.textContent);}
 }
 /*******************SKIN AREA********************/
 //TOOLS
@@ -1011,7 +1007,7 @@ function travelcontentLoad() {
 	var request = new XMLHttpRequest();
 	var freeTravel,freeTravelMeadow;
 	var contentDiv = O_travelContent;
-	request.open("GET", "travel.php?quick=1", true);
+	request.open("GET", "/travel.php?quick=1", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1052,7 +1048,7 @@ function shopcontentLoad() {
 	manageCSSJSAdder(1);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_shopContent;
-	request.open("GET", "shops.php", true);
+	request.open("GET", "/shops.php", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1078,7 +1074,7 @@ function shopcontentLoad() {
 				tmp = HTMLdiv.getElementsByClassName('anchorLink');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('journalContainer');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('control');tmp[tmp.length - 1].parentNode.style.display = "inline-block";
-				tmp[0].firstChild.innerText = "Cheese";tmp[4].firstChild.innerText = "Charm";
+				tmp[0].firstChild.textContent = "Cheese";tmp[4].firstChild.textContent = "Charm";
 				for (var i = 0;i < tmp.length;++i)
 				{
 					tmp[i].firstChild.addEventListener('click',simulateTabBar,false);
@@ -1160,7 +1156,7 @@ function craftcontentLoad() {
 					tmp[i].parentNode.removeChild(tmp[i]);
 				}
 				tmp = HTMLdiv.getElementsByClassName('craftingTabs')[0].getElementsByTagName('li')[4].getElementsByTagName('a')[0];
-				tmp.innerText = "Item";
+				tmp.textContent = "Item";
 			}
 			else
 			{
@@ -1233,201 +1229,177 @@ function giftcontentLoad() {
 }
 function travelToTabBar() {
 	//travel => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var travelbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		travelbar.className = "inactive";
-		var travelbarChild = travelbar.firstChild.firstChild;
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
+	
+	var travelbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	travelbar.className = "inactive";
+	var travelbarChild = travelbar.firstChild.firstChild;
 
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
-		travelbarChild.setAttribute('onclick',travelbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		travelbarChild.addEventListener('click',travelcontentLoad,false);
-		
-		travelbarChild = travelbarChild.childNodes[1];
-		travelbarChild.id = "UOP_travelCampTab";
-		travelbarChild.textContent = "Travel";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(travelbar);
-		
-		var travelcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		travelcontent.appendChild(document.getElementById('huntingTips').cloneNode(true));
-		travelcontent.id = travelcontent.id.substring(0,travelcontent.id.length - 1) + numOfTabbar;
-		var travelcontentChild = travelcontent.lastChild;
-		O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
-		travelcontentChild.id = "UOP_campTravel";
-		travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
-		travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a>';
-		travelcontentChild = travelcontentChild.firstChild.nextSibling;
-		travelcontentChild.id = "UOP_travelcontentChild";
-		O_travelContent = travelcontentChild;
-		travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
-	}
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	travelbarChild.setAttribute('onclick',travelbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	travelbarChild.addEventListener('click',travelcontentLoad,false);
+	
+	travelbarChild = travelbarChild.childNodes[1];
+	travelbarChild.id = "UOP_travelCampTab";
+	travelbarChild.textContent = "Travel";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(travelbar);
+	
+	var travelcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	travelcontent.appendChild(document.getElementById('huntingTips').cloneNode(true));
+	travelcontent.id = travelcontent.id.substring(0,travelcontent.id.length - 1) + numOfTabbar;
+	var travelcontentChild = travelcontent.lastChild;
+	O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
+	travelcontentChild.id = "UOP_campTravel";
+	travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
+	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a>';
+	travelcontentChild = travelcontentChild.firstChild.nextSibling;
+	travelcontentChild.id = "UOP_travelcontentChild";
+	O_travelContent = travelcontentChild;
+	travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
 }
 function shopToTabBar() {
 	//shop => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var addbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		addbar.className = "inactive";
-		addbar.style.display = "inline-block";
-		var addbarChild = addbar.firstChild.firstChild;
-		
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
-		addbarChild.setAttribute('onclick',addbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		addbarChild.addEventListener('click',shopcontentLoad,false)
-		
-		addbarChild = addbarChild.childNodes[1];
-		addbarChild.id = "UOP_shopCampTab";
-		addbarChild.textContent = "Shop";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(addbar);
-		
-		var addcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		addcontent.appendChild(document.createElement("div"));
-		addcontent.id = addcontent.id.substring(0,addcontent.id.length - 1) + numOfTabbar;
-		var addcontentChild = addcontent.lastChild;
-		addcontentChild.id = "UOP_shopcontentChild";
-		O_shopContent = addcontentChild;
-		addcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(addcontent);
-	}
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
+
+	var addbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	addbar.className = "inactive";
+	addbar.style.display = "inline-block";
+	var addbarChild = addbar.firstChild.firstChild;
+	
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	addbarChild.setAttribute('onclick',addbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	addbarChild.addEventListener('click',shopcontentLoad,false)
+	
+	addbarChild = addbarChild.childNodes[1];
+	addbarChild.id = "UOP_shopCampTab";
+	addbarChild.textContent = "Shop";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(addbar);
+	
+	var addcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	addcontent.appendChild(document.createElement("div"));
+	addcontent.id = addcontent.id.substring(0,addcontent.id.length - 1) + numOfTabbar;
+	var addcontentChild = addcontent.lastChild;
+	addcontentChild.id = "UOP_shopcontentChild";
+	O_shopContent = addcontentChild;
+	addcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(addcontent);
 }
 function potToTabBar() {
 	//pot => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var potbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		potbar.className = "inactive";
-		potbar.style.display = "inline-block";
-		var potbarChild = potbar.firstChild.firstChild;
-		
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
 
-		potbarChild.setAttribute('onclick',potbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		potbarChild.addEventListener('click',potcontentLoad,false);
-		
-		potbarChild = potbarChild.childNodes[1];
-		potbarChild.id = "UOP_potCampTab";
-		potbarChild.textContent = "Potion";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(potbar);
-		
-		var potcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		potcontent.appendChild(document.createElement("div"));
-		potcontent.id = potcontent.id.substring(0,potcontent.id.length - 1) + numOfTabbar;
-		var potcontentChild = potcontent.lastChild;
-		potcontentChild.id = "UOP_potcontentChild";
-		O_potContent = potcontentChild;
-		potcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(potcontent);
-	}
+	var potbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	potbar.className = "inactive";
+	potbar.style.display = "inline-block";
+	var potbarChild = potbar.firstChild.firstChild;
+	
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+
+	potbarChild.setAttribute('onclick',potbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	potbarChild.addEventListener('click',potcontentLoad,false);
+	
+	potbarChild = potbarChild.childNodes[1];
+	potbarChild.id = "UOP_potCampTab";
+	potbarChild.textContent = "Potion";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(potbar);
+	
+	var potcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	potcontent.appendChild(document.createElement("div"));
+	potcontent.id = potcontent.id.substring(0,potcontent.id.length - 1) + numOfTabbar;
+	var potcontentChild = potcontent.lastChild;
+	potcontentChild.id = "UOP_potcontentChild";
+	O_potContent = potcontentChild;
+	potcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(potcontent);
 }
 function craftToTabBar() {
 	//craft => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var craftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		craftbar.className = "inactive";
-		craftbar.style.display = "inline-block";
-		var craftbarChild = craftbar.firstChild.firstChild;
-		
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
+	
+	var craftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	craftbar.className = "inactive";
+	craftbar.style.display = "inline-block";
+	var craftbarChild = craftbar.firstChild.firstChild;
+	
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
 
-		craftbarChild.setAttribute('onclick',craftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		craftbarChild.addEventListener('click',craftcontentLoad,false);
-		
-		craftbarChild = craftbarChild.childNodes[1];
-		craftbarChild.id = "UOP_craftCampTab";
-		craftbarChild.textContent = "Craft";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(craftbar);
-		
-		var craftcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		craftcontent.appendChild(document.createElement("div"));
-		craftcontent.id = craftcontent.id.substring(0,craftcontent.id.length - 1) + numOfTabbar;
-		var craftcontentChild = craftcontent.lastChild;
-		craftcontentChild.id = "UOP_craftcontentChild";
-		O_craftContent = craftcontentChild;
-		craftcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(craftcontent);
-	}
+	craftbarChild.setAttribute('onclick',craftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	craftbarChild.addEventListener('click',craftcontentLoad,false);
+	
+	craftbarChild = craftbarChild.childNodes[1];
+	craftbarChild.id = "UOP_craftCampTab";
+	craftbarChild.textContent = "Craft";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(craftbar);
+	
+	var craftcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	craftcontent.appendChild(document.createElement("div"));
+	craftcontent.id = craftcontent.id.substring(0,craftcontent.id.length - 1) + numOfTabbar;
+	var craftcontentChild = craftcontent.lastChild;
+	craftcontentChild.id = "UOP_craftcontentChild";
+	O_craftContent = craftcontentChild;
+	craftcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(craftcontent);
 }
 function supplyToTabBar() {
 	//supply => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var supplybar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		supplybar.className = "inactive";
-		supplybar.style.display = "inline-block";
-		var supplybarChild = supplybar.firstChild.firstChild;
-		
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
+	
+	var supplybar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	supplybar.className = "inactive";
+	supplybar.style.display = "inline-block";
+	var supplybarChild = supplybar.firstChild.firstChild;
+	
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
 
-		supplybarChild.setAttribute('onclick',supplybarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		supplybarChild.addEventListener('click',supplycontentLoad,false);
-		
-		supplybarChild = supplybarChild.childNodes[1];
-		supplybarChild.id = "UOP_supplyCampTab";
-		supplybarChild.textContent = "Supply";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(supplybar);
-		
-		var supplycontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		supplycontent.appendChild(document.createElement("div"));
-		supplycontent.id = supplycontent.id.substring(0,supplycontent.id.length - 1) + numOfTabbar;
-		var supplycontentChild = supplycontent.lastChild;
-		supplycontentChild.id = "UOP_supplycontentChild";
-		O_supplyContent = supplycontentChild;
-		supplycontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(supplycontent);
-	}
+	supplybarChild.setAttribute('onclick',supplybarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	supplybarChild.addEventListener('click',supplycontentLoad,false);
+	
+	supplybarChild = supplybarChild.childNodes[1];
+	supplybarChild.id = "UOP_supplyCampTab";
+	supplybarChild.textContent = "Supply";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(supplybar);
+	
+	var supplycontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	supplycontent.appendChild(document.createElement("div"));
+	supplycontent.id = supplycontent.id.substring(0,supplycontent.id.length - 1) + numOfTabbar;
+	var supplycontentChild = supplycontent.lastChild;
+	supplycontentChild.id = "UOP_supplycontentChild";
+	O_supplyContent = supplycontentChild;
+	supplycontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(supplycontent);
 }
 function giftToTabBar() {
 	//gift => tabbar
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		
-		var giftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		giftbar.className = "inactive";
-		giftbar.style.display = "inline-block";
-		var giftbarChild = giftbar.firstChild.firstChild;
-		
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft')[0].firstChild;
+	
+	var giftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
+	giftbar.className = "inactive";
+	giftbar.style.display = "inline-block";
+	var giftbarChild = giftbar.firstChild.firstChild;
+	
+	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
 
-		giftbarChild.setAttribute('onclick',giftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		giftbarChild.addEventListener('click',giftcontentLoad,false);
-		
-		giftbarChild = giftbarChild.childNodes[1];
-		giftbarChild.id = "UOP_giftCampTab";
-		giftbarChild.textContent = "Gift";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(giftbar);
-		
-		var giftcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		giftcontent.appendChild(document.createElement("div"));
-		giftcontent.id = giftcontent.id.substring(0,giftcontent.id.length - 1) + numOfTabbar;
-		var giftcontentChild = giftcontent.lastChild;
-		giftcontentChild.id = "UOP_giftcontentChild";
-		O_giftContent = giftcontentChild;
-		giftcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(giftcontent);
-	}
+	giftbarChild.setAttribute('onclick',giftbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
+	giftbarChild.addEventListener('click',giftcontentLoad,false);
+	
+	giftbarChild = giftbarChild.childNodes[1];
+	giftbarChild.id = "UOP_giftCampTab";
+	giftbarChild.textContent = "Gift";
+	tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(giftbar);
+	
+	var giftcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
+	giftcontent.appendChild(document.createElement("div"));
+	giftcontent.id = giftcontent.id.substring(0,giftcontent.id.length - 1) + numOfTabbar;
+	var giftcontentChild = giftcontent.lastChild;
+	giftcontentChild.id = "UOP_giftcontentChild";
+	O_giftContent = giftcontentChild;
+	giftcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
+	tabbar.getElementsByClassName('tabbody')[0].appendChild(giftcontent);
 }
 function travel(e) {
 	var url = e.target.href;
-	O_travelTab.innerHTML = "Travelling...<img src='images/ui/loaders/round_bar_green.gif'><div>";
+	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var request = new XMLHttpRequest();
 	var htmlstr = "";
 	request.open("GET", url, true);
@@ -1485,7 +1457,7 @@ function defaultSkin() {
 }
 //Simple
 function defaultSimpleSkin() {
-	if ((location.pathname != "/index.php") && (location.pathname != "/") && (location.pathname != "/canvas/") && (location.pathname != "/canvas/index.php") ) return;
+	if (!atCamp) return;
 	manageCSSJSAdder(4);
 	//=======================add things============================
 	//add mobile button
@@ -1830,7 +1802,6 @@ function hideImageBox() {
 function showImageBox(e) {
 	O_imagePhoto.src = e.target.parentNode.href;
 	O_imageBox.style.opacity = 1;
-	moveImageBox(e);
 }
 function moveImageBox(e) {
 	var vW, vH, uH, oW, oH, cX, cY;
@@ -1893,9 +1864,11 @@ function updateMinuteTimer() {
 	if (data.user.has_shield == false) O_LGSTimer.innerHTML = "Expired";
 	else
 	{
-		timetmp = Math.floor((new Date(data.user.shield_expiry + "UTC+0000") - currentDate) / 1000);
+		timetmp = data.user.shield_expiry.split('-');
+		timetmp = Date.UTC(timetmp[0],timetmp[1] - 1,timetmp[2]);
+		timetmp = Math.floor((new Date(timetmp) - currentDate) / 1000);
 		timetmp = formatWeek(timetmp);
-		O_LGSTimer.innerText = timetmp;
+		O_LGSTimer.textContent = timetmp;
 	}
 	
 	//set the minute time interval
@@ -1903,7 +1876,7 @@ function updateMinuteTimer() {
 }
 function updateHud() {
 	O_titlePercentage.textContent = data.user.title_percentage.toString();
-	O_baitNum.innerText = data.user.bait_quantity;
+	O_baitNum.textContent = data.user.bait_quantity;
 	
 	if (initHud == 0) {
 		initHud = 1;
@@ -1951,7 +1924,7 @@ function defaultFullSkin() {
 		freeSB.id = "UOP_freeSB";
 		freeSB.className = "hgMenu";
 		freeSB.setAttribute('onclick',tmp.getAttribute('onclick'));
-		freeSB.firstChild.firstChild.firstChild.src = "images/ui/buttons/free_sb_offers_btn.gif";
+		freeSB.firstChild.firstChild.firstChild.src = "/images/ui/buttons/free_sb_offers_btn.gif";
 		tmp.parentNode.removeChild(tmp);
 	}
 	
@@ -1976,25 +1949,25 @@ function defaultFullSkin() {
 	var arr = support.getElementsByClassName('hgDropDownItem');
 	arr[0].firstChild.href = "/chat.php";
 	arr[0].firstChild.target = "_blank";
-	arr[0].firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
+	arr[0].firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
 	arr[0].firstChild.firstChild.nextSibling.textContent = "Chat room";
 	arr[0].firstChild.lastChild.innerHTML = "Join the Mousehunt<br>Chat room";
 	
 	arr[1].firstChild.href = "/forum/index.php?hgref=hgbar";
 	arr[1].firstChild.target = "_blank";
-	arr[1].firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
+	arr[1].firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
 	arr[1].firstChild.firstChild.nextSibling.textContent = "Forum";
 	arr[1].firstChild.lastChild.innerHTML = "Take part in discussions<br>with your fellow players.";
 	
 	arr[2].firstChild.href = "/news.php";
 	arr[2].firstChild.target = "_blank";
-	arr[2].firstChild.firstChild.src = "images/ui/hgbar/icon_offense_appeals.png"
+	arr[2].firstChild.firstChild.src = "/images/ui/hgbar/icon_offense_appeals.png"
 	arr[2].firstChild.firstChild.nextSibling.textContent = "News";
 	arr[2].firstChild.lastChild.innerHTML = "News and updates<br>from ALL the TIME !";
 	
 	arr[3].firstChild.href = "/support.php";
 	arr[3].firstChild.target = "_blank";
-	arr[3].firstChild.firstChild.src = "images/ui/hgbar/icon_technical_support.png"
+	arr[3].firstChild.firstChild.src = "/images/ui/hgbar/icon_technical_support.png"
 	arr[3].firstChild.firstChild.nextSibling.textContent = "Support";
 	arr[3].firstChild.lastChild.innerHTML = "Support from devs<br>for FREE !";
 	
@@ -2002,7 +1975,7 @@ function defaultFullSkin() {
 	hgdropdownitem.className = "hgDropDownItem first";
 	hgdropdownitem.firstChild.href = "/livefeed.php";
 	hgdropdownitem.firstChild.target = "_blank";
-	hgdropdownitem.firstChild.firstChild.src = "images/ui/hgbar/icon_forums.png"
+	hgdropdownitem.firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
 	hgdropdownitem.firstChild.firstChild.nextSibling.textContent = "Live Dev Chat";
 	hgdropdownitem.firstChild.lastChild.innerHTML = "Chat with the devs<br>on each friday.";
 	support.firstChild.className = "hgDropDownItem";
@@ -2011,19 +1984,19 @@ function defaultFullSkin() {
 	var arr = community.getElementsByClassName('hgDropDownItem');
 	arr[0].firstChild.href = "http://www.mousehuntguide.com/mh-index.php";
 	arr[0].firstChild.target = "_blank";
-	arr[0].firstChild.firstChild.src = "images/ui/hgbar/icon_game_rules.png"
+	arr[0].firstChild.firstChild.src = "/images/ui/hgbar/icon_game_rules.png"
 	arr[0].firstChild.firstChild.nextSibling.textContent = "Spheniscine's Guide";
 	arr[0].firstChild.lastChild.innerHTML = "Spheniscine<br>MouseHunt Walkthrough";
 	
 	arr[1].firstChild.href = "http://amhuguide.com/";
 	arr[1].firstChild.target = "_blank";
-	arr[1].firstChild.firstChild.src = "images/ui/hgbar/icon_fan_page.png"
+	arr[1].firstChild.firstChild.src = "/images/ui/hgbar/icon_fan_page.png"
 	arr[1].firstChild.firstChild.nextSibling.textContent = "AsiaMHU's Guide";
 	arr[1].firstChild.lastChild.innerHTML = "AsiaMH Union<br>MouseHunt Guide";
 	
 	arr[2].firstChild.href = "http://mhwiki.hitgrab.com/wiki/";
 	arr[2].firstChild.target = "_blank";
-	arr[2].firstChild.firstChild.src = "images/ui/hgbar/icon_hitgrab_store.png"
+	arr[2].firstChild.firstChild.src = "/images/ui/hgbar/icon_hitgrab_store.png"
 	arr[2].firstChild.firstChild.nextSibling.textContent = "Hunter's Wiki";
 	arr[2].firstChild.lastChild.innerHTML = "This is<br>Mousehuntpedia";
 	
@@ -2056,7 +2029,8 @@ function defaultFullSkin() {
 	
 	//==========Change the container (main page) of mousehunt==============
 	var container = document.getElementsByClassName('container')[0];
-	container.removeChild(container.getElementsByClassName('clear')[0]);//remove the like button in the bottom of the pages
+	var containerclear = container.getElementsByClassName('clear');
+	if (containerclear.length > 0) container.removeChild(containerclear[0]);//remove the like button in the bottom of the pages
 	
 	//=======gameinfo changes=======
 	//add Golden shield expires day (more obvious)
@@ -2072,6 +2046,9 @@ function defaultFullSkin() {
 	
 	document.getElementById('hornArea').style.marginLeft = "101px";
 	
+	//nav num:
+	var navnum;
+	if (location.pathname.indexOf('/forum/') == -1) navnum = 'nav1'; else navnum = 'nav2';
 	//on the last version, we can't make button friend go a bit far because of the limit of list but
 	//on this version, we will change the travel button into campbutton, so it look like the camp button moved back to it place
 	//and camp button (on the right side) to friend button and have the toggle animation so it look like the old friend button
@@ -2079,8 +2056,8 @@ function defaultFullSkin() {
 	////change camp => friend
 	campbtn = document.getElementById('campButton');
 	campbtn.id = "btn-friend";
-	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('nav1.friends', 'visible');");
-	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('nav1.friends', 'hidden');");
+	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('" + navnum + ".friends', 'visible');");
+	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('" + navnum + ".friends', 'hidden');");
 
 	////change travel => camp
 	var travelbtn = document.getElementById('btn-travel');
@@ -2092,11 +2069,11 @@ function defaultFullSkin() {
 	campbtn.href = friendbtn.href;
 	
 	//combining friend & team & add scoreboard from lore
-	var teamnav = document.getElementById('nav1.teams');
+	var teamnav = document.getElementById(navnum + '.teams');
 	var teamnavarr = teamnav.childNodes;
-	var friendnav = document.getElementById('nav1.friends');
+	var friendnav = document.getElementById(navnum + '.friends');
 	var friendnavarr = friendnav.childNodes;
-	var lorenav = document.getElementById('nav1.lore');
+	var lorenav = document.getElementById(navnum + '.lore');
 	var lorenavarr = lorenav.childNodes;
 	for (i = 0;i < friendnavarr.length;++i)
 		if (friendnavarr[i].firstChild.textContent == "Invite Friends")//remove invite friend
@@ -2120,7 +2097,7 @@ function defaultFullSkin() {
 	friendnav.appendChild(lorenavarr[0]); //add scoreboard from lore
 	
 	//add Mice to inventory
-	var inventory = document.getElementById('nav1.inventory');
+	var inventory = document.getElementById(navnum + '.inventory');
 	var micepage = inventory.lastChild.cloneNode(true);
 	inventory.appendChild(micepage);
 	micepage = micepage.firstChild;
@@ -2136,9 +2113,9 @@ function defaultFullSkin() {
 	mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem forumsbutton')[0].parentNode);
 	//fix the dropdown
-	document.getElementById('nav1.shops').style.left = "308px";
-	document.getElementById('nav1.inventory').style.left = "213px";
-	document.getElementById('nav1.friends').style.left = "645px";
+	document.getElementById(navnum + '.shops').style.left = "308px";
+	document.getElementById(navnum + '.inventory').style.left = "213px";
+	document.getElementById(navnum + '.friends').style.left = "645px";
 	
 	//======HUD change======
 	var hud_base_parent = document.getElementById('hud_base').parentNode.parentNode.parentNode;
@@ -2158,12 +2135,32 @@ function defaultFullSkin() {
 		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
 	}
 	
-	travelToTabBar();
-	shopToTabBar();
-	potToTabBar();
-	craftToTabBar();
-	supplyToTabBar();
-	giftToTabBar();
+	if (atCamp)
+	{
+		travelToTabBar();
+		shopToTabBar();
+		potToTabBar();
+		craftToTabBar();
+		supplyToTabBar();
+		giftToTabBar();
+		
+		//hide daily & part of friends
+		var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
+		if (tabbar.length > 0)
+		{
+			tabbar = tabbar[0];
+			tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
+			tmp[0].style.display = "none";
+			
+			var friendtmp = document.createElement('div');
+			friendtmp.id = "UOP_friendsOnlineCampTab";
+			friendtmp.className = "bcenter";
+			friendtmp.textContent = "Friends";
+			tmp = document.getElementById('friendsOnlineCampTab');
+			tmp.style.display = "none";
+			tmp.parentNode.insertBefore(friendtmp,tmp);
+		}
+	}
 	
 	//precious title advancing
 	O_titleBar = document.getElementById('hud_titlebar');
@@ -2206,32 +2203,20 @@ function defaultFullSkin() {
 	O_baitNum = baitnum.firstChild;
 	O_baitNum.id = "hud_baitQuantity";
 	
-	//mouse autozoom
-	O_imageBox = document.createElement("div");
-	O_imageBox.id = "UOP_imagePhotoZoomBox";
-	O_imageBox.innerHTML = '<img id="UOP_imagePhotoZoomPhoto">';
-	O_imagePhoto = O_imageBox.firstChild;
-	document.body.appendChild(O_imageBox);
-	
-	//hide daily & part of friends
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
+	if (atCamp || (location.pathname == "/journal.php"))
 	{
-		tabbar = tabbar[0];
-		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
-		tmp[0].style.display = "none";
+		//mouse autozoom
+		O_imageBox = document.createElement("div");
+		O_imageBox.id = "UOP_imagePhotoZoomBox";
+		O_imageBox.innerHTML = '<img id="UOP_imagePhotoZoomPhoto">';
+		O_imagePhoto = O_imageBox.firstChild;
+		O_imagePhoto.addEventListener('load',moveImageBox,false);
+		document.body.appendChild(O_imageBox);
 		
-		var friendtmp = document.createElement('div');
-		friendtmp.id = "UOP_friendsOnlineCampTab";
-		friendtmp.className = "bcenter";
-		friendtmp.innerText = "Friends";
-		tmp = document.getElementById('friendsOnlineCampTab');
-		tmp.style.display = "none";
-		tmp.parentNode.insertBefore(friendtmp,tmp);
+		registerSoundHornWaiting.push(updateJournalImageBox);
 	}
 	
 	//register callbacks
-	registerSoundHornWaiting.push(updateJournalImageBox);
 	registerSoundHornWaiting.push(updateHud);
 	registerSoundHornWaiting.push(skinSecondTimer);
 }
@@ -2290,7 +2275,7 @@ function autoCoreInit() {
 function autoCoreDecide(nextTurnSeconds,nextDelaySeconds) {
 	//0 = PAUSE; 1 = KR; 2 = MAIN COUNT; 3 = DELAY COUNT; 4 = HORN; 5 = TIME OUT BUT HORN IS NOT READY
 	if (A_autoPaused == 1) return 0; //paused
-	if ((location.pathname != "/index.php") && (location.pathname != "/") && (location.pathname != "/canvas/") && (location.pathname != "/canvas/index.php")) return 0; //not on camp
+	if (!atCamp) return 0; //not on camp
 	if (data.user.bait_quantity == 0) return 0; //no bait
 	if (data.user.has_puzzle == true) return 1; //KR
 	if (nextTurnSeconds > 0) return 2; //still counting
@@ -2323,16 +2308,16 @@ function autoCoreAction() {
 	{
 		hornTimeText = formatMinute(nextTurnSeconds);
 		delayTimeText = formatMinute(nextDelaySeconds);
-		O_autoMainCounter.innerText = hornTimeText;
-		O_autoDelayCounter.innerText = delayTimeText;
+		O_autoMainCounter.textContent = hornTimeText;
+		O_autoDelayCounter.textContent = delayTimeText;
 		document.title = hornTimeText + " + " + delayTimeText;
 	}
 	else if (autoState == 3) //if (UPDATE DELAYER) UPDATE DELAYER
 	{
 		hornTimeText = "0:00";
 		delayTimeText = formatMinute(nextDelaySeconds);
-		O_autoMainCounter.innerText = hornTimeText;
-		O_autoDelayCounter.innerText = delayTimeText;
+		O_autoMainCounter.textContent = hornTimeText;
+		O_autoDelayCounter.textContent = delayTimeText;
 		document.title = delayTimeText;
 	}
 	else if (autoState == 4) //if HORN => HORN
@@ -2374,28 +2359,30 @@ function autoSounding() {
 		O_autoPauseCounter.style.display = "none";
 		O_autoSounding.style.display = "block";
 		O_autoCounter.style.display = "none";
-		O_autoSounding.innerText = "Sounding...";
+		O_autoSounding.textContent = "Sounding...";
 	}
 	else if (A_soundingCounter > 120)
 	{
-		O_autoSounding.innerText = "Too long. Refreshing !";
+		O_autoSounding.textContent = "Refreshing !";
+		refreshingByError = 1;
 		location.reload();
 	}
 	else if (A_soundingCounter > 30)
 	{
-		O_autoSounding.innerText = "Longer than expected...";
+		O_autoSounding.textContent = "Too slow...";
 	}
 }
 function autoSounded() {
 	++A_soundedCounter;
 	if (A_soundedCounter == 1) //first time
 	{
-		O_autoSounding.innerText = "Completed !";
+		if (refreshingByError = 1) return;
+		O_autoSounding.textContent = "Completed !";
 		syncUser(null);
 	}
 	else if (A_soundedCounter > 50)
 	{
-		O_autoSounding.innerText = "New message !";
+		O_autoSounding.textContent = "New message !";
 		if (data.user.has_puzzle == true) puzzleStandardReaction();
 	}
 }
@@ -2405,7 +2392,7 @@ function autoHornWaiting() {
 		++A_hornRetryCounter;
 		if (A_hornRetryCounter > 1)
 		{
-			O_autoSounding.innerText = "Error, refreshing...";
+			O_autoSounding.textContent = "Error, refreshing...";
 			location.reload();
 			return;
 		}
@@ -2494,7 +2481,7 @@ function KRSolverCache() {
 	else puzzleCoreReaction();
 }
 function submitPuzzle(str) {
-	var url = "managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
+	var url = "/managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
 	var request = new XMLHttpRequest();
 	request.open("GET", url, true);
 	request.onreadystatechange = function()
@@ -2504,12 +2491,12 @@ function submitPuzzle(str) {
 			if (request.status == 200)
 			{
 				var tmpRespondJSON = JSON.parse(request.responseText);
-				document.getElementById('pagemessage').innerText = tmpRespondJSON.result;
+				document.getElementById('pagemessage').textContent = tmpRespondJSON.result;
 				location.reload();
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerText = "Network error, retrying";
+				document.getElementById('pagemessage').textContent = "Network error, retrying";
 				puzzleSubmitErrorStr = str;
 				puzzleSubmitErrorHash = data.user.unique_hash;
 				submitPuzzleErrorHandle();
@@ -2546,7 +2533,7 @@ function puzzleStandardReaction() {
 	O_autoPauseCounter.style.display = "none";
 	O_autoSounding.style.display = "block";
 	O_autoCounter.style.display = "none";
-	O_autoSounding.innerText = "King's Reward";
+	O_autoSounding.textContent = "King's Reward";
 	document.title = "King's Reward";
 	
 	if (document.getElementsByClassName('puzzle').length == 0)
@@ -2576,7 +2563,7 @@ function puzzleCounter() {
 	}
 		
 	timeText = formatHour(nextTimeoutSeconds);
-	O_autoPauseCounter.innerText = timeText;
+	O_autoPauseCounter.textContent = timeText;
 
 	setTimeout(function() {puzzleCounter()},C_autoInterval * 1000);
 }
