@@ -37,7 +37,7 @@ var documentLoadCounter = 0;
 function checkDocumentState() {
 	if (document.readyState == "loading")
 	{
-		if (documentLoadCounter > 60) location.reload();
+		if (documentLoadCounter > 120) location.reload();
 		++documentLoadCounter;
 		setTimeout(checkDocumentState,1000);
 	}
@@ -47,7 +47,7 @@ function checkDocumentState() {
 //==========Constants==========
 //Setting Constants
 var C_version = "2.1";
-var C_versionCompatibleCode = "0";
+var C_versionCompatibleCode = "1";
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -106,7 +106,7 @@ var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 //==========Variables==========
 //Setting Variables
 var S_skin,S_simple,S_auto,S_schedule,S_solve,S_server;
-var S_ads,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_numScript;
+var S_ads,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckPriority,S_numScript;
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,0];
 
@@ -118,7 +118,7 @@ var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 
 //Auto Variables
-var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout;
+var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0;
 
 //Variables
 var data;
@@ -582,7 +582,7 @@ function main() {
 		default: break;
 	}
 	
-	if ((S_ads == 0) && (S_simple == 2)) S_ads = 1;
+	if ((S_ads == 0) && (S_simple == 1)) S_ads = 1;
 	switch (S_ads)
 	{
 		case 1: removeAds();break;
@@ -591,6 +591,7 @@ function main() {
 	}
 	
 	if (S_auto == 0) initAuto();
+	if ((S_auto == 0) && (S_schedule == 0)) shInitSchedule();
 	
 	syncUser(soundHornWaiting);
 }
@@ -617,8 +618,9 @@ function loadSettings() {
 		window.localStorage.UOP_alarmStop = 1;
 		window.localStorage.UOP_alarmStopTime = 600;
 		window.localStorage.UOP_trapCheck = 1;
-		window.localStorage.UOP_trapCheckTime = 3600;
-		window.localStorage.UOP_script = "";
+		window.localStorage.UOP_trapCheckTime = -1;
+		
+		window.localStorage.UOP_nscripts = 0;
 		
 		window.localStorage.UOP_cacheKRstr = "";
 		window.localStorage.UOP_serverUrl = "";
@@ -646,10 +648,11 @@ function loadSettings() {
 	S_alarmStopTime = Number(window.localStorage.UOP_alarmStopTime);
 	S_trapCheck = Number(window.localStorage.UOP_trapCheck);
 	S_trapCheckTime = Number(window.localStorage.UOP_trapCheckTime);
-	S_script = window.localStorage.UOP_script;
 	
 	S_cacheKRstr = window.localStorage.UOP_cacheKRstr;
 	S_serverUrl = window.localStorage.UOP_serverUrl;
+	
+	if (S_trapCheckTime == -1) registerSoundHornWaiting.push(shDetectTrapCheckTimestamp);
 }
 function addControlPanel() {
 	var controlpanel = template.hgMenu.cloneNode(true);
@@ -877,14 +880,25 @@ function syncUser(callbackFunction) {
 		{
 			if (request.status == 200)
 			{
-				data = JSON.parse(request.responseText);
+				try
+				{
+					data = JSON.parse(request.responseText);
+				}
+				catch (e)
+				{
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+					document.title = "Sync error !";
+					syncUser(callbackFunction);
+					return;
+				}
 				if (callbackFunction != null) callbackFunction();
 			}
 			else
 			{
-				//document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
-				//document.title = "Error !!!";
-				location.reload();
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				document.title = "Sync error !";
+				syncUser(callbackFunction);
+				//location.reload();
 			}
 		}
 	};
@@ -1838,7 +1852,7 @@ function updateJournalImageBox() {
 }
 function updateMinuteTimer() {
 	//update location timer
-	var locationTimerObject,states,timetmp,t1,t2;
+	var locationTimerObject,timetmp,t1,t2;
 	var currentDate = new Date();
 	var currentTime = Math.floor(currentDate.getTime() / 1000);
 	var i,j;
@@ -2530,6 +2544,8 @@ function puzzleCoreReaction() {
 	}
 }
 function puzzleStandardReaction() {
+	if (A_puzzleCalled != 0) return; else ++A_puzzleCalled;
+	
 	O_autoPauseCounter.style.display = "none";
 	O_autoSounding.style.display = "block";
 	O_autoCounter.style.display = "none";
@@ -2591,4 +2607,448 @@ function puzzleUserSubmit() {
 		}
 	}
 	setTimeout(puzzleUserSubmit, 1000);
+}
+/**================================EXPERIMENTAL AREA==================================*/
+/*******************SCHEDULE AREA********************/
+var sh_name = {
+		"CHANGETRAP" : "/managers/ajax/users/changetrap.php",
+		"TRAVEL" : "/managers/ajax/users/changeenvironment.php",
+		"BUY" : "/managers/ajax/purchases/itempurchase.php",
+		"POT" : "/managers/ajax/users/usepotion.php",
+		"CRAFT" : "/managers/ajax/users/crafting.php",
+		"HAMMER" : "/managers/ajax/users/usehammer.php",
+		"USE" : "/managers/ajax/users/useconvertible.php",
+		"GOLD" : "user.gold",
+		"POINT" : "user.points",
+		"LOCATION" : "user.location",
+		"BAIT" : "user.bait_name",
+		"BAIT_QUALITY" : "user.bait_quantity",
+		"CHARM" : "user.trinket_name",
+		"CHARM_QUALITY" : "user.trinket_quantity",
+		"TRAP" : "user.weapon_name",
+		"BASE" : "user.base_name",
+		"IB" : "user.quests.QuestIceberg",
+		"IB_PHASE" : "user.quests.QuestIceberg.current_phase",
+		"IB_PROGRESS" : "user.quests.QuestIceberg.user_progress",
+		"IB_TURN" : "user.quests.QuestIceberg.turns_taken",
+		"ZT_TOWER_AMPLIFIER" : "user.viewing_atts.zzt_amplifier",
+		"ZT_TECH_PIECE" : "user.viewing_atts.zzt_tech_progress",
+		"ZT_MAGE_PIECE" : "user.viewing_atts.zzt_mage_progress",
+		"FW_WAVE" : "user.viewing_atts.desert_warpath.wave",
+		"FW_STREAK" : "user.viewing_atts.desert_warpath.streak.quantity",
+		"FW_STREAK_TYPE" : "user.viewing_atts.desert_warpath.streak.mouse_type",
+		"FW_POPULATION" : "user.viewing_atts.desert_warpath.wave_population",
+		"FW_BOSS" : "user.viewing_atts.desert_warpath.common_population",
+		"TOUR" : "user.viewing_atts.tournament",
+		"TOUR_STATUS" : "user.viewing_atts.tournament.status",
+	};
+var sh_clock = new Object;
+var sh_scripts = new Array;
+var sh_registerHighPriorityScript = new Array;
+var sh_registerLowPriorityScript = new Array;
+var sh_registerAfterHorn = new Array;
+var sh_registerBeforeTrapCheck = new Array;
+var sh_registerAfterTrapCheck = new Array;
+var sh_trapCheckPriority = 0,sh_userSync = 0;
+var sh_mode = 0;
+var sh_si = 0,sh_sq = 0,sh_sid;
+
+var PLAY = 0, STOP = 1, PAUSE = 2, ERROR = 3;
+var AFTERHORN = 0, AFTERTRAPCHECK = 1, BEFORETRAPCHECK = 2;
+
+function shInitSchedule() {
+	return;
+	var str;
+	var i;
+	
+	for (i = 0;i < C_LOCATION_TIMES.length;++i) sh_clock[C_LOCATION_TIMES[i].id] = new Object;
+	setInterval(shUpdateClock,60000);shUpdateClock();
+	
+	var nscripts = Number(window.localStorage.UOP_nscripts);
+	for (i = 0;i < nscripts;++i)
+	{
+		sh_scripts[i] = JSON.parse(window.localStorage['UOP_scriptInfo' + i]);
+		sh_scripts[i].mode = Number(window.localStorage['UOP_scriptMode' + i]);
+		sh_scripts[i].content = JSON.parse(window.localStorage['UOP_scriptContent' + i]);
+		if (sh_scripts[x].errorHandler != 0) sh_scripts[i].errorContent = JSON.parse(window.localStorage['UOP_scriptErrorContent' + i]);
+	}
+	
+	for (i = 0;i < sh_scripts.length;++i)
+		if (sh_scripts[i].mode != STOP)
+		{
+			shCompile(i);
+			if ((sh_scripts[i].mode == PLAY) || (sh_scripts[i].mode == PAUSE)) shAttach(i);
+		}
+
+	var d,trapcheck;
+	
+	trapcheck = (S_trapCheckTime == -1) ? 0 : S_trapCheckTime;
+	d = new Date();
+	if (d.getMinutes() > trapcheck) d.setHours(d.getHours() + 1);
+	d.setMinutes(trapcheck);
+	d.setSeconds(0);
+	d = d - new Date();
+	
+	registerSoundHornWaiting.push(shStartAfterHorn);
+	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + 60000);
+	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - 60000,0));
+}
+function shUpdateClock() {
+	//update location timer
+	var timetmp;
+	var currentDate = new Date();
+	var currentTime = Math.floor(currentDate.getTime() / 1000);
+	var i,j;
+	for (i = 0;i < C_LOCATION_TIMES.length;++i)
+	{
+		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
+		for (j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
+		{
+			timetmp -= C_LOCATION_TIMES[i].length[j];
+			if (timetmp < 0) break;
+			else if (timetmp == 0)
+			{
+				j = (j + 1) % C_LOCATION_TIMES[i].length.length;
+				timetmp = -C_LOCATION_TIMES[i].length[j];
+				break;
+			}
+		}
+		timetmp = -timetmp;
+		
+		sh_clock[C_LOCATION_TIMES[i].id].stateID = j;
+		sh_clock[C_LOCATION_TIMES[i].id].stateName = C_LOCATION_TIMES[i].state[j];
+		sh_clock[C_LOCATION_TIMES[i].id].timeleft = timetmp;
+	}
+}
+function shSaveScript(x) {
+	var scriptInfo = new Object;
+	scriptInfo.name = sh_scripts[x].name;
+	scriptInfo.setting = sh_scripts[x].setting;
+	scriptInfo.vars = sh_scripts[x].vars;
+	
+	window.localStorage['UOP_scriptInfo' + x] = JSON.stringify(scriptInfo);
+	window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
+	window.localStorage['UOP_scriptContent' + x] = sh_scripts[x].content;
+	if (sh_scripts[x].errorHandler != 0) window.localStorage['UOP_scriptErrorContent' + x] = sh_scripts[x].errorContent;
+}
+function shSaveInfo(x) {
+	var scriptInfo = new Object;
+	scriptInfo.name = sh_scripts[x].name;
+	scriptInfo.setting = sh_scripts[x].setting;
+	scriptInfo.vars = sh_scripts[x].vars;
+	
+	window.localStorage['UOP_scriptInfo' + x] = JSON.stringify(scriptInfo);
+	window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
+}
+function shCompile(x) {
+	var str = 'function ' + sh_scripts[x].name + '() {' + sh_scripts[x].content + 'setTimeout(shFunctionSuccessHandler,0);}';
+	try
+	{
+		sh_scripts[x].func = eval(str);
+	}
+	catch (e)
+	{
+		sh_scripts[x].mode = ERROR;
+		return;
+	}
+	if (sh_scripts[x].errorHandler != 0)
+	{
+		str = 'function ' + sh_scripts[x].name + 'ErrorFunc() {' + sh_scripts[x].errorContent + '}';
+		try
+		{
+			sh_scripts[x].errorFunc = eval(str);
+		}
+		catch (e)
+		{
+			sh_scripts[x].errorHandler = 0;
+		}
+	}
+}
+function shAttach(x) {
+	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(0,x,sh_registerBeforeTrapCheck)
+	if (sh_scripts[x].setting.afterTrapCheck == 1) shRegister(0,x,sh_registerAfterTrapCheck)
+	if (sh_scripts[x].setting.afterHorn == 1) shRegister(0,x,sh_registerAfterHorn)
+}
+function shDetach(x) {
+	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(1,x,sh_registerBeforeTrapCheck)
+	if (sh_scripts[x].setting.afterTrapCheck == 1) shRegister(1,x,sh_registerAfterTrapCheck)
+	if (sh_scripts[x].setting.afterHorn == 1) shRegister(1,x,sh_registerAfterHorn)
+}
+function shRegister(op,func,arr) {
+	switch (op)
+	{
+		case 0: arr.push(func);break;
+		case 1:
+			for (var i = 0;i < arr.length;++i)
+				if (arr[i] === func)
+				{
+					arr[i] = arr[arr.length - 1];
+					arr.pop();
+					break;
+				}
+			break;
+	}	
+}
+function shDetectTrapCheckTimestamp() {
+	if (S_trapCheckTime != -1) return;
+	
+	var i;
+	
+	var journaltexts = document.getElementsByClassName('journaltext');
+	for (i = 0;i < journaltexts.length;++i)
+	{
+		if (journaltexts[i].textContent.indexOf('check') != -1)
+		{
+			var date = journaltexts[i].parentNode.getElementsByClassName('journaldate')[0].textContent;
+			date = date.substring(date.indexOf(':') + 1,date.indexOf(' '));
+			window.localStorage.UOP_trapCheckTime = date;
+			S_trapCheckTime = Number(date);
+			
+			location.reload();
+			break;
+		}
+	}
+}
+function shSubmit(url,params,successHandler,errorHandler,loadHandler){
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
+	
+	var http = new XMLHttpRequest();
+	http.open("POST", url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					if (data.success == 1)
+					{
+						shActionSuccessHandler(successHandler);
+					}
+					else
+					{
+						shActionErrorHandler(errorHandler);
+					}
+				}
+				catch (e)
+				{
+					shActionLoadHandler(loadHandler);
+				}
+			}
+			else
+			{
+				shActionLoadHandler(loadHandler);
+			}
+		}
+	}
+	http.send(postparams);
+}
+function shLoad(url,params,successHandler){
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
+	
+	var http = new XMLHttpRequest();
+	http.open("POST", url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					shActionSuccessHandler(successHandler);
+				}
+				catch (e)
+				{
+					shLoad(url,params,successHandler);
+					return;
+				}
+			}
+			else
+			{
+				shLoad(url,params,successHandler);
+				return;
+			}
+		}
+	}
+	http.send(postparams);
+}
+function shStartBeforeTrapCheck() {
+	sh_mode = BEFORETRAPCHECK;
+	sh_si = 0;
+	sh_sq = 0;
+	
+	var timeRemaining = A_delayTimestamp - new Date().getTime();
+	if ((timeRemaining > 0) && (timeRemaining < 130000)) //130 = 2 min 10 sec
+	{
+		if (((S_trapCheckPriority == 2) && (sh_trapCheckPriority > 0)) || (S_trapCheckPriority == 1))
+		{
+			A_delayTimestamp = new Date().getTime() + 130000;
+			A_delayTime = 130;
+			shBeforeTrapCheck();
+		}
+	}
+	else shBeforeTrapCheck();
+}
+function shStartAfterTrapCheck() {
+	sh_mode = AFTERTRAPCHECK;
+	sh_si = 0;
+	sh_sq = 0;
+	if (sh_userSync > 0) syncUser(shAfterTrapCheck); else shAfterTrapCheck();
+}
+function shStartAfterHorn() {
+	sh_mode = AFTERHORN;
+	sh_si = 0;
+	sh_sq = 0;
+	shAfterHorn();
+}
+function shAfterHorn() {
+	if (data.user.has_puzzle == true)
+	{
+		puzzleStandardReaction();
+		return;
+	}
+	switch (sh_sq)
+	{
+		case 0: if (sh_si < sh_registerHighPriorityScript.length) {shFunctionCaller(sh_registerHighPriorityScript[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		case 1: if (sh_si < sh_registerAfterHorn.length) {shFunctionCaller(sh_registerAfterHorn[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		case 2: if (sh_si < sh_registerLowPriorityScript.length) {shFunctionCaller(sh_registerLowPriorityScript[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		default: break;
+	}
+}
+function shBeforeTrapCheck() {
+	switch (sh_sq)
+	{
+		case 0: if (sh_si < sh_registerBeforeTrapCheck.length) {shFunctionCaller(sh_registerBeforeTrapCheck[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		default: break;
+	}
+}
+function shAfterTrapCheck() {
+	if (data.user.has_puzzle == true)
+	{
+		puzzleStandardReaction();
+		return;
+	}
+	switch (sh_sq)
+	{
+		case 0: if (sh_si < sh_registerHighPriorityScript.length) {shFunctionCaller(sh_registerHighPriorityScript[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		case 1: if (sh_si < sh_registerAfterTrapCheck.length) {shFunctionCaller(sh_registerAfterTrapCheck[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		case 2: if (sh_si < sh_registerLowPriorityScript.length) {shFunctionCaller(sh_registerLowPriorityScript[sh_si]);++sh_si;break;} else {sh_si = 0;++sh_sq;}
+		default: break;
+	}
+}
+function shFunctionCaller(sid) {
+	if (sh_scripts[sh_sid].mode != PLAY)
+	{
+		setTimeout(shFunctionSuccessHandler,0);
+		return;
+	}
+	try
+	{
+		sh_sid = sid;
+		sh_scripts[sh_sid].stage = 0;
+		sh_scripts[sh_sid].func();
+	}
+	catch (e)
+	{
+		shFunctionErrorHandler(e);
+	}
+}
+function shRequestAgain() {
+	--sh_si;
+}
+function shFunctionSuccessHandler() {
+	switch (sh_mode)
+	{
+		case AFTERHORN: shAfterHorn();
+		case AFTERTRAPCHECK: shAfterTrapCheck();
+		case BEFORETRAPCHECK: shBeforeTrapCheck();
+	}
+}
+function shFunctionErrorHandler(e) {
+	shChangeScriptState(STOP,x);
+	if (sh_scripts[sh_sid].errorHandler != 0) sh_scripts[sh_sid].errorFunc();
+	switch (sh_mode)
+	{
+		case AFTERHORN: shAfterHorn();
+		case AFTERTRAPCHECK: shAfterTrapCheck();
+		case BEFORETRAPCHECK: shBeforeTrapCheck();
+	}
+}
+function shChangeScriptState(mode,sid) {
+	if (typeof sid == "string")
+	{
+		for (var i = 0;i < sh_scripts.length;++i)
+			if (sh_scripts[i].name == sid)
+			{
+				sid = i;
+				break;
+			}
+	}
+	if (typeof sid == "string") return;
+	switch (mode)
+	{
+		case PLAY:
+			sh_scripts[sid].mode = PLAY;
+			window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
+			if ((sh_scripts[sid].mode == ERROR) || (sh_scripts[sid].mode == STOP))
+			{
+				shCompile(sid);
+				if (sh_scripts[sid].mode == PLAY) shAttach(i);
+			}
+			break;
+		case PAUSE:
+			sh_scripts[sid].mode = PAUSE;
+			window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
+			break;
+		case STOP:
+			sh_scripts[sid].stage = 0;
+			sh_scripts[sid].mode = STOP;
+			window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
+			shDetach(sid);
+			break;
+	}
+}
+function shActionSuccessHandler(func) {
+	if (data.user.has_puzzle == true)
+	{
+		puzzleStandardReaction();
+		return;
+	}
+	++(sh_scripts[sh_sid].stage);
+	if (func != null) func();
+	sh_scripts[sid].func();
+}
+function shActionErrorHandler(func) {
+	if (data.user.has_puzzle == true)
+	{
+		puzzleStandardReaction();
+		return;
+	}
+	if (func != null) func();
+	else shFunctionErrorHandler(null);
+}
+function shActionLoadHandler(func) {
+	if (func != null) func();
+	else syncUser(sh_scripts[sid].func);
+}
+function shGetVariable(s) {
+	var o = data;
+	s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+	s = s.replace(/^\./, '');           // strip a leading dot
+	var a = s.split('.');
+	while (a.length) {
+		var n = a.shift();
+		if (n in o) {
+			o = o[n];
+		} else {
+			return;
+		}
+	}
+	return o;
 }
