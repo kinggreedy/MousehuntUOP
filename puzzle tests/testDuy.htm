@@ -130,12 +130,12 @@ function KR_solvecap(img) {
 
 //============================================================================
 
-var tests = 51;
+var tests = 60;
 var totalTime = 0;
 var totalMatch = 0;
 var totalExactMatch = 0;
 var independentMatch = 0;
-var testsExpected = ['2F7CN','f7Bkg','NwtJb','H9FXw','M79Kv','BC724','CNgkw','4zYG4','GDKCx','nJC8r','NZCFx','tPp9v','kPYnf','NXCwt','9CWcM','NwtJb','sxhwx','pQNcQ','rYfVR','2PmkY','nRYkh','38vnW','39WMw','Bmrmv','XYcJ6','nXZcq','Jcg6K','xGkMK','c4PhW','4GJkD','4Hpnm','RwMq4','NHVTY','bhCVN','GGRFP','y6ndM','zg7Qy','fBZNr','VwD6V','4rBZK','GK7FZ','K88Ch','t4zMB','6nYQW','RzwfZ','dTg6N','n9yZp','xFkGb','CTdz4','BCHgx','W78BP'];
+var testsExpected = ['2F7CN','f7Bkg','JzF3D','H9FXw','M79Kv','BC724','CNgkw','4zYG4','GDKCx','nJC8r','NZCFx','tPp9v','kPYnf','NXCwt','9CWcM','NwtJb','sxhwx','pQNcQ','rYfVR','2PmkY','nRYkh','38vnW','39WMw','Bmrmv','XYcJ6','nXZcq','Jcg6K','xGkMK','c4PhW','4GJkD','4Hpnm','RwMq4','NHVTY','bhCVN','GGRFP','y6ndM','zg7Qy','fBZNr','VwD6V','4rBZK','GK7FZ','K88Ch','t4zMB','6nYQW','RzwfZ','dTg6N','n9yZp','xFkGb','CTdz4','BCHgx','W78BP','GBTg7','pJGNz','Mh2pp','jmYzB','FhGYb','zpvzd','YwcZ4','DYDhZ','kGG4k'];;
 var imgloaded = 0;
 function initTests() {
 	var i,tmp,table;
@@ -347,9 +347,9 @@ function KR_solvecap(img) {
 	while (res.length < 5) res += '_';
 	return res;
 };
-canvasContainer.appendChild(canvas0);
+//canvasContainer.appendChild(canvas0);
 //ctx1.clearRect(0, 0, 200, 58);
-canvasContainer.appendChild(canvasInfo);
+//canvasContainer.appendChild(canvasInfo);
 
 function putImgDataToPage(imageData){
 	var canvas = document.createElement('canvas');
@@ -359,7 +359,7 @@ function putImgDataToPage(imageData){
 	canvas.height='58';
 	var ctx = canvas.getContext("2d");
 	ctx.putImageData(imageData, 0, 0);
-	canvasContainer.appendChild(canvas);
+	//canvasContainer.appendChild(canvas);
 }
 function ocr(imageData){
 	var result = '';
