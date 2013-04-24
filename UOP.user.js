@@ -121,7 +121,7 @@ var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0;
 
 //Variables
-var data;
+var data,itemdata;
 var template = new Object;
 var registerSoundHornSounding = new Array;
 var registerSoundHornSounded = new Array;
@@ -238,7 +238,8 @@ function runTimeCreateConstant() {
 	 #UOP_buttonSave .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTVEOEJDRkU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTVEOEJDRkY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5NTU0REIyNDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5NUQ4QkNGRDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pr3Wrw0AAAEQSURBVHjaYvz//z/DQAImhgEGow4YcAewEKkuCogDybRjMRBvwikLygUEcBQQP/1PPrgPxDq4zGckIhs+BWIpKBvkk/VA/IWAHgkgdgViPyj/IBA7YFNIjAOQFegB8WUig14XiC8h20UNBzCSGP8E9Q65bMhCbbNJdQCxWZEDiLOIUUhqGrgHxFeA+BcBPbxAbATEotROhJSA4ZEIB6wuQAbHgXgWntKQB4jTgNiSuJKCcF2ADgKJ0BOIRR/ZdQG6Ak4g/kFENvxOTCIkxwEwg1YjiYWSoI9kB1yEVkLoBhEq55HlQZWSPrm5YBIVEvskSnLBKiD+iEU8lIA+ZPmdlBTFo63iUQeMOmB4OwAgwAA4DRkrSEfzrgAAAABJRU5ErkJggg==");}\
 	 #UOP_buttonReset .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTU1NERCMUU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTU1NERCMUY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5NTU0REIxQzhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5NTU0REIxRDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgDrifwAAAGwSURBVHja7NY9SwMxAAbgtvhNq2JLaScVdNDqoCBWnIqDOugguvkbnPwBLg7FLuLSSRShgovgIKhYENTZRVFUKujaKoJUUDnfwCuEox+XM+VQGnhIm8sl79EmF7dhGC4ni8flcPnzAYIQcCqAmHwDupwI8DP5JNT9JkCNjXv6Ic7JRRmCeriDjOpgbsVlOAprMCC1PUEesnAPp5C0PKIIoCBtlC9Z2IGglTFVA8zBuWnCZZiHFchI7fsQ0h1AiMCuNNEw270QhaR0bb0SAYR2SHCSmOmaH7Z47RMGKxFA8MEC9BW4FoYcQ8R1BOikVlO7WEUNRe7ZZoCLUmNb3YhSNGteRPBe5J5r1r06NqIo67TCnvHFulbHVnzD2qsQoIP1o44Ae6xnoNlCfx9M8/OZjp2wh0tKlCUL/RPSXhDTtQxXOeALQzQW6NMEi5Bn3yPwlBpX5WUU4E8xAh9wAgd8C4oSggkY439FvBnH4Vbnyyhi2mrf4IGepfZDbstlx3TbOBX7+ZRT1ML2V7iCTTgu++Q2zwNyCUM3tPF7jmeCy0oeSKrH8mqAaoD/F+BbgAEAp4jNfsnaJiYAAAAASUVORK5CYII=");}\
 	 ',
-	'.itempurchase .purchasecontrol {width: 200px;}\
+	'.itempurchase .purchasecontrol {width: 200px;min-height: 0px;}\
+	.itempurchase .name {font-weight: bold;font-size: 1.3em;}\
 	 #UOP_tabbarControls_page {padding-left: 0px;}\
 	 #UOP_tabbarControls_page>ul {padding-top: 3px;}\
 	 .UOP_shopControl {width: auto!important; padding-left: 5px!important; padding-right: 5px!important;}',
@@ -258,8 +259,9 @@ function runTimeCreateConstant() {
 	 #appInboxTab span {color: #4DA55A; background-image: url(/images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
 	 #appInboxTab .alerts {background-image: url(/images/ui/hgbar/alert_badge.png); position: relative; right: -33px; top: -23px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 0; cursor: pointer;}\
 	 #UOP_freeSB {padding-top: 3px;}\
-	 #UOP_freeSB .picture {width: 54px;}\
+	 #UOP_freeSB .picture {width: 50px;}\
 	 .marketplace_button {margin: 49px 0px 0px -514px!important;}\
+	 .convertibledetails input[type="text"] {width:50px}\
 	 #btn-friend {margin: 70px 0px 0px 20px; background: url("/images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
 	 #campButton {height: 26px; width: 69px; background: url("/images/ui/buttons/navbuttons.en.gif?v=5") no-repeat 0px 0px; background-size: 600%}\
 	 #hud_baitQuantity {position: absolute;right: 44px;z-index: 10;text-align: center;cursor: pointer;padding: 3px 5px;-moz-border-radius: 5px;border-radius: 5px;border: 0 none;color: #fff;background-color: #549906;background-image: -webkit-gradient(linear, center bottom, center top, from(#549906), to(#92c315));background-image: -moz-linear-gradient(90deg, #549906, #92c315);font-weight: bold;}\
@@ -517,8 +519,12 @@ function runTimeCreateConstant() {
 	delete popup;";
 }
 function checkBrowser() {
-	if (window.self !== window.top) return 1; //fuck that iframe
 	if ((location.pathname == "/index.php") || (location.pathname == "/") || (location.pathname == "/canvas/") || (location.pathname == "/canvas/index.php")) atCamp = true;
+	if (document.body.firstElementChild.tagName.toUpperCase() == "IFRAME")
+	{
+		document.body.removeChild(document.body.firstChild);
+		return 1;
+	}
 	if (window.location.pathname.indexOf('/login.php') != -1) //at login.php
 	{
 		if (document.getElementsByTagName('form').length == 0) // && logged in
@@ -706,7 +712,6 @@ function saveSettings() {
 	window.localStorage.UOP_alarmStopTime = S_alarmStopTime;
 	window.localStorage.UOP_trapCheck = S_trapCheck;
 	window.localStorage.UOP_trapCheckTime = S_trapCheckTime;
-	window.localStorage.UOP_script = S_script;
 	
 	window.localStorage.UOP_cacheKRstr = S_cacheKRstr;
 	window.localStorage.UOP_serverUrl = S_serverUrl;
@@ -976,6 +981,7 @@ function sendMessage(str,callfunc) {
 function receiveMessage() {
 	switch (O_receiveMessage.className)
 	{
+		case "getItemData": itemdata = JSON.parse(O_receiveMessage.textContent);break;
 		default: break;
 	}
 }
@@ -984,13 +990,25 @@ function UOP_receiveMessage() {
 	{
 		case "UOP_userHash": UOP_updateUserHash();break;
 		case "UOP_eval": UOP_eval();break;
+		case "UOP_getItemData": UOP_getItemData();break;
 		default: break;
 	}
 }
 function windowScript() {
 	var O_sendMessage = document.getElementById('UOP_toScriptMessage'),O_receiveMessage = document.getElementById('UOP_toWindowMessage');
+	function UOP_sendMessage(str,callfunc) {O_sendMessage.className = callfunc;O_sendMessage.textContent = str;O_sendMessage.click();}
 	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.textContent;}
 	function UOP_eval() {eval(O_receiveMessage.textContent);}
+	function UOP_getItemData() {
+		var UOP_items = new Array;
+		for (var i = 0;i < inventoryItemView1.items.length;++i) {
+			UOP_items[i] = new Object;
+			UOP_items[i].id = Number(inventoryItemView1.items[i].item_id);
+			UOP_items[i].type = inventoryItemView1.items[i].type;
+			UOP_items[i].quantity = inventoryItemView1.items[i].quantity;
+		}
+		UOP_sendMessage(JSON.stringify(UOP_items),"getItemData");
+	}
 }
 /*******************SKIN AREA********************/
 //TOOLS
@@ -1081,7 +1099,13 @@ function shopcontentLoad() {
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
 				
-				var tmp = HTMLdiv.getElementsByClassName('deets');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
+				var tmp = HTMLdiv.getElementsByClassName('deets');
+				for (var i = tmp.length - 1;i >=0;--i)
+				{
+					tmp[0].innerHTML = tmp[0].getElementsByClassName('name')[0].innerHTML;
+					tmp[0].className = "name";
+				}
+				tmp = HTMLdiv.getElementsByTagName('br');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('flexibleDialog');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('subtabheading');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('tradable');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
@@ -1835,6 +1859,59 @@ function moveImageBox(e) {
 	if ((cY+oHd2+10) > vH) state -= 1;
 	O_imageBox.style.top = ((state == 0) ? (cY-oHd2+10) : ((state == 1) ? (uH+10) : (vH-oH-10))) + "px";
 }
+function useCustomConvertible(e) {
+	var tbox = e.target.parentNode.getElementsByClassName("num")[0];
+	var num = Number(tbox.value);
+	var itemid = Number(e.target.parentNode.parentNode.parentNode.id.slice(13));
+	var itemtype = "";
+	var i;
+	if (isNaN(num)) return;
+	
+	for (i = 0;i < itemdata.length;++i)
+		if (itemdata[i].id == itemid)
+		{
+			itemtype = itemdata[i].type;
+			break;
+		}
+	
+	if (itemtype == "") {tbox.value = "Unknown";return;}
+	
+	tbox.value = "Loading";
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_type=" + itemtype + "&item_qty=" + num;
+	var http = new XMLHttpRequest();
+	http.open("POST", "/managers/ajax/users/useconvertible.php", true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					if (data.success == 1)
+					{
+						tbox.value = "OK";
+						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity').textContent = itemdata[i].quantity - num;
+					}
+					else
+					{
+						tbox.value = "Error";
+					}
+				}
+				catch (e)
+				{
+					tbox.value = "Network Error";
+				}
+			}
+			else
+			{
+				tbox.value = "Network Error";
+			}
+		}
+	}
+	http.send(postparams);
+}
 function updateJournalImageBox() {
 	var journalimages = document.getElementsByClassName('journalimage');
 	for (var i = 0;i < journalimages.length;++i)
@@ -1898,6 +1975,7 @@ function updateHud() {
 	}
 }
 function defaultFullSkin() {
+	if (location.pathname.indexOf('/forum/') != -1) return;
 	manageCSSJSAdder(4);
 	//===========Change the top row of mousehunt=================
 	var tmp = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
@@ -2061,8 +2139,7 @@ function defaultFullSkin() {
 	document.getElementById('hornArea').style.marginLeft = "101px";
 	
 	//nav num:
-	var navnum;
-	if (location.pathname.indexOf('/forum/') == -1) navnum = 'nav1'; else navnum = 'nav2';
+	var navnum = 'nav1';
 	//on the last version, we can't make button friend go a bit far because of the limit of list but
 	//on this version, we will change the travel button into campbutton, so it look like the camp button moved back to it place
 	//and camp button (on the right side) to friend button and have the toggle animation so it look like the old friend button
@@ -2174,6 +2251,32 @@ function defaultFullSkin() {
 			tmp.style.display = "none";
 			tmp.parentNode.insertBefore(friendtmp,tmp);
 		}
+	}
+	
+	var convertible = document.getElementsByClassName('convertible');
+	if (convertible.length > 0)
+	{
+		var newbutton;
+		var newinput;
+		var holder;
+		for (var i = 0;i < convertible.length;++i)
+		{
+			holder = convertible[i].getElementsByClassName('convertibledetails')[0];
+			newbutton = holder.getElementsByTagName('input');
+			for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
+			
+			newbutton = document.createElement('input');
+			newbutton.type = "submit";
+			newbutton.value = "Custom";
+			newbutton.addEventListener('click',useCustomConvertible,false);
+			newinput = document.createElement('input');
+			newinput.type = "text";
+			newinput.className = "num";
+			
+			holder.appendChild(newbutton);
+			holder.appendChild(newinput);
+		}
+		sendMessage("","UOP_getItemData");
 	}
 	
 	//precious title advancing
