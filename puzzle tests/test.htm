@@ -169,40 +169,22 @@ function KR_readimg() {
 }
 function KR_imgDataToArr(imgData) {
 	var arrData=KR_createImgArray();
-	var arrData2=KR_createImgArray();
 	var i,j,x,y,z;
 	for (i=0;i<imgData.data.length;i+=4)
 	{
 		j = Math.floor(i/4);
 		x = Math.floor(j/KR_m);
 		y = j%KR_m;
-		switch (imgData.data[i]+imgData.data[i+1]+imgData.data[i+2])
-		{
-			case 0: arrData[x][y] = 0;break;
-			case 255: arrData[x][y] = 1;break;
-			case 510: arrData[x][y] = 2;break;
-		}
+		arrData[x][y] = (imgData.data[i]+imgData.data[i+1]+imgData.data[i+2] != 0) ? 1 : 0;
 	}
-	for (i=0;i<KR_n;++i)
-		for (j=0;j<KR_m;++j)
-			if (arrData[i][j] != 2) arrData2[i][j] = arrData[i][j];
-			else 
-			{
-				arrData2[i][j] = 0;
-				for (z = 0;z < 4;++z)
-				{
-					x = i + KR_dx[z];
-					y = j + KR_dy[z];
-					if ((x < 0) || (x > KR_n)) continue;
-					if ((y < 0) || (y > KR_m)) continue;
-					if (arrData[x][y] == 1)
-					{
-						arrData2[i][j] = 1;
-						break;
-					}
-				}
-			}
-	return arrData2;
+	for (j=0;j<KR_m;++j)
+	{
+		z = 0;
+		for (i = 0;i<KR_n;++i) if (arrData[i][j] == 1) ++z;
+		if (z < 6)
+		for (i = 0;i<KR_n;++i) arrData[i][j] = 0;
+	}
+	return arrData;
 }
 function KR_adder(arrSrc,sfrom,sto,ssuper) {
 	var arrDes = KR_createImgArray();
@@ -391,76 +373,16 @@ function KR_solvecap(img) {
 	KR_context.clearRect(0,0,200,200);
 	KR_context.drawImage(img,0,0);
 	var imgData=KR_context.getImageData(0,0,KR_m,KR_n);
-	var i,j,k,c,yy,y,z,s,pat,totalpat,str = "";
-	var bit = 2,ibit = 256 / bit;
+	var i,j,k,str = "",c;
+	
 	for (i=0;i<imgData.data.length;i+=4)
 	{
 		if ((imgData.data[i] > 200) && (imgData.data[i+1] > 120)) imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = 0;
-		imgData.data[i] = Math.ceil(imgData.data[i] / ibit) * ibit; //
-		imgData.data[i+1] = Math.ceil(imgData.data[i+1] / ibit) * ibit; //
-		imgData.data[i+2] = Math.ceil(imgData.data[i+2] / ibit) * ibit; //
 	}
-	s = 0; //
-	pat = new Array; //
-	for (j=0;j<KR_m;++j)
-	{
-		c = 0;
-		for (i = 0;i<KR_n;++i)
-		{
-			k = (i*200+j)*4;
-			if (imgData.data[k]+imgData.data[k+1]+imgData.data[k+2] != 0) ++c;
-		}
-		if (c < 6)
-		{
-			for (i = 0;i<KR_n;++i) //remove the lines
-			{
-				k = (i*200+j)*4;
-				imgData.data[k] = imgData.data[k+1] = imgData.data[k+2] = 0;
-			}
-			if (s == 1) //
-			{
-				totalpat = 0;
-				for (i=0;i<bit*bit*bit;++i) pat[i] = 0;
-				for (y = yy;y < j;++y)
-					for (i = 0;i<KR_n;++i)
-					{
-						k = (i*200+y)*4;
-						if (imgData.data[k+2]+imgData.data[k+1]+imgData.data[k] != 0)
-						{
-							totalpat++;
-							z = Math.floor(imgData.data[k+2] / ibit)* bit * bit + Math.floor(imgData.data[k+1] / ibit) * bit + Math.floor(imgData.data[k] / ibit);
-							if (z != 0) pat[z]++;
-						}
-					}
-				for (i = 0;i<bit*bit*bit;++i) pat[i] = pat[i] / totalpat;
-				for (y = yy;y < j;++y)
-					for (i = 0;i<KR_n;++i)
-					{
-						k = (i*200+y)*4;
-						if (imgData.data[k+2]+imgData.data[k+1]+imgData.data[k] != 0)
-						{
-							z = Math.floor(imgData.data[k+2] / ibit)* bit * bit + Math.floor(imgData.data[k+1] / ibit) * bit + Math.floor(imgData.data[k] / ibit);
-							if (pat[z] <= 0.1)
-							{
-								imgData.data[k] = imgData.data[k+1] = 255;
-								imgData.data[k+2] = 0;
-							}
-							else
-							{
-								imgData.data[k] = 255;
-								imgData.data[k+1] = imgData.data[k+2] = 0;
-							}
-						}
-					}
-				s = 0;
-			}
-		}
-		else if (s == 0) {s = 1;yy = j;} //
-	}
-	//dbcontext.putImageData(imgData,0,0); //debug purpose
+	
 	var arrData=KR_imgDataToArr(imgData);
 	
-	//arrData = KR_superthinner(arrData); //
+	arrData = KR_superthinner(arrData);
 	//arrData = KR_superthinner(arrData);
 	//arrData = KR_superfatter(arrData);
 	arrData = KR_cleardirt(arrData);
@@ -477,17 +399,21 @@ function KR_solvecap(img) {
 		*/
 	//end of DEBUG
 	for (i = 0;i < charArr.n;++i) str += KR_solveChar(charArr.data[i]);
-
+	
+	//dbcontext.putImageData(imgData,0,0); //debug purpose
+	while (str.length < 5) str += '_';
 	return str;
 }
 
 //============================================================================
 
-var tests = 12;
+var tests = 51;
 var totalTime = 0;
 var totalMatch = 0;
 var totalExactMatch = 0;
-var testsExpected = ['2F7CN','f7Bkg','gmy8x','gkRYG','2kYxh','htNRr','X8XYx','kKzdz','fBtrW','QRB8Z','zWN4j','s9H2M'];
+var independentMatch = 0;
+var testsExpected = ['2F7CN','f7Bkg','NwtJb','H9FXw','M79Kv','BC724','CNgkw','4zYG4','GDKCx','nJC8r','NZCFx','tPp9v','kPYnf','NXCwt','9CWcM','NwtJb','sxhwx','pQNcQ','rYfVR','2PmkY','nRYkh','38vnW','39WMw','Bmrmv','XYcJ6','nXZcq','Jcg6K','xGkMK','c4PhW','4GJkD','4Hpnm','RwMq4','NHVTY','bhCVN','GGRFP','y6ndM','zg7Qy','fBZNr','VwD6V','4rBZK','GK7FZ','K88Ch','t4zMB','6nYQW','RzwfZ','dTg6N','n9yZp','xFkGb','CTdz4','BCHgx','W78BP'];
+var imgloaded = 0;
 function initTests() {
 	var i,tmp,table;
 	table = document.getElementsByTagName('table')[0];
@@ -495,9 +421,9 @@ function initTests() {
 	{
 		tmp = document.createElement('tr');
 		tmp.innerHTML = '\
-			<td><img id="testa'+i+'" class="test" src="puzzleimage'+(i*3)+'.php.jpg"><input id="resulta'+i+'" class="result"></td>\
-			<td><img id="testb'+i+'" class="test" src="puzzleimage'+(i*3+1)+'.php.jpg"><input id="resultb'+i+'" class="result"></td>\
-			<td><img id="testc'+i+'" class="test" src="puzzleimage'+(i*3+2)+'.php.jpg"><input id="resultc'+i+'" class="result"></td>\
+			<td><img id="testa'+i+'" class="test" onload="notice()" src="puzzleimage'+(i*3)+'.php.jpg"><input id="resulta'+i+'" class="result"></td>\
+			<td><img id="testb'+i+'" class="test" onload="notice()" src="puzzleimage'+(i*3+1)+'.php.jpg"><input id="resultb'+i+'" class="result"></td>\
+			<td><img id="testc'+i+'" class="test" onload="notice()" src="puzzleimage'+(i*3+2)+'.php.jpg"><input id="resultc'+i+'" class="result"></td>\
 			<td><input id="got'+i+'" class="got" value=""></td>\
 			<td><input id="expected'+i+'" class="expected" value="'+testsExpected[i]+'"></td>\
 			<td><div id="status'+i+'" class="pending"></div><label id="time'+i+'"></label></td>';
@@ -505,7 +431,9 @@ function initTests() {
 	}
 }
 initTests();
-setTimeout(function() {KR_initKR(solvecap);},3000);
+function notice() {
+	if (++imgloaded == tests*3) KR_initKR(solvecap);
+}
 function solvecap() {
 	//document.body.appendChild(KR_canvas); //debug
 	//document.body.appendChild(KR_canvas2); //debug
@@ -525,9 +453,15 @@ function solvecap() {
 		for (j=0;j<5;++j)
 		{
 			x = stra[j];
-			if (strb[j] == strc[j])
+			if (strb[j].toUpperCase() == strc[j].toUpperCase())
 			{
-				if (strb[j] != x) x = strb[j];
+				if (strb[j].toUpperCase() != x.toUpperCase()) x = strb[j];
+			}
+			if (x == '_')
+			{
+				if (stra[j] != '_') x = stra[j];
+				else if (strb[j] != '_') x = strb[j];
+				else if (strc[j] != '_') x = strc[j];
 			}
 			strre += x;
 		}
@@ -546,10 +480,14 @@ function solvecap() {
 			}
 		}
 		else document.getElementById('status' + i).className = "wronganswer";
+		if (stra.toUpperCase() == strre.toUpperCase()) ++independentMatch;
+		if (strb.toUpperCase() == strre.toUpperCase()) ++independentMatch;
+		if (strc.toUpperCase() == strre.toUpperCase()) ++independentMatch;
 	}
 	var htmlstr = "";
 	htmlstr += "Number of tests: " + tests + "<br>";
 	htmlstr += "Match: " + (totalMatch*100/tests).toFixed(2) + "% (" + totalMatch + " tests) - " + "Perfect match: " + (totalExactMatch*100/tests).toFixed(2) + "% (" + totalExactMatch + " tests)<br>"
+	htmlstr += "Independent Match: " + (independentMatch*100/(tests*3)).toFixed(2) + "% (" + independentMatch + " images)<br>"
 	htmlstr += "Average time: " + ((totalTime/1000)/tests).toFixed(2) + "sec/test" + " - " + (((totalTime/1000)/tests)/3).toFixed(2) + "sec/captcha <br>";
 	document.getElementById('summary').innerHTML = htmlstr;
 	

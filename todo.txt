@@ -1,1 +1,6 @@
 KR
+
+thêm nút custom item
+shop item name
+
+bug: recheck KR solver + KR alarm
