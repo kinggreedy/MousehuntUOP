@@ -1,3 +1,0 @@
-KR
-
-bug: recheck KR solver

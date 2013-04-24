@@ -536,6 +536,10 @@ function checkBrowser() {
 		location.href = "/";
 		return 1;
 	}
+	else if (location.pathname.indexOf('/chat/') != -1)
+	{
+		return 1;
+	}
 	else if (getCookie("switch_to") == "mobile") //mobile mode
 	{
 		return 1;
@@ -1146,7 +1150,7 @@ function potcontentLoad() {
 
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
-				contentDiv.innerHTML = "";
+				contentDiv.innerHTML = "<br>";
 				contentDiv.appendChild(HTMLdiv);
 				
 				sendMessage(JSText,"UOP_eval");
@@ -2224,7 +2228,8 @@ function defaultFullSkin() {
 		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
 	}
 	
-	if (atCamp)
+	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
+	if (tabbar.length > 0)
 	{
 		travelToTabBar();
 		shopToTabBar();
@@ -2234,47 +2239,46 @@ function defaultFullSkin() {
 		giftToTabBar();
 		
 		//hide daily & part of friends
-		var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-		if (tabbar.length > 0)
-		{
-			tabbar = tabbar[0];
-			tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
-			tmp[0].style.display = "none";
-			
-			var friendtmp = document.createElement('div');
-			friendtmp.id = "UOP_friendsOnlineCampTab";
-			friendtmp.className = "bcenter";
-			friendtmp.textContent = "Friends";
-			tmp = document.getElementById('friendsOnlineCampTab');
-			tmp.style.display = "none";
-			tmp.parentNode.insertBefore(friendtmp,tmp);
-		}
+		tabbar = tabbar[0];
+		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
+		tmp[0].style.display = "none";
+		
+		var friendtmp = document.createElement('div');
+		friendtmp.id = "UOP_friendsOnlineCampTab";
+		friendtmp.className = "bcenter";
+		friendtmp.textContent = "Friends";
+		tmp = document.getElementById('friendsOnlineCampTab');
+		tmp.style.display = "none";
+		tmp.parentNode.insertBefore(friendtmp,tmp);
 	}
 	
-	var convertible = document.getElementsByClassName('convertible');
-	if (convertible.length > 0)
+	if (location.pathname == "/inventory.php")
 	{
-		var newbutton;
-		var newinput;
-		var holder;
-		for (var i = 0;i < convertible.length;++i)
+		var convertible = document.getElementsByClassName('convertible');
+		if (convertible.length > 0)
 		{
-			holder = convertible[i].getElementsByClassName('convertibledetails')[0];
-			newbutton = holder.getElementsByTagName('input');
-			for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
-			
-			newbutton = document.createElement('input');
-			newbutton.type = "submit";
-			newbutton.value = "Custom";
-			newbutton.addEventListener('click',useCustomConvertible,false);
-			newinput = document.createElement('input');
-			newinput.type = "text";
-			newinput.className = "num";
-			
-			holder.appendChild(newbutton);
-			holder.appendChild(newinput);
+			var newbutton;
+			var newinput;
+			var holder;
+			for (var i = 0;i < convertible.length;++i)
+			{
+				holder = convertible[i].getElementsByClassName('convertibledetails')[0];
+				newbutton = holder.getElementsByTagName('input');
+				for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
+				
+				newbutton = document.createElement('input');
+				newbutton.type = "submit";
+				newbutton.value = "Custom";
+				newbutton.addEventListener('click',useCustomConvertible,false);
+				newinput = document.createElement('input');
+				newinput.type = "text";
+				newinput.className = "num";
+				
+				holder.appendChild(newbutton);
+				holder.appendChild(newinput);
+			}
+			sendMessage("","UOP_getItemData");
 		}
-		sendMessage("","UOP_getItemData");
 	}
 	
 	//precious title advancing
