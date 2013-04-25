@@ -1893,7 +1893,7 @@ function useCustomConvertible(e) {
 					if (data.success == 1)
 					{
 						tbox.value = "OK";
-						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity')[0].textContent = itemdata[i].quantity - num;
+						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity')[0].textContent = itemdata[i].quantity = itemdata[i].quantity - num;
 						tbox.value += ' ' + data.messageData.message_model.messages[0].messageData.content.title;
 					}
 					else
