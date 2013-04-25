@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        A.R.L.T.K.S
 // @author      GaCon
-// @version    	2.1
+// @version    	2.2
 // @namespace   GaCon
 // @description All roads lead to King's Stockade on a Bugatti Veyron. Rocket speed !!!
 // @grant       GM_xmlhttpRequest
@@ -24,7 +24,7 @@
  * force the non-HTTPS page if we're at camp
  */
 var C_ForceNonHTTPS = 1;
-if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1)) //not at login.php & using HTTP, not HTTPS
+if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1) && (location.hostname.indexOf('facebook') == -1)) //not at login.php & using HTTP, not HTTPS & not facebook
 {
 	location.replace("http"+location.href.substr(5)); //force HTTPS
 }
@@ -585,7 +585,6 @@ function createTemplate() {
 }
 /*******************MAIN********************/
 function main() {
-	
 	switch (S_skin)
 	{
 		case 1: defaultSkin();break;
@@ -1894,12 +1893,15 @@ function useCustomConvertible(e) {
 					if (data.success == 1)
 					{
 						tbox.value = "OK";
-						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity').textContent = itemdata[i].quantity - num;
+						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity')[0].textContent = itemdata[i].quantity - num;
+						tbox.value += ' ' + data.messageData.message_model.messages[0].messageData.content.title;
 					}
 					else
 					{
 						tbox.value = "Error";
+						tbox.value += ' ' + data.messageData.message_model.messages[0].messageData.content.body[0];
 					}
+					
 				}
 				catch (e)
 				{
@@ -2201,12 +2203,13 @@ function defaultFullSkin() {
 	donationarea.removeChild(document.getElementsByClassName('donatebutton')[0]);
 	var mainnav = document.getElementsByClassName('navitem lorebutton')[0].parentNode.parentNode;
 	friendbtn.style.display = "none";	//mainnav.removeChild(document.getElementsByClassName('navitem travelbutton')[0].parentNode);
+	mainnav.removeChild(document.getElementsByClassName('navitem shopsbutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem micebutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem lorebutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem forumsbutton')[0].parentNode);
 	//fix the dropdown
-	document.getElementById(navnum + '.shops').style.left = "308px";
+	//document.getElementById(navnum + '.shops').style.left = "308px";
 	document.getElementById(navnum + '.inventory').style.left = "213px";
 	document.getElementById(navnum + '.friends').style.left = "645px";
 	
@@ -2252,7 +2255,7 @@ function defaultFullSkin() {
 		tmp.parentNode.insertBefore(friendtmp,tmp);
 	}
 	
-	if (location.pathname == "/inventory.php")
+	if (location.pathname.indexOf("/inventory.php") != -1)
 	{
 		var convertible = document.getElementsByClassName('convertible');
 		if (convertible.length > 0)
@@ -2718,7 +2721,6 @@ function puzzleUserSubmit() {
 	}
 	setTimeout(puzzleUserSubmit, 1000);
 }
-/**================================EXPERIMENTAL AREA==================================*/
 /*******************KR SOLVER AREA*******************/
 var KR_turn = 3;
 var KR_canvas,KR_canvas2;
@@ -3160,6 +3162,7 @@ function KR_sendResult() {
 		submitPuzzle(res);
 	}
 }
+/**================================EXPERIMENTAL AREA==================================*/
 /*******************SCHEDULE AREA********************/
 var sh_name = {
 		"CHANGETRAP" : "/managers/ajax/users/changetrap.php",
