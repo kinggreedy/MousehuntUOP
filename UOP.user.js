@@ -274,7 +274,7 @@ function runTimeCreateConstant() {
 	 #UOP_scriptFullName, #UOP_scriptName {width: 130px;}\
 	 #UOP_scriptFullName {margin-left:11px;}\
 	 .UOP_scriptContentDiv {margin-left: -70px;}\
-	 #UOP_scriptContent {height: 150px; width: 490px;}\
+	 #UOP_scriptContent {height: 150px; width: 490px;white-space: nowrap;}\
 	 ',
 	'.itempurchase .purchasecontrol {width: 200px;min-height: 0px;}\
 	 .itempurchase .name {font-weight: bold;font-size: 1.3em;}\
@@ -966,7 +966,6 @@ function saveScript() {
 	sh_scripts[sid].setting.priority = priority;
 	sh_scripts[sid].setting.userSync = userSync;
 	sh_scripts[sid].setting.trapCheckPriority = trapCheckPriority;
-	sh_scripts[sid].mode = mode;
 	sh_scripts[sid].content = content;
 	sh_scripts[sid].vars = vars;
 	sh_scripts[sid].errorHandler = errorHandler;
@@ -3571,40 +3570,6 @@ function shInitSchedule() {
 		if (sh_scripts[i].errorHandler != 0) sh_scripts[i].errorContent = window.localStorage['UOP_scriptErrorContent' + i];
 	}
 	
-	/*
-	i = nscripts;
-	sh_scripts[i] = new Object;
-	sh_scripts[i].name = "dummy_script";
-	sh_scripts[i].fullname = "Dummy Script";
-	sh_scripts[i].setting = new Object;
-	sh_scripts[i].setting.beforeTrapCheck = 1;
-	sh_scripts[i].setting.afterTrapCheck = 1;
-	sh_scripts[i].setting.afterHorn = 1;
-	sh_scripts[i].setting.priority = 0;
-	sh_scripts[i].setting.userSync = 1;
-	sh_scripts[i].setting.trapCheckPriority = 1;
-	sh_scripts[i].vars = {};
-	sh_scripts[i].mode = PLAY;
-	sh_scripts[i].errorHandler = 0;
-	sh_scripts[i].content = "console.log(sh_mode + ' ' + (new Date()));";
-	
-	++i;
-	sh_scripts[i] = new Object;
-	sh_scripts[i].name = "dummy_script2";
-	sh_scripts[i].fullname = "Dummy Script #2";
-	sh_scripts[i].setting = new Object;
-	sh_scripts[i].setting.beforeTrapCheck = 0;
-	sh_scripts[i].setting.afterTrapCheck = 0;
-	sh_scripts[i].setting.afterHorn = 1;
-	sh_scripts[i].setting.priority = 1;
-	sh_scripts[i].setting.userSync = 0;
-	sh_scripts[i].setting.trapCheckPriority = 0;
-	sh_scripts[i].vars = {};
-	sh_scripts[i].mode = PAUSE;
-	sh_scripts[i].errorHandler = 0;
-	sh_scripts[i].content = "console.log(new Date());\r\nsetTimeout(sh_scripts[" + i +"].func,1000);";
-	/**/
-	
 	for (i = 0;i < sh_scripts.length;++i)
 		if (sh_scripts[i].mode != STOP)
 		{
@@ -3780,21 +3745,23 @@ function shSubmit(url,params,successHandler,errorHandler,loadHandler){
 		{
 			if (http.status == 200)
 			{
+				var parseok = 0;
 				try
 				{
 					data = JSON.parse(http.responseText);
-					if (data.success == 1)
-					{
-						shActionSuccessHandler(successHandler);
-					}
-					else
-					{
-						shActionErrorHandler(errorHandler);
-					}
+					parseok = 1;
 				}
 				catch (e)
 				{
 					shActionLoadHandler(loadHandler);
+				}
+				if (parseok == 1)
+				{
+					shActionSuccessHandler(successHandler);
+				}
+				else
+				{
+					shActionErrorHandler(errorHandler);
 				}
 			}
 			else
@@ -3817,16 +3784,17 @@ function shLoad(url,params,successHandler){
 		{
 			if (http.status == 200)
 			{
+				var parseok = 0;
 				try
 				{
 					data = JSON.parse(http.responseText);
-					shActionSuccessHandler(successHandler);
+					parseok = 1;
 				}
 				catch (e)
 				{
 					shLoad(url,params,successHandler);
-					return;
 				}
+				if (parseok == 1) shActionSuccessHandler(successHandler);
 			}
 			else
 			{
@@ -3939,6 +3907,8 @@ function shFunctionSuccessHandler() {
 function shFunctionErrorHandler(e) {
 	shChangeScriptState(ERROR,sh_sid);
 	if (sh_scripts[sh_sid].errorHandler != 0) sh_scripts[sh_sid].errorFunc(e);
+	if (e == null) console.log("Network error");
+	else console.log("Message: " + e.message + " - Stack: " + e.stack);
 	switch (sh_mode)
 	{
 		case AFTERHORN: shAfterHorn();break;
@@ -4000,7 +3970,7 @@ function shActionSuccessHandler(func) {
 	}
 	++(sh_scripts[sh_sid].stage);
 	if (func != null) func();
-	sh_scripts[sid].func();
+	sh_scripts[sh_sid].func();
 }
 function shActionErrorHandler(func) {
 	if (data.user.has_puzzle == true)
@@ -4055,7 +4025,7 @@ function shGetVariable(s) {
 //"TOUR" : "user.viewing_atts.tournament",
 //"TOUR_STATUS" : "user.viewing_atts.tournament.status",
 function shChangeTrap(weapon,base,charm,cheese) {
-	var params = "weapon=" + trap + "&base=" + base + "&trinket=" + charm + "bait=" + cheese;
+	var params = "weapon=" + weapon + "&base=" + base + "&trinket=" + charm + "&bait=" + cheese;
 	shLoad("/managers/ajax/users/changetrap.php",params,null);
 }
 function shTravel(destination) {
