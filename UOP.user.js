@@ -3757,11 +3757,7 @@ function shSubmit(url,params,successHandler,errorHandler,loadHandler){
 				}
 				if (parseok == 1)
 				{
-					shActionSuccessHandler(successHandler);
-				}
-				else
-				{
-					shActionErrorHandler(errorHandler);
+					if (data.success == 1) shActionSuccessHandler(successHandler); else shActionErrorHandler(errorHandler);
 				}
 			}
 			else
