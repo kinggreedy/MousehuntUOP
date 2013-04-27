@@ -277,7 +277,7 @@ function runTimeCreateConstant() {
 	 #UOP_scriptContent {height: 150px; width: 490px;}\
 	 ',
 	'.itempurchase .purchasecontrol {width: 200px;min-height: 0px;}\
-	.itempurchase .name {font-weight: bold;font-size: 1.3em;}\
+	 .itempurchase .name {font-weight: bold;font-size: 1.3em;}\
 	 #UOP_tabbarControls_page {padding-left: 0px;}\
 	 #UOP_tabbarControls_page>ul {padding-top: 3px;}\
 	 .UOP_shopControl {width: auto!important; padding-left: 5px!important; padding-right: 5px!important;}',
@@ -289,7 +289,10 @@ function runTimeCreateConstant() {
 	 #recipeClippingMask .classification {width: 350px;}\
 	 #recipeContainer .scrollUp, #recipeContainer .scrollDown {right: 10px;}\
 	 #recipeClassifications {margin-left: 10px;}\
-	 #recipeContentContainer {margin-left: 0px;}',
+	 #recipeContentContainer {margin-left: 0px;}\
+	 .craftingContainer .top {padding-top: 0px;}\
+	 .craftingTabs a {padding-right: 6px;}\
+	 .craftingTabs li {margin-left: -5px;}',
 	'#userGreeting .userText {padding-right: 8px;}\
 	 #UOP_appTabSuperBrie {float: right;}\
 	 #UOP_appTabSuperBrie .picture{background-size: 100%;background-image: url(/images/items/bait/d3bb758c09c44c926736bbdaf22ee219.gif);}\
@@ -4026,4 +4029,65 @@ function shGetVariable(s) {
 		}
 	}
 	return o;
+}
+//managers/ajax/users/userInventory.php //item_types[]=corrupted_radioactive_blue_cheese_potion & action=get_items
+//"GOLD" : "user.gold",
+//"POINT" : "user.points",
+//"LOCATION" : "user.location",
+//"BAIT" : "user.bait_name",
+//"BAIT_QUALITY" : "user.bait_quantity",
+//"CHARM" : "user.trinket_name",
+//"CHARM_QUALITY" : "user.trinket_quantity",
+//"TRAP" : "user.weapon_name",
+//"BASE" : "user.base_name",
+//"IB" : "user.quests.QuestIceberg",
+//"IB_PHASE" : "user.quests.QuestIceberg.current_phase",
+//"IB_PROGRESS" : "user.quests.QuestIceberg.user_progress",
+//"IB_TURN" : "user.quests.QuestIceberg.turns_taken",
+//"ZT_TOWER_AMPLIFIER" : "user.viewing_atts.zzt_amplifier",
+//"ZT_TECH_PIECE" : "user.viewing_atts.zzt_tech_progress",
+//"ZT_MAGE_PIECE" : "user.viewing_atts.zzt_mage_progress",
+//"FW_WAVE" : "user.viewing_atts.desert_warpath.wave",
+//"FW_STREAK" : "user.viewing_atts.desert_warpath.streak.quantity",
+//"FW_STREAK_TYPE" : "user.viewing_atts.desert_warpath.streak.mouse_type",
+//"FW_POPULATION" : "user.viewing_atts.desert_warpath.wave_population",
+//"FW_BOSS" : "user.viewing_atts.desert_warpath.common_population",
+//"TOUR" : "user.viewing_atts.tournament",
+//"TOUR_STATUS" : "user.viewing_atts.tournament.status",
+function shChangeTrap(weapon,base,charm,cheese) {
+	var params = "weapon=" + trap + "&base=" + base + "&trinket=" + charm + "bait=" + cheese;
+	shLoad("/managers/ajax/users/changetrap.php",params,null);
+}
+function shTravel(destination) {
+	var params = "destination=" + destination;
+	shLoad("/managers/ajax/users/changeenvironment.php",params,null);
+}
+function shPurchase(action,type,quantity) {
+	if (action == "buy") action = 1; else if (action == "sell") action = 0;
+	var params = "type=" + type + "&quantity=" + quantity + "&buy=" + action;
+	shLoad("/managers/ajax/purchases/itempurchase.php",params,null);
+}
+function shUsePotion(potion,num_potions,recipe_index) {
+	var params = "potion=" + potion + "&num_potions=" + num_potions + "&recipe_index=" + recipe_index;
+	shLoad("/managers/ajax/users/usepotion.php",params,null);
+}
+function shCraft(parts,craftQty) {
+	var params = "";
+	for (var key in parts) {
+		if (parts.hasOwnProperty(key)) {
+			params += "&parts[" + key + "]=" + parts[key];
+		}
+	}
+	if (params.length > 0) params = params.slice(1);		
+	
+	params += "&craftQty=" + craftQty;
+	shLoad("/managers/ajax/users/crafting.php",params,null);
+}
+function shHammer(type, quantity) {
+	var params = "item_type=" + type + "&item_qty=" + quantity;
+	shLoad("/managers/ajax/users/usehammer.php",params,null);
+}
+function shUseCollectible(item_type,item_qty) {
+	var params = "item_type=" + item_type + "&item_qty=" + item_qty;
+	shLoad("/managers/ajax/users/useconvertible.php",params,null);
 }
