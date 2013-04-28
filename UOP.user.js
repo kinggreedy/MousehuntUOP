@@ -2022,14 +2022,22 @@ function travel(e) {
 		{
 			if ((request.status == 200) || (request.status == 400))
 			{
+				var tmpRespondJSON;
 				try
 				{
-					var tmpRespondJSON = JSON.parse(request.responseText);
+					tmpRespondJSON = JSON.parse(request.responseText);
 					if (tmpRespondJSON.error == null) htmlstr = "Success ! ";
 					else
 					{
 						htmlstr = "Not success ! ";
 						htmlstr += "Code " + tmpRespondJSON.error.code + ": " + tmpRespondJSON.error.message;
+						if (tmpRespondJSON.error.code == 100)
+						{
+							htmlstr += "Please get a new access_token, by go to SETTING => Go to App<br>";
+							htmlstr += "Or you can use normal mode";
+							O_travelTab.innerHTML = htmlstr;
+							return;
+						}
 					}
 					htmlstr += "<br>";
 				}
@@ -2043,19 +2051,10 @@ function travel(e) {
 				}
 				
 				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
-				if (tmpRespondJSON.error.code != 100)
-				{
-					htmlstr += "Refreshing....";
-					htmlstr += '<div class="UOP_waitingTab"></div>';
-					O_travelTab.innerHTML = htmlstr;
-					travelcontentLoad();
-				}
-				else
-				{
-					htmlstr += "Please get a new access_token, by go to SETTING => Go to App<br>";
-					htmlstr += "Or you can use normal mode";
-					O_travelTab.innerHTML = htmlstr;
-				}
+				htmlstr += "Refreshing....";
+				htmlstr += '<div class="UOP_waitingTab"></div>';
+				O_travelTab.innerHTML = htmlstr;
+				travelcontentLoad();
 			}
 			else
 			{
