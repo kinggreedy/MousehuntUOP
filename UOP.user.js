@@ -48,7 +48,7 @@ function checkDocumentState() {
 //Setting Constants
 var C_version = "2.3";
 var C_versionCompatibleCode = "3";
-var C_disableExperimental = 1;
+var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -1547,16 +1547,49 @@ function travelcontentLoad() {
 				
 				var JSText = request.responseText.substring(index + JSStartString.length,request.responseText.indexOf(");" + JSUnknownString + ".setCurrentUserEnvironmentType"));
 				O_environment = JSON.parse(JSText);
-				
-				var HTMLdiv = document.createElement('div'),listitem;
-				for (var i = 0;i < O_environment.length;++i)
+				var group_env = new Array;
+				var group_name = new Object;
+				var env_obj,group_num = 0,i,j;
+				for (i = 0;i < O_environment.length;++i)
 				{
-					listitem = document.createElement('a');
-					listitem.className = "UOP_travelPlace";
-					listitem.setAttribute("value",O_environment[i].environment_id);
-					listitem.textContent = O_environment[i].name;
-					listitem.addEventListener('click',travel,false);
-					HTMLdiv.appendChild(listitem);
+					if (group_env[group_name[O_environment[i].region.type]] == null)
+					{
+						group_name[O_environment[i].region.type] = group_num++;
+						group_env[group_name[O_environment[i].region.type]] = new Object;
+						group_env[group_name[O_environment[i].region.type]].name = O_environment[i].region.name;
+						group_env[group_name[O_environment[i].region.type]].data = new Array;
+						group_env[group_name[O_environment[i].region.type]].display_order = O_environment[i].region.display_order;
+					}
+					env_obj = new Object;
+					env_obj.name = O_environment[i].name;
+					env_obj.type = O_environment[i].type;
+					env_obj.environment_id = O_environment[i].environment_id;
+					env_obj.display_order = O_environment[i].displayOrder;
+					group_env[group_name[O_environment[i].region.type]].data.push(env_obj);
+				}
+				for (i = 0;i < group_env.length;++i)
+				{
+					group_env[i].data.sort(function(a, b) {return a.display_order - b.display_order;});
+				}
+				group_env.sort(function(a, b) {return a.display_order - b.display_order;});
+				
+				var HTMLdiv = document.createElement('div');
+				var envitem,groupitem;
+				for (i = 0;i < group_env.length;++i)
+				{
+					groupitem = document.createElement('h3');
+					groupitem.textContent = group_env[i].name;
+					HTMLdiv.appendChild(groupitem);
+					for (j = 0;j < group_env[i].data.length;++j)
+					{
+						listitem = document.createElement('a');
+						listitem.className = "UOP_travelPlace";
+						listitem.setAttribute("value",group_env[i].data[j].environment_id);
+						listitem.innerHTML = group_env[i].data[j].name + "&nbsp;&nbsp;";
+						listitem.addEventListener('click',travel,false);
+						HTMLdiv.appendChild(listitem);
+					}
+					HTMLdiv.appendChild(document.createElement("br"));
 				}
 				
 				contentDiv.innerHTML = "";
