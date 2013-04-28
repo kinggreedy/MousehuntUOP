@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        A.R.L.T.K.S
 // @author      GaCon
-// @version    	2.2
+// @version    	2.3
 // @namespace   GaCon
 // @description All roads lead to King's Stockade on a Bugatti Veyron. Rocket speed !!!
 // @grant       GM_xmlhttpRequest
@@ -24,7 +24,7 @@
  * force the non-HTTPS page if we're at camp
  */
 var C_ForceNonHTTPS = 1;
-if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1) && (location.hostname.indexOf('facebook') == -1)) //not at login.php & using HTTP, not HTTPS & not facebook
+if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1) && (location.hostname.indexOf('facebook') == -1) && (location.pathname.indexOf('/canvas/') == -1)) //not at login.php & using HTTP, not HTTPS & not facebook
 {
 	location.replace("http"+location.href.substr(5)); //force HTTPS
 }
@@ -46,9 +46,9 @@ function checkDocumentState() {
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_version = "2.2";
-var C_versionCompatibleCode = "2";
-var C_disableExperimental = 0;
+var C_version = "2.3";
+var C_versionCompatibleCode = "3";
+var C_disableExperimental = 1;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -103,20 +103,21 @@ var C_LOCATION_TIMES = [
 ];
 var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
+var C_canvasMode = ["","/canvas"];
 
 //CallbackFunctions
 
 //==========Variables==========
 //Setting Variables
 var S_skin,S_simple,S_auto,S_schedule,S_solve,S_server;
-var S_ads,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckPriority,S_numScript;
+var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckPriority,S_numScript;
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
 
 //Object Variables
 var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
 var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
-var O_mode;
+var O_mode,O_environment;
 var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 
@@ -133,9 +134,11 @@ var nextTurnTimestamp,atCamp = false;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var initHud = 0,refreshingByError = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
+var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0;
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
+	window.addEventListener("message", receiveWindowMessage, false);
 	if (checkBrowser() == 1) return;
 	
 	//==========LOAD SETTINGS==========
@@ -170,6 +173,13 @@ function initVariables() {
 	scriptstr += sendMessage.toString().replace("function sendMessage","function UOP_sendMessage");
 	scriptstr += UOP_receiveMessage.toString();
 	var script = document.createElement('script');
+	script.setAttribute("type", "text/javascript");
+	script.innerHTML = scriptstr;
+	document.head.appendChild(script);
+	
+	scriptstr = get_access_token.toString().replace("function get_access_token() {","");
+	scriptstr = scriptstr.substring(0,scriptstr.length - 1);
+	script = document.createElement('script');
 	script.setAttribute("type", "text/javascript");
 	script.innerHTML = scriptstr;
 	document.head.appendChild(script);
@@ -254,6 +264,7 @@ function runTimeCreateConstant() {
 	 .UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Stopped"] {background-image: url(data:image/png;base64,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);}\
 	 .UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Paused"] {background-image: url(data:image/png;base64,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);}\
 	 .UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Error"] {background-image: url(data:image/png;base64,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);}\
+	 #UOP_access_token {width:116px;}\
 	 #UOP_serverUrl {width:128px;}\
 	 #UOP_cacheKRstr {width:56px;}\
 	 #UOP_alarmSrc {width:108px;}\
@@ -299,8 +310,7 @@ function runTimeCreateConstant() {
 	 #appInboxTab {margin-left: 0px; cursor: pointer;}\
 	 #appInboxTab span {color: #4DA55A; background-image: url(/images/ui/hgbar/hgrow_middle_blue.png); cursor: pointer;}\
 	 #appInboxTab .alerts {background-image: url(/images/ui/hgbar/alert_badge.png); position: relative; right: -33px; top: -23px; z-index: 10; width: 22px; height: 20px; padding-top: 2px; color: white; text-align: center; font-weight: bold; margin: 0; cursor: pointer;}\
-	 #UOP_freeSB {padding-top: 3px;}\
-	 #UOP_freeSB .picture {width: 45px;}\
+	 .freeoffers_button {right: 0px!important;}\
 	 .marketplace_button {margin: 49px 0px 0px -514px!important;}\
 	 .convertibledetails input[type="text"] {width:50px}\
 	 #btn-friend {margin: 70px 0px 0px 20px; background: url("/images/ui/buttons/navbuttons.en.gif?v=4") no-repeat -313px -38px;width: 74px; height: 26px;}\
@@ -375,6 +385,22 @@ function runTimeCreateConstant() {
 					<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">REMOVE</li>\
 					<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">REPLACE</li>\
 				</ul>\
+			</div>\
+		</div>\
+		<div class="UOP_setting">\
+			<label class="UOP_label">App Emulation</label>\
+			<div class="UOP_settingvalue">\
+				<div class="UOP_settingvalue">\
+					<ul id="UOP_emulateMode" role="radiogroup" aria-labelledby="">\
+						<li class="UOP_settingli" value="0" tabindex="-1" aria-checked="false">ANDROID</li>\
+						<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">IPHONE</li>\
+					</ul>\
+				</div>\
+				<div>\
+					<label>Access token: </label>\
+					<input id="UOP_access_token" type="text">\
+					<button id="UOP_buttonAccessToken">Go to App</button>\
+				</div>\
 			</div>\
 		</div>\
 		<div class="UOP_setting">\
@@ -672,6 +698,7 @@ function runTimeCreateConstant() {
 }
 function checkBrowser() {
 	if ((location.pathname == "/index.php") || (location.pathname == "/") || (location.pathname == "/canvas/") || (location.pathname == "/canvas/index.php")) atCamp = true;
+	if (location.pathname.indexOf('/canvas/') != -1) inCanvas = 1;
 	if (document.body.firstElementChild.tagName.toUpperCase() == "IFRAME")
 	{
 		document.body.removeChild(document.body.firstChild);
@@ -710,8 +737,9 @@ function checkBrowser() {
 		tmp.parentNode.removeChild(tmp);
 		tmp = document.createElement('style');
 		tmp.rel = 'text/css';
-		tmp.innerHTML = "#iframe_canvas {min-height: 3036px;";
+		tmp.innerHTML = "#iframe_canvas {min-height: 3036px;}";
 		document.head.appendChild(tmp);
+		canvasWindow = document.getElementById("iframe_canvas").contentWindow;
 		return 1;
 	}
 	return 0;
@@ -781,6 +809,8 @@ function loadSettings() {
 		window.localStorage.UOP_trapCheck = 1;
 		window.localStorage.UOP_trapCheckTime = -1;
 		window.localStorage.UOP_trapCheckPriority = 1;
+		window.localStorage.UOP_emulateMode = 0;
+		window.localStorage.UOP_access_token = "";
 		
 		window.localStorage.UOP_nscripts = 0;
 		
@@ -811,6 +841,7 @@ function loadSettings() {
 	S_trapCheck = Number(window.localStorage.UOP_trapCheck);
 	S_trapCheckTime = Number(window.localStorage.UOP_trapCheckTime);
 	S_trapCheckPriority = Number(window.localStorage.UOP_trapCheckPriority);
+	S_emulateMode = Number(window.localStorage.UOP_emulateMode);
 	
 	S_cacheKRstr = window.localStorage.UOP_cacheKRstr;
 	S_serverUrl = window.localStorage.UOP_serverUrl;
@@ -828,7 +859,7 @@ function addControlPanel() {
 	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
 }
 function clearSettings() {
-	delete window.localStorage.UOP_settings;
+	delete window.localStorage.UOP_versionCompatibleCode;
 	
 	location.reload();
 }
@@ -839,6 +870,7 @@ function saveSettings() {
 	S_ads = document.getElementById("UOP_ads").getElementsByClassName("tick")[0].value;
 	S_solve = document.getElementById("UOP_solve").getElementsByClassName("tick")[0].value;
 	S_server = document.getElementById("UOP_server").getElementsByClassName("tick")[0].value;
+	S_emulateMode = document.getElementById("UOP_emulateMode").getElementsByClassName("tick")[0].value;
 	S_aggressive = document.getElementById("UOP_aggressive").getElementsByClassName("tick")[0].value;
 	S_alarm = document.getElementById("UOP_alarm").getElementsByClassName("tick")[0].value;
 	S_alarmStop = document.getElementById("UOP_alarmStop").getElementsByClassName("tick")[0].value;
@@ -852,6 +884,7 @@ function saveSettings() {
 	S_trapCheckTime = document.getElementById("UOP_trapCheckTime").value;
 	S_cacheKRstr = document.getElementById("UOP_cacheKRstr").value;
 	S_serverUrl = document.getElementById("UOP_serverUrl").value;
+	window.localStorage.UOP_access_token = document.getElementById("UOP_access_token").value;
 	
 	window.localStorage.UOP_skin = S_skin;
 	window.localStorage.UOP_auto = S_auto;
@@ -859,6 +892,7 @@ function saveSettings() {
 	window.localStorage.UOP_ads = S_ads;
 	window.localStorage.UOP_solve = S_solve;
 	window.localStorage.UOP_server = S_server;
+	window.localStorage.UOP_emulateMode = S_emulateMode;
 	
 	window.localStorage.UOP_aggressive = S_aggressive;
 	window.localStorage.UOP_delaymin = S_delaymin;
@@ -1103,11 +1137,13 @@ function initControlPanel() {
 	document.getElementById('UOP_buttonCancelScript').addEventListener('click',cancelScript,false);
 	document.getElementById('UOP_buttonDeleteScript').addEventListener('click',deleteScript,false);
 	document.getElementsByClassName('UOP_scriptDiv')[0].getElementsByTagName('tfoot')[0].getElementsByTagName('td')[0].addEventListener('click',editScript,false);
+	document.getElementById('UOP_buttonAccessToken').addEventListener('click',buttonGetAccessToken,false);
 	
 	tmp = document.getElementById("UOP_skin").getElementsByTagName('li')[S_skin];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_auto").getElementsByTagName('li')[S_auto];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_schedule").getElementsByTagName('li')[S_schedule];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_ads").getElementsByTagName('li')[S_ads];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
+	tmp = document.getElementById("UOP_emulateMode").getElementsByTagName('li')[S_emulateMode];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_aggressive").getElementsByTagName('li')[S_aggressive];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_trapCheck").getElementsByTagName('li')[S_trapCheck];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
 	tmp = document.getElementById("UOP_trapCheckPriority").getElementsByTagName('li')[S_trapCheck];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
@@ -1123,6 +1159,7 @@ function initControlPanel() {
 	document.getElementById("UOP_delaymax").value = S_delaymax;
 	document.getElementById("UOP_trapCheckTime").value = S_trapCheckTime;
 	document.getElementById("UOP_alarmStopTime").value = S_alarmStopTime;
+	document.getElementById("UOP_access_token").value = window.localStorage.UOP_access_token;
 	
 	document.getElementById("UOP_version").innerHTML = C_version;
 	
@@ -1208,6 +1245,49 @@ function alarmTest() {
 	S_alarm = num;
 	S_alarmNoti = alarmNoti;
 }
+function save_access_token() {
+	if (access_token_loaded == 0)
+	{
+		facebookWindow.postMessage("UOP_httpfacebook_request_token", "https://apps.facebook.com");
+		setTimeout(save_access_token,500);
+	}
+	else
+	{
+		window.localStorage.UOP_access_token = access_token_loaded;
+		facebookWindow.postMessage("UOP_facebookclose", "https://apps.facebook.com");
+		document.getElementById('UOP_access_token').value = access_token_loaded;
+		document.getElementById('UOP_buttonAccessToken').textContent = "Saved";
+		document.getElementById('UOP_buttonAccessToken').disabled = true;
+	}
+}
+function get_access_token() {
+	function UOP_save_access_token() {
+		if (typeof FB != "undefined")
+		{
+			var str = FB.getAccessToken();
+			if (str != null)
+			{
+				window.localStorage.UOP_access_token = str;
+				return;
+			}
+		}
+		setTimeout(UOP_save_access_token,1000);
+	}
+	if (location.pathname.indexOf("/canvas/") != -1)
+	{
+		if (isInFacebookFrame())
+		{
+			window.localStorage.UOP_access_token = "Refreshing";
+			setTimeout(UOP_save_access_token,0);
+		}
+	}
+}
+function buttonGetAccessToken() {
+	facebookWindow = window.open("https://apps.facebook.com/mousehunt/");
+	document.getElementById('UOP_access_token').value = "Loading....";
+	access_token_loaded = 0;
+	setTimeout(save_access_token,1000);
+}
 /*******************TOOLS********************/
 function getCookie(c_name) {
 	if (document.cookie.length > 0)
@@ -1254,9 +1334,33 @@ function callArrayFunction(element, index, array) {
 	element();
 }
 /*******************SYNC********************/
+function receiveWindowMessage(event) {
+	//WINDOW <=> FACEBOOK <=> CANVAS
+	if (event.data == "UOP_httpfacebook_request_token") //WINDOW => FACEBOOK
+	{
+		if (access_token_loaded == 0) canvasWindow.postMessage("UOP_facebookhttps_request_token","https://www.mousehuntgame.com");
+		else event.source.postMessage(access_token_loaded,event.origin);
+	}
+	else if (event.data == "UOP_facebookhttps_request_token") //FACEBOOK => CANVAS
+	{
+		if (window.localStorage.UOP_access_token != "Refreshing") event.source.postMessage(window.localStorage.UOP_access_token,event.origin);
+	}
+	else if (event.origin == "https://www.mousehuntgame.com") //CANVAS => FACEBOOK
+	{
+		access_token_loaded = event.data;
+	}
+	else if (event.origin == "https://apps.facebook.com") //FACEBOOK => WINDOW
+	{
+		access_token_loaded = event.data;
+	}
+	else if (event.data == "UOP_facebookclose") //CLOSE FACEBOOK
+	{
+		window.close();
+	}
+}
 function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
-	var url = "/managers/ajax/abtest.php";
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/abtest.php";
 	request.open("GET", url, true);
 	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
 	request.setRequestHeader("Pragma","no-cache");
@@ -1416,10 +1520,62 @@ function skinSecondTimer() {
 	setTimeout(function () { (skinSecondTimer)() }, C_SecondInterval * 1000);
 }
 function travelcontentLoad() {
+	if (C_disableExperimental == 1)
+	{
+		travelcontentLoadold();
+		return;
+	}
+	var request = new XMLHttpRequest();
+	var contentDiv = O_travelContent;
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php", true);
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				var JSUnknownStringStart = request.responseText.indexOf("app.views.TravelView.");
+				var JSUnknownStringEnd = request.responseText.indexOf(" =",JSUnknownStringStart);
+				var JSUnknownString = request.responseText.substring(JSUnknownStringStart,JSUnknownStringEnd);
+				var JSStartString = JSUnknownString + ".populate(";
+				var index = request.responseText.indexOf(JSStartString);
+				if (index == -1)
+				{
+					contentDiv.innerHTML = "Cannot load data, possibility because of King's Reward";
+					return;
+				}
+				
+				var JSText = request.responseText.substring(index + JSStartString.length,request.responseText.indexOf(");" + JSUnknownString + ".setCurrentUserEnvironmentType"));
+				O_environment = JSON.parse(JSText);
+				
+				var HTMLdiv = document.createElement('div'),listitem;
+				for (var i = 0;i < O_environment.length;++i)
+				{
+					listitem = document.createElement('a');
+					listitem.className = "UOP_travelPlace";
+					listitem.setAttribute("value",O_environment[i].environment_id);
+					listitem.textContent = O_environment[i].name;
+					listitem.addEventListener('click',travel,false);
+					HTMLdiv.appendChild(listitem);
+				}
+				
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
+			}
+			else
+			{
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
+			}
+		}
+	};
+	request.send(null);
+	return false;
+}
+function travelcontentLoadold() {
 	var request = new XMLHttpRequest();
 	var freeTravel,freeTravelMeadow;
 	var contentDiv = O_travelContent;
-	request.open("GET", "/travel.php?quick=1", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/travel.php?quick=1", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1444,7 +1600,7 @@ function travelcontentLoad() {
 					{
 						travelcontentChildArr[i].firstChild.target = "_blank";
 						travelcontentChildArr[i].firstChild.setAttribute('onclick','return false;');
-						travelcontentChildArr[i].firstChild.addEventListener('click',travel,false);
+						travelcontentChildArr[i].firstChild.addEventListener('click',travel_old,false);
 					}
 			}
 			else
@@ -1460,7 +1616,7 @@ function shopcontentLoad() {
 	manageCSSJSAdder(1);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_shopContent;
-	request.open("GET", "/shops.php", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/shops.php", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1516,7 +1672,7 @@ function potcontentLoad() {
 	manageCSSJSAdder(2);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_potContent;
-	request.open("GET", "/inventory.php?tab=3", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/inventory.php?tab=3", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1546,7 +1702,7 @@ function craftcontentLoad() {
 	manageCSSJSAdder(3);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_craftContent;
-	request.open("GET", "/inventory.php?tab=2", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/inventory.php?tab=2", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1589,7 +1745,7 @@ function supplycontentLoad() {
 	manageCSSJSAdder(6);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_supplyContent;
-	request.open("GET", "/supplytransfer.php", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/supplytransfer.php", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1619,7 +1775,7 @@ function giftcontentLoad() {
 	manageCSSJSAdder(7);
 	var request = new XMLHttpRequest();
 	var contentDiv = O_giftContent;
-	request.open("GET", "/gift.php", true);
+	request.open("GET",C_canvasMode[inCanvas] + "/gift.php", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1669,12 +1825,14 @@ function travelToTabBar() {
 	O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
 	travelcontentChild.id = "UOP_campTravel";
 	travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
-	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a>';
+	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a><br><a id="UOP_travelOld">Click here</a> for normal travel mode';
 	travelcontentChild = travelcontentChild.firstChild.nextSibling;
 	travelcontentChild.id = "UOP_travelcontentChild";
 	O_travelContent = travelcontentChild;
 	travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
+	
+	document.getElementById('UOP_travelOld').addEventListener('click',travelcontentLoadold,false);
 }
 function shopToTabBar() {
 	//shop => tabbar
@@ -1816,6 +1974,68 @@ function giftToTabBar() {
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(giftcontent);
 }
 function travel(e) {
+	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
+	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
+	var request = new XMLHttpRequest();
+	var htmlstr = "";
+	var mobile = (S_emulateMode == 0) ? "Android" : "Iphone";
+	var params = "v=2&client_id=Cordova%3A" + mobile + "&client_version=0.7.5&game_version=42861%0A&access_token=" + window.localStorage.UOP_access_token;
+
+	request.open("POST", url, true);
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if ((request.status == 200) || (request.status == 400))
+			{
+				try
+				{
+					var tmpRespondJSON = JSON.parse(request.responseText);
+					if (tmpRespondJSON.error == null) htmlstr = "Success ! ";
+					else
+					{
+						htmlstr = "Not success ! ";
+						htmlstr += "Code " + tmpRespondJSON.error.code + ": " + tmpRespondJSON.error.message;
+					}
+					htmlstr += "<br>";
+				}
+				catch (excep)
+				{
+					O_travelTab.innerHTML = "Network error, refreshing...";
+					O_travelTab.innerHTML += '<div class="UOP_waitingTab"></div>';
+					O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+					travelcontentLoad();
+					return;
+				}
+				
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+				if (tmpRespondJSON.error.code != 100)
+				{
+					htmlstr += "Refreshing....";
+					htmlstr += '<div class="UOP_waitingTab"></div>';
+					O_travelTab.innerHTML = htmlstr;
+					travelcontentLoad();
+				}
+				else
+				{
+					htmlstr += "Please get a new access_token, by go to SETTING => Go to App<br>";
+					htmlstr += "Or you can use normal mode";
+					O_travelTab.innerHTML = htmlstr;
+				}
+			}
+			else
+			{
+				O_travelTab.innerHTML = "Network error, refreshing...";
+				O_travelTab.innerHTML += '<div class="UOP_waitingTab"></div>';
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+				travelcontentLoad();
+			}
+		}
+	};
+	request.send(params);
+}
+function travel_old(e) {
 	var url = e.target.href;
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var request = new XMLHttpRequest();
@@ -1838,6 +2058,7 @@ function travel(e) {
 				htmlstr += "Refreshing....";
 				htmlstr += '<div class="UOP_waitingTab"></div>';
 				O_travelTab.innerHTML = htmlstr;
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
 				travelcontentLoad();
 				if (url.indexOf('freeTravel=true') != -1) syncUser(updateUserHash);
 			}
@@ -2259,7 +2480,7 @@ function useCustomConvertible(e) {
 	tbox.value = "Loading";
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_type=" + itemtype + "&item_qty=" + num;
 	var http = new XMLHttpRequest();
-	http.open("POST", "/managers/ajax/users/useconvertible.php", true);
+	http.open("POST",C_canvasMode[inCanvas] + "/managers/ajax/users/useconvertible.php", true);
 	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
@@ -2390,19 +2611,6 @@ function defaultFullSkin() {
 	simpleSkinButton.removeAttribute('onclick');
 	simpleSkinButton.addEventListener('click',toggleSkin,false);
 	
-	var freeSB = null;
-	tmp = document.getElementsByClassName('freeoffers_button');
-	if (tmp.length > 0)
-	{
-		tmp = tmp[0];
-		freeSB = document.getElementById('UOP_appControlPanel').cloneNode(true);
-		freeSB.id = "UOP_freeSB";
-		freeSB.className = "hgMenu";
-		freeSB.setAttribute('onclick',tmp.getAttribute('onclick'));
-		freeSB.firstChild.firstChild.firstChild.src = "/images/ui/buttons/free_sb_offers_btn.gif";
-		tmp.parentNode.removeChild(tmp);
-	}
-	
 	var appendbefore = document.getElementById('communityMenu').nextSibling.nextSibling;
 	O_hgRow.insertBefore(inbox,appendbefore);
 	O_hgRow.insertBefore(template.hgRight.cloneNode(true),appendbefore);
@@ -2410,11 +2618,6 @@ function defaultFullSkin() {
 	O_hgRow.insertBefore(template.hgRight.cloneNode(true),appendbefore);
 	O_hgRow.appendChild(simpleSkinButton);
 	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
-	if (freeSB != null)
-	{
-		O_hgRow.appendChild(freeSB);
-		O_hgRow.appendChild(template.hgLeft.cloneNode(true));
-	}
 
 	//support: remove: all support from support;livedevchat,chatroom,forum,news => support; 
 	//community: remove: Store, add 2 guide, wiki
@@ -2611,7 +2814,7 @@ function defaultFullSkin() {
 	}
 	
 	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
+	if ((tabbar.length > 0) && atCamp)
 	{
 		travelToTabBar();
 		shopToTabBar();
@@ -2986,7 +3189,7 @@ function KRSolverOCR() {
 	KR_initKR(KRSolverOCRCore);
 }
 function submitPuzzle(str) {
-	var url = "/managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
 	var request = new XMLHttpRequest();
 	request.open("GET", url, true);
 	request.onreadystatechange = function()
@@ -3738,7 +3941,7 @@ function shSubmit(url,params,successHandler,errorHandler,loadHandler){
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
 	var http = new XMLHttpRequest();
-	http.open("POST", url, true);
+	http.open("POST",C_canvasMode[inCanvas] + url, true);
 	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
@@ -3773,7 +3976,7 @@ function shLoad(url,params,successHandler){
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
 	var http = new XMLHttpRequest();
-	http.open("POST", url, true);
+	http.open("POST",C_canvasMode[inCanvas] + url, true);
 	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
