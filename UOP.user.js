@@ -772,13 +772,7 @@ function main() {
 	}
 	
 	if ((S_ads == 0) && (S_simple == 1)) S_ads = 1;
-	switch (S_ads)
-	{
-		case 1: removeAds();break;
-		case 2: removeAds();break;
-		default: break;
-	}
-	
+	if ((S_ads == 1) || (S_ads == 2)) removeAds();
 	if (S_auto == 0) initAuto();
 	if ((S_auto == 0) && (S_schedule == 0)) shInitSchedule();
 	
@@ -2956,7 +2950,7 @@ function defaultFullSkin() {
 	registerSoundHornWaiting.push(updateHud);
 	registerSoundHornWaiting.push(skinSecondTimer);
 }
-//ADS replace
+/*******************ADS AREA*********************/
 function removeAds() {
 	//remove mousehunt ads
 	var rightCol = document.getElementById('hgSideBar'); //mousehunt ads
@@ -2964,7 +2958,15 @@ function removeAds() {
 	{
 		while (rightCol.childElementCount > 1)
 			rightCol.removeChild(rightCol.lastChild);//rightCol.style.display = "none";
+		if (S_ads == 2)
+		{
+			rightCol.appendChild(document.createElement("div"));
+			//~~~~I was left here
+		}
 	}
+}
+function addThings() {
+	
 }
 /*******************AUTO AREA********************/
 function initAuto() {
