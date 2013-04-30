@@ -1,5 +1,3 @@
-icon delete
-
 BC
 if (HIGH & VVS) VS
 if (location == JoD && Cheese == VS || VVS) return to BC

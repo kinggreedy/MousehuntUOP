@@ -48,7 +48,7 @@ function checkDocumentState() {
 //Setting Constants
 var C_version = "2.3";
 var C_versionCompatibleCode = "3";
-var C_disableExperimental = 0;
+var C_disableExperimental = 1;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -104,6 +104,10 @@ var C_LOCATION_TIMES = [
 var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
 var C_canvasMode = ["","/canvas"];
+var C_displayState = ["block","none"];
+var C_mobile = [
+{Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
+{Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
 
 //CallbackFunctions
 
@@ -132,7 +136,7 @@ var registerSoundHornSounded = new Array;
 var registerSoundHornWaiting = new Array;
 var nextTurnTimestamp,atCamp = false;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var initHud = 0,refreshingByError = 0;
+var initHud = 0,refreshingByError = 0,screenshotSafe = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0;
 /*******************INITIALIZATION********************/
@@ -150,6 +154,7 @@ function initialization() {
 	createTemplate();
 	initVariables();
 	addControlPanel();
+	addScreenShotSafe();
 	
 	//==========CALL THE MAIN FUNCTION==========
 	main();
@@ -279,7 +284,7 @@ function runTimeCreateConstant() {
 	 #UOP_buttonSchedule .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QTA1MjM3MzU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QTA1MjM3MzY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpBMDUyMzczMzhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpBMDUyMzczNDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsYb0WAAAADcSURBVHja7JdNCsIwEIWbqivFa7QrceH9T6D79hqiK39iAhEiTvMKb7AWZiCb+dLhkXmZUOe9r6aMupo4TMBSyDVhbYT8JaxegX+EE0z4lDamwrUChwJiwgkF3nmWwxbE2IPWsbx4Asek9mtvWAcFDgW0A7cj9rZT4FDAHdwalkMPLEDbWP7/g+gEvmH5KBOuhb3XzGQMH2XCTijQZiZjuE3CeUzCrVDgnJmM4VDArfCcrhT4PEy4A95hefEE+vRySWO7UeBQgBt4UB7ZMTIcCrD/AhNgAn4aLwEGAMI5iydTaCarAAAAAElFTkSuQmCC");}\
 	 #UOP_buttonSave .UOP_buttonicon,#UOP_buttonSaveScript .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTVEOEJDRkU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTVEOEJDRkY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5NTU0REIyNDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5NUQ4QkNGRDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pr3Wrw0AAAEQSURBVHjaYvz//z/DQAImhgEGow4YcAewEKkuCogDybRjMRBvwikLygUEcBQQP/1PPrgPxDq4zGckIhs+BWIpKBvkk/VA/IWAHgkgdgViPyj/IBA7YFNIjAOQFegB8WUig14XiC8h20UNBzCSGP8E9Q65bMhCbbNJdQCxWZEDiLOIUUhqGrgHxFeA+BcBPbxAbATEotROhJSA4ZEIB6wuQAbHgXgWntKQB4jTgNiSuJKCcF2ADgKJ0BOIRR/ZdQG6Ak4g/kFENvxOTCIkxwEwg1YjiYWSoI9kB1yEVkLoBhEq55HlQZWSPrm5YBIVEvskSnLBKiD+iEU8lIA+ZPmdlBTFo63iUQeMOmB4OwAgwAA4DRkrSEfzrgAAAABJRU5ErkJggg==");}\
 	 #UOP_buttonReset .UOP_buttonicon,#UOP_buttonCancelScript .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTU1NERCMUU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTU1NERCMUY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5NTU0REIxQzhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5NTU0REIxRDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgDrifwAAAGwSURBVHja7NY9SwMxAAbgtvhNq2JLaScVdNDqoCBWnIqDOugguvkbnPwBLg7FLuLSSRShgovgIKhYENTZRVFUKujaKoJUUDnfwCuEox+XM+VQGnhIm8sl79EmF7dhGC4ni8flcPnzAYIQcCqAmHwDupwI8DP5JNT9JkCNjXv6Ic7JRRmCeriDjOpgbsVlOAprMCC1PUEesnAPp5C0PKIIoCBtlC9Z2IGglTFVA8zBuWnCZZiHFchI7fsQ0h1AiMCuNNEw270QhaR0bb0SAYR2SHCSmOmaH7Z47RMGKxFA8MEC9BW4FoYcQ8R1BOikVlO7WEUNRe7ZZoCLUmNb3YhSNGteRPBe5J5r1r06NqIo67TCnvHFulbHVnzD2qsQoIP1o44Ae6xnoNlCfx9M8/OZjp2wh0tKlCUL/RPSXhDTtQxXOeALQzQW6NMEi5Bn3yPwlBpX5WUU4E8xAh9wAgd8C4oSggkY439FvBnH4Vbnyyhi2mrf4IGepfZDbstlx3TbOBX7+ZRT1ML2V7iCTTgu++Q2zwNyCUM3tPF7jmeCy0oeSKrH8mqAaoD/F+BbgAEAp4jNfsnaJiYAAAAASUVORK5CYII=");}\
-	 #UOP_buttonDeleteScript .UOP_buttonicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTU1NERCMUU4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTU1NERCMUY4REE4MTFFMjg4RTJGQzU5QTU3MUY1MEMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5NTU0REIxQzhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5NTU0REIxRDhEQTgxMUUyODhFMkZDNTlBNTcxRjUwQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PgDrifwAAAGwSURBVHja7NY9SwMxAAbgtvhNq2JLaScVdNDqoCBWnIqDOugguvkbnPwBLg7FLuLSSRShgovgIKhYENTZRVFUKujaKoJUUDnfwCuEox+XM+VQGnhIm8sl79EmF7dhGC4ni8flcPnzAYIQcCqAmHwDupwI8DP5JNT9JkCNjXv6Ic7JRRmCeriDjOpgbsVlOAprMCC1PUEesnAPp5C0PKIIoCBtlC9Z2IGglTFVA8zBuWnCZZiHFchI7fsQ0h1AiMCuNNEw270QhaR0bb0SAYR2SHCSmOmaH7Z47RMGKxFA8MEC9BW4FoYcQ8R1BOikVlO7WEUNRe7ZZoCLUmNb3YhSNGteRPBe5J5r1r06NqIo67TCnvHFulbHVnzD2qsQoIP1o44Ae6xnoNlCfx9M8/OZjp2wh0tKlCUL/RPSXhDTtQxXOeALQzQW6NMEi5Bn3yPwlBpX5WUU4E8xAh9wAgd8C4oSggkY439FvBnH4Vbnyyhi2mrf4IGepfZDbstlx3TbOBX7+ZRT1ML2V7iCTTgu++Q2zwNyCUM3tPF7jmeCy0oeSKrH8mqAaoD/F+BbgAEAp4jNfsnaJiYAAAAASUVORK5CYII=");}\
+	 #UOP_buttonDeleteScript .UOP_buttonicon {background-image: url("data:image/png;base64,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");}\
 	 .UOP_hiddenTaskbar {display: none;opacity: 0;}\
 	 .UOP_activeTaskbar {display: block;opacity: 1;}\
 	 #UOP_scriptFullName, #UOP_scriptName {width: 130px;}\
@@ -392,8 +397,9 @@ function runTimeCreateConstant() {
 			<div class="UOP_settingvalue">\
 				<div class="UOP_settingvalue">\
 					<ul id="UOP_emulateMode" role="radiogroup" aria-labelledby="">\
-						<li class="UOP_settingli" value="0" tabindex="-1" aria-checked="false">ANDROID</li>\
-						<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">IPHONE</li>\
+						<li class="UOP_settingli" value="0" tabindex="-1" aria-checked="false">OFF</li>\
+						<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">ANDROID</li>\
+						<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">IPHONE</li>\
 					</ul>\
 				</div>\
 				<div>\
@@ -727,7 +733,7 @@ function checkBrowser() {
 	{
 		if (document.getElementById('campButton') == null) // no camp button aka error
 		{
-			setTimeout(function () {location.reload();},60000);
+			setTimeout(function () {location.reload();},15000);
 			return 1;
 		}
 	}
@@ -1468,7 +1474,6 @@ function UOP_receiveMessage() {
 	{
 		case "UOP_userHash": UOP_updateUserHash();break;
 		case "UOP_eval": UOP_eval();break;
-		case "UOP_getItemData": UOP_getItemData();break;
 		default: break;
 	}
 }
@@ -1477,19 +1482,23 @@ function windowScript() {
 	function UOP_sendMessage(str,callfunc) {O_sendMessage.className = callfunc;O_sendMessage.textContent = str;O_sendMessage.click();}
 	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.textContent;}
 	function UOP_eval() {eval(O_receiveMessage.textContent);}
-	function UOP_getItemData() {
-		var UOP_items = new Array;
-		for (var i = 0;i < inventoryItemView1.items.length;++i) {
-			UOP_items[i] = new Object;
-			UOP_items[i].id = Number(inventoryItemView1.items[i].item_id);
-			UOP_items[i].type = inventoryItemView1.items[i].type;
-			UOP_items[i].quantity = inventoryItemView1.items[i].quantity;
-		}
-		UOP_sendMessage(JSON.stringify(UOP_items),"getItemData");
-	}
 }
 /*******************SKIN AREA********************/
 //TOOLS
+function addScreenShotSafe() {
+	var target = document.getElementsByClassName('gamelogo')[0];
+	target.addEventListener('click',toggleScreenShotSafe,false);
+	target.firstChild.setAttribute('onclick','return false;');
+}
+function toggleScreenShotSafe() {
+	screenshotSafe = 1 - screenshotSafe;
+	var target = document.getElementById('UOP_appAutoPanel');
+	if (target != null)
+	{
+		target.style.display = C_displayState[screenshotSafe];
+		target.previousSibling.style.display = C_displayState[screenshotSafe];
+	}
+}
 function skinSecondTimer() {
 	//update sound timer
 	var nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
@@ -1506,7 +1515,6 @@ function skinSecondTimer() {
 	else
 	{
 		O_huntTimer.textContent = "Ready";
-		if (S_auto == 1) document.title = "Ready";
 		return;
 	}
 
@@ -1514,7 +1522,7 @@ function skinSecondTimer() {
 	setTimeout(function () { (skinSecondTimer)() }, C_SecondInterval * 1000);
 }
 function travelcontentLoad() {
-	if (C_disableExperimental == 1)
+	if ((C_disableExperimental == 1) || (S_emulateMode == 0))
 	{
 		travelcontentLoadold();
 		return;
@@ -1706,9 +1714,13 @@ function potcontentLoad() {
 		{
 			if (request.status == 200)
 			{
-				var HTMLText = request.responseText.substring(request.responseText.indexOf("<div id='tabbarContent_page'"),request.responseText.indexOf("</script></div></div>"));
-				var JSText = "inventoryItemView1 = new ViewInventoryItem(1);" + request.responseText.substring(request.responseText.indexOf("inventoryItemView1.setValidItemClassifications"),request.responseText.indexOf("inventoryItemView1.render();") + 28);
-
+				var HTMLBegin = request.responseText.indexOf("<div class='active' id='tabbarContent_page_3'");
+				var HTMLText = request.responseText.substring(HTMLBegin,request.responseText.indexOf("</script></div>",HTMLBegin));
+				var JSText = request.responseText.match(/app.views.InventoryItemView.*.setValidItemClassifications\(\["potion"\]\);app.views.InventoryItemView.*.setItemsPerRow\(1\);/)[0];
+				var JSUnknownRenderString = JSText.substring(JSText.indexOf("app.views.InventoryItemView.") + 28,JSText.indexOf(".setValidItemClassifications"));
+				
+				JSText = 'app.views.InventoryItemView.' + JSUnknownRenderString + ' = new hg.views.InventoryItemView("' + JSUnknownRenderString + '");' + JSText + 'initInventoryItemView(3);';
+				
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
 				contentDiv.innerHTML = "<br>";
@@ -2003,13 +2015,15 @@ function giftToTabBar() {
 function travel(e) {
 	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
-	var request = new XMLHttpRequest();
 	var htmlstr = "";
-	var mobile = (S_emulateMode == 0) ? "Android" : "Iphone";
-	var params = "v=2&client_id=Cordova%3A" + mobile + "&client_version=0.7.5&game_version=42861%0A&access_token=" + window.localStorage.UOP_access_token;
+	var params = "v=2&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.7.5&game_version=42861%0A&access_token=" + window.localStorage.UOP_access_token;
 
+	var request = new XMLHttpRequest();
 	request.open("POST", url, true);
 	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	request.setRequestHeader("X-Requested-With", "com.hitgrab." + C_mobile[S_emulateMode].xrequestwith + ".mousehunt");
+	//request.setRequestHeader("User-Agent",C_mobile[S_emulateMode].agent);
+	
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -2486,62 +2500,6 @@ function moveImageBox(e) {
 	if ((cY+oHd2+10) > vH) state -= 1;
 	O_imageBox.style.top = ((state == 0) ? (cY-oHd2+10) : ((state == 1) ? (uH+10) : (vH-oH-10))) + "px";
 }
-function useCustomConvertible(e) {
-	var tbox = e.target.parentNode.getElementsByClassName("num")[0];
-	var num = Number(tbox.value);
-	var itemid = Number(e.target.parentNode.parentNode.parentNode.id.slice(13));
-	var itemtype = "";
-	var i;
-	if (isNaN(num)) return;
-	
-	for (i = 0;i < itemdata.length;++i)
-		if (itemdata[i].id == itemid)
-		{
-			itemtype = itemdata[i].type;
-			break;
-		}
-	
-	if (itemtype == "") {tbox.value = "Unknown";return;}
-	
-	tbox.value = "Loading";
-	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_type=" + itemtype + "&item_qty=" + num;
-	var http = new XMLHttpRequest();
-	http.open("POST",C_canvasMode[inCanvas] + "/managers/ajax/users/useconvertible.php", true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-	http.onreadystatechange = function() {
-		if (http.readyState == 4)
-		{
-			if (http.status == 200)
-			{
-				try
-				{
-					data = JSON.parse(http.responseText);
-					if (data.success == 1)
-					{
-						tbox.value = "OK";
-						e.target.parentNode.parentNode.parentNode.getElementsByClassName('quantity')[0].textContent = itemdata[i].quantity = itemdata[i].quantity - num;
-						tbox.value += ' ' + data.messageData.message_model.messages[0].messageData.content.title;
-					}
-					else
-					{
-						tbox.value = "Error";
-						tbox.value += ' ' + data.messageData.message_model.messages[0].messageData.content.body[0];
-					}
-					
-				}
-				catch (e)
-				{
-					tbox.value = "Network Error";
-				}
-			}
-			else
-			{
-				tbox.value = "Network Error";
-			}
-		}
-	}
-	http.send(postparams);
-}
 function updateJournalImageBox() {
 	var journalimages = document.getElementsByClassName('journalimage');
 	for (var i = 0;i < journalimages.length;++i)
@@ -2603,6 +2561,66 @@ function updateHud() {
 		initHud = 1;
 		updateMinuteTimer();
 	}
+}
+function updateSpecial() {
+	var convertible = document.getElementsByClassName('UOP_convertible');
+	if (convertible.length == 0)
+	{
+		convertible = document.getElementsByClassName('convertible');
+		if (convertible.length > 0)
+		{
+			var newbutton;
+			var newinput;
+			var holder;
+			var scriptstr;
+			for (var i = 0;i < convertible.length;++i)
+			{
+				convertible[i].classList.add("UOP_convertible");
+				holder = convertible[i].getElementsByClassName('convertibledetails')[0];
+				newbutton = holder.getElementsByTagName('input');
+				for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
+				
+				newbutton = document.createElement('input');
+				newbutton.type = "submit";
+				newbutton.value = "Custom";
+				newbutton.setAttribute("onclick","UOP_useCustomConvertible(this);");
+				
+				newinput = document.createElement('input');
+				newinput.type = "text";
+				newinput.className = "num";
+				
+				holder.appendChild(newbutton);
+				holder.appendChild(newinput);
+			}
+		}
+	}
+	setTimeout(updateSpecial,1000);
+}
+function UOP_useCustomConvertible(obj) {
+	var tbox = obj.parentNode.getElementsByClassName("num")[0];
+	var num = Number(tbox.value);
+	var itemid = Number(obj.parentNode.parentNode.parentNode.id.slice(13));
+	var itemtype = "";
+	var itemdata = hg.utils.UserInventory.getAllItems().convertible;
+	var i;
+	
+	if (isNaN(num)) return;
+	
+	for (i = 0;i < itemdata.length;++i)
+		if (itemdata[i].item_id == itemid)
+		{
+			itemtype = itemdata[i].type;
+			break;
+		}
+	
+	if (itemtype == "") {tbox.value = "Unknown";return;}
+	
+	hg.utils.UserInventory.useConvertible(itemtype,num);
+	eventRegistry.addEventListener('js_dialog_show',function() {
+		activejsDialog.positionCounter = 0
+		activejsDialog.centerInFrame(true);
+	}
+	,null,true);
 }
 function defaultFullSkin() {
 	if (location.pathname.indexOf('/forum/') != -1) return;
@@ -2865,31 +2883,11 @@ function defaultFullSkin() {
 	
 	if (location.pathname.indexOf("/inventory.php") != -1)
 	{
-		var convertible = document.getElementsByClassName('convertible');
-		if (convertible.length > 0)
-		{
-			var newbutton;
-			var newinput;
-			var holder;
-			for (var i = 0;i < convertible.length;++i)
-			{
-				holder = convertible[i].getElementsByClassName('convertibledetails')[0];
-				newbutton = holder.getElementsByTagName('input');
-				for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
-				
-				newbutton = document.createElement('input');
-				newbutton.type = "submit";
-				newbutton.value = "Custom";
-				newbutton.addEventListener('click',useCustomConvertible,false);
-				newinput = document.createElement('input');
-				newinput.type = "text";
-				newinput.className = "num";
-				
-				holder.appendChild(newbutton);
-				holder.appendChild(newinput);
-			}
-			sendMessage("","UOP_getItemData");
-		}
+		var script = document.createElement('script');
+		script.setAttribute("type", "text/javascript");
+		script.innerHTML = UOP_useCustomConvertible.toString();
+		document.head.appendChild(script);
+		updateSpecial();
 	}
 	
 	//precious title advancing
@@ -3034,7 +3032,7 @@ function autoCoreAction() {
 		O_autoPauseCounter.style.display = "block";
 		O_autoCounter.style.display = "none";
 		O_autoSounding.style.display = "none";
-		document.title = "Paused";
+		if (screenshotSafe == 0) document.title = "Paused";
 		return;
 	}
 	else if (autoState == 1) //if APPROACHING KR then call puzzleReaction core
@@ -3048,7 +3046,7 @@ function autoCoreAction() {
 		delayTimeText = formatMinute(nextDelaySeconds);
 		O_autoMainCounter.textContent = hornTimeText;
 		O_autoDelayCounter.textContent = delayTimeText;
-		document.title = hornTimeText + " + " + delayTimeText;
+		if (screenshotSafe == 0) document.title = hornTimeText + " + " + delayTimeText; else document.title = hornTimeText;
 	}
 	else if (autoState == 3) //if (UPDATE DELAYER) UPDATE DELAYER
 	{
@@ -3056,7 +3054,7 @@ function autoCoreAction() {
 		delayTimeText = formatMinute(nextDelaySeconds);
 		O_autoMainCounter.textContent = hornTimeText;
 		O_autoDelayCounter.textContent = delayTimeText;
-		document.title = delayTimeText;
+		if (screenshotSafe == 0) document.title = delayTimeText;
 	}
 	else if (autoState == 4) //if HORN => HORN
 	{
@@ -3170,7 +3168,7 @@ function autoChangeState() {
 	}
 }
 function loadSettingKRimage() {
-	var imageLoadStr = '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
+	var imageLoadStr = C_canvasMode[inCanvas] + '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
 	document.getElementById('UOP_loadKRimage').src = imageLoadStr;
 	
 	var len = S_settingGroupsLength[0] = 461;
@@ -4038,6 +4036,36 @@ function shLoad(url,params,successHandler){
 	}
 	http.send(postparams);
 }
+function shLoadOnce(url,params) {
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
+	
+	var http = new XMLHttpRequest();
+	http.open("POST",C_canvasMode[inCanvas] + url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+				}
+				catch (e)
+				{
+					shLoadOnce(url,params);
+				}
+			}
+			else
+			{
+				shLoadOnce(url,params);
+				return;
+			}
+		}
+	}
+	http.send(postparams);
+}
 function shStartBeforeTrapCheck() {
 	sh_mode = BEFORETRAPCHECK;
 	sh_si = 0;
@@ -4293,4 +4321,6 @@ function shHammer(type, quantity) {
 function shUseCollectible(item_type,item_qty) {
 	var params = "item_type=" + item_type + "&item_qty=" + item_qty;
 	shLoad("/managers/ajax/users/useconvertible.php",params,null);
+}
+function shdefaultIceberg() {
 }
