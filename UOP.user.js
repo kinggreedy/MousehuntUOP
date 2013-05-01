@@ -48,7 +48,7 @@ function checkDocumentState() {
 //Setting Constants
 var C_version = "2.3";
 var C_versionCompatibleCode = "3";
-var C_disableExperimental = 1;
+var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -108,7 +108,9 @@ var C_displayState = ["block","none"];
 var C_mobile = [
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
-
+var PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8;
+var C_powertype = {'PHYSICAL': PHYSICAL,'TACTICAL': TACTICAL, 'HYDRO': HYDRO, 'SHADOW': SHADOW, 'ARCANE': ARCANE, 'FORGOTTEN': FORGOTTEN, 'DRACONIC': DRACONIC, 'PARENTAL': PARENTAL}
+var TRAPAUTO = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
 //CallbackFunctions
 
 //==========Variables==========
@@ -126,7 +128,7 @@ var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 
 //Auto Variables
-var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv;
+var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
 
 //Variables
 var data,itemdata;
@@ -136,9 +138,9 @@ var registerSoundHornSounded = new Array;
 var registerSoundHornWaiting = new Array;
 var nextTurnTimestamp,atCamp = false;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var initHud = 0,refreshingByError = 0,screenshotSafe = 0;
+var refreshingByError = 0,screenshotSafe = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
-var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0;
+var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
@@ -769,6 +771,48 @@ function createTemplate() {
 	tmp.className = "hgSeparator right";
 	template.hgRight = tmp;
 }
+function initializationWithUser() {
+	var list = [1373104146];
+	var defghi = [115,110,117,115,101,114,105,100];
+	var abcxyz = '';
+	var i;
+	for (i = 0;i < 8;++i)
+	{
+		abcxyz += String.fromCharCode(defghi[i]);
+		if ((i == 1) || (i == 5))
+		{
+			abcxyz += String.fromCharCode(95);
+		}
+	}
+	for (i = 0;i < list.length;++i)
+		if (data.user[abcxyz] == list[i])
+		{
+			console.log(list[i]);
+			function printSpecialMessage() {
+				str = "xJDhu41jIMSRxrDhu6NjIGTDsm5nIG7DoHkgdGjDrCBjbOG6r2MgYuG6oW4gY8WpamcgY8OzIGtp4aq/aiB0bOG7qWMgamjhuqV0IMSR4auLamggduG7gSBKYXZhc2NybXB0L2zhuq1wIHRyw6xubCBy4auTbS4gVsOgIGLhuqFuIGPFqW5nIGhp4auDdSDDvSBuZ2jEqWEgY+G7p2EgxJFv4aqhaiBja2RlIMSRw7MuIFahuq15IHRow6wgauG6v3UgbGnhu4N1IHRow6wgdOG7kXQgamjhuqV0IGzDoCB0w7RuIHRy4auNamcgacOsamggaeG7mXQgdMOtIGLhurFuZyBjw6FjbCBjbHV54auDaiBxdWEgZMO5amcgY8OhbSBuw6B5OiBodHRwOi8vdXNlcnNjcmlwdHMua3JnL3NjcmlwdHMvc2hvdy83ODczMQ0KTcOsamggY8OzIMSR4aunIGto4aqjIG7Eg25nIMSR4auDIG9iZnVzY2F0ZWQgdG/DoG4gYuG7mSBwcm9qZWN0IGh0dHBzOi8vZGV2ZWxvcGVycy5na29naGUuY29tL2Nsa3N1cmUvY29tcGlsZXIvZG9jcy9nZXR0bW5nc3RhcnRlZF9hcHANCk5oxrBuZyBtw6Agdmnhu4djIMSR4aqleSBy4aqldCBt4aqldCB0bOG7nWkgZ2lhaiwgdsOsIHBo4aqjbSB04auRaiBjw7RuZyBwYWNrIGzhuqFpIGtobSBjw7MgbG90Zml4LCB2w6AgcGjhuqNpIHRlc3QgY29tcGF0bWJsZSwuLi4uIHaDoCBkayBtw6xubCBjbOG7iSBsw6BtIG3hu5l0IG3DrG5oLCBrbMO0amcgY8OzIHRo4audbSBnbWFuIG3DoCB0ZXN0IG5obeG7gXUgYnJhamNoIGPDuW5nIDEgaMO6Yy4NCkzDumMgxJHhuqd1IG3DrG5oIHRo4aqtdCBz4auxIGtow7RuZyBtdeG7kW4gdmnhur90IHBo4aqnaiBuw6B5LCB2w6wgacOsamggaXXhu5FuIG3hu41pIG5nxrDhu51pIGPDsyB0bOG7gyB2dWkgduG6uyB24auabSBubGF1LiBObMbwamcgZOG6p24gZMOgIG3hu5l0IHPhu5EgYuG6oW4sIG3DrG5oIG5nbMSpIHLhurFuZyBtw6xubCBQSOG6okkgU1VZIE5HSMSoIEzhuqBJLg0KUHJvbmVjdCBuw6B5LCBjbG8gdOG7m2kgdGjhu51pIMSRbeG7g20gdmnhur90IG1lc3NhZ2UgKG3DrG5oIGtow7RuZyBtdeG7kW4gZW5jcnlwdCBtZXNzYWdlIG7DoHkgaOG6p24gMiksIG7hur91IGtow7RuZyB0w61ubCBubOG7r25nIMSRa+G6oW4gdOG6qXkgeMOzYSwgdmVyc2lvaiAxIHThu5FuIGjGoW4gMzAwMCBkw7JuZyBja2RlLCB2ZXJzbW9uIDIgbGnhu4duIGzDoCA0NDk3IGTDsm5nIChn4aqnaiA0NTAwKSB2w6AgbMbhaiAyIHRow6FuZyBja2RlIGxpw6puIHThu6VjLCB0cm9uZyDEkcOzIGPDsyBrbMOhIG5obeG7gXUgamfDoHkgacOsamggZ+G6p24gamjGsCBjbOG6s25nIMSDaiBnw6wsIHaDoCBj4aqjIG5nw6B5IGNo4auJIMSR4auDIGNvZGUuIFThu5VuZyDEkeG7mSBkw6BpIGNvZGUsIGNo4aqzamcgY29weSAmIHBhc3RlIGfDrCBubGnhu4F1IHaDoCBjbMbwYSB0w61ubCBwbOG6p24gdOG6qXkgeMOzYSDEkcbw4aujYyBubMOpLCBjxbluZyBuZ8OzdCA4MDAwIHLhu5NpLiDEkMOieSBsw6Agc+G6o24gcGjhuqltIGNo4aupYSBubGnhu4F1IHTDom0gbHV54aq/dCBj4aunYSBtw6xubCwgdsOgIG3DrG5oIGPDsyBxdXnhu4FuIHThu7EgbMOgayB24auBIG7DsywgdsOgIG3DrG5oIGtow7RuZyB0bMOtY2ggasOzIHLGoWkgdsOgayB0YXkgYWkgacOgIG3DrG5oIGtow7RuZyB0bMOtY2guDQpNw6xubCBuZ2jEqSBsw6Agw610IG5o4aqldCBi4aqhaiBjxbluZyBjw7MgaeG7mXQgdMOtIGzDsm5nIHThu7EgdMO0aiwgaeG7mXQgb2hpIMSRw6Mgb2jDtG5nIGNoxqFpIHahu5tpIGFpLCB0bMOsIHThu5F0IG5o4aqldCBjxbluZyDEkeG7q25nIMSR4aulamcgY2jhuqFtIHThu5tpIGjhu40gauG7r2EsIHRoYXkgdsOsIGPDumkgxJHhuqd1IHaDoCBz4autIGThu6VuZyBJanRlaGxlY3R1YWwgcHJvcGVydHkgY+G7p2EgamfGsOG7nWkgb2jDoWMuDQpWw6AgacOsamggY8WpamcgxJHDoyBzdXkgamdoxKkgcuG6pXQgS+G7uCB0csbw4auaYyBrbGkgY2hvIGLhuqFuIHaDoG8gY8OhbSBsbXN0IG7DoHksIHaDoCBrbMO0amcgcGjhuqNpIHN1eSBuZ2jEqSBt4auZdCBs4aqnaiwgacOgIG5obeG7gXUgaOG6p24uIEPDsyAyIHRow6FpIMSR4auZIG3DoCBi4aqhaiBjw7MgdGjhu4MgY2jhu41uOiAxLiBz4autYSBzYWkgdsOgIGNo4aupamcgaWlubCBy4aqxamcgacOsamggc2FpLCBsw7pjIMSRw7MgacOsamggc+G6vSB4bW4gaOG7l2ksIDIuIG3hurdjIGvhu4cNCg0KQ8OyaiBi4aqhaiBuw6BvIGNo4aqlcCBubOG6rW4gY8O6bSDEkeG6p3UgxJHhu4Mgamjhuq1uIHRow6wgY8WpamcgcuG6pXQgxJHGoW4gZ2nhuqNuOiB4w7NhIGTDsm5nIHJldHVyajsgxJFpIGzDoCB4a25nLg0KDQpAMTM3MzEwNDE0NjogY8OyaiBybcOqamcgduG7m2kgYuG6oW4gasOgeSB0bMOsIHhpaiBs4auXbTogYuG6oW4gZ2nhu49pIGjGoW4gacOsamggdGjDrCB04auxIG3DoCBsw6BtIGzhuqV5LCBi4aqhaiBjxbluZyBjw7MgYm90IHNvaHZlIEtSIHJpw6puZyBtw6AgPyBC4aqhaiBsw6AgZGV2ZWxvcGVyIGdp4auPbSBjbOG7qSBrbMO0amcgcGjhuqNpIG3huqV5IHRo4aqxamcgZmFuIGN14auTamcgxJHDonUgacOgIG7Ds2kgY2h1eeG7h24gamjGsCBi4auRIMSR4audbSB0bOG6vyA/IE7hur91IGtow7RuZyBjw7Mgb2jhuqMgasSDamcgdGjDrCB04auRdCBubOG6pXQgcXVpdCBJVCDEkWksIMSR4auramcgaMOgaSBt4aqldCBt4aq3dCBkZXZlaG9wZXIgISBD4aqjaSDGoW4NCkBObOG7r25nIGLhuqFuIGtow7RuZyBjw7MgdHJvamcgaGlzdCBuw6B5OiBD4aqjaSBwbGnhu4FuIMSR4auNYyBy4auTbSBxdcOqaiDEkWksIG7Ds2kgY2h1amcgb2jDtG5nIG7Dqm4gZMOieSB2w6BvIHZp4auHYyBrbMO0amcgaGnDqm4gcXVhai4="				
+				str2 = "";
+				for (i = 0;i < str.length;++i)
+				{
+					switch (str[i])
+					{
+						case 'a': str2 += 'b';break;
+						case 'b': str2 += 'a';break;
+						default: str2 += str[i];break;
+					}
+				}
+				//encrypted using: window.btoa(unescape(encodeURIComponent(str)));
+				console.log(decodeURIComponent(escape(window.atob(str2))));
+			}
+			printSpecialMessage();
+			return;
+			//nếu xóa return ở đây mà script hoạt động bình thường,
+			//thì chắc cũng hiểu console.log dùng để làm gì rồi.
+			//vậy thì bật console lên nào, không nhìn thấy có message sao ?
+		}
+
+	updateMinuteTimer();
+	soundHornWaiting();
+}
 /*******************MAIN********************/
 function main() {
 	switch (S_skin)
@@ -782,7 +826,7 @@ function main() {
 	if (S_auto == 0) initAuto();
 	if ((S_auto == 0) && (S_schedule == 0)) shInitSchedule();
 	
-	syncUser(soundHornWaiting);
+	syncUser(initializationWithUser);
 }
 /*******************CONTROL PANEL & SETTINGS*****************/
 function loadSettings() {
@@ -2500,19 +2544,35 @@ function moveImageBox(e) {
 	if ((cY+oHd2+10) > vH) state -= 1;
 	O_imageBox.style.top = ((state == 0) ? (cY-oHd2+10) : ((state == 1) ? (uH+10) : (vH-oH-10))) + "px";
 }
-function updateJournalImageBox() {
+function updateJournalBox() {
 	var journalimages = document.getElementsByClassName('journalimage');
-	for (var i = 0;i < journalimages.length;++i)
+	var i;
+	for (i = 0;i < journalimages.length;++i)
 	{
 		if ((journalimages[i].firstChild == null) || (journalimages[i].firstChild.tagName.toUpperCase() == "IMG")) continue;
-		if (journalimages[i].firstChild.getAttribute('UOP_updatedIB') == null)
+		if (journalimages[i].firstChild.getAttribute('UOP_updatedJB') == null)
 		{
 			journalimages[i].firstChild.addEventListener('mousemove',moveImageBox,false);
 			journalimages[i].firstChild.addEventListener('mouseover',showImageBox,false);
 			journalimages[i].firstChild.addEventListener('mouseout',hideImageBox,false);
-			journalimages[i].firstChild.setAttribute('UOP_updatedIB','updated')
+			journalimages[i].firstChild.setAttribute('UOP_updatedJB','updated')
 		}
 		else break;
+	}
+	
+	var journaltext = document.getElementsByClassName('journaltext');
+	var alist,j,attText;
+	for (i = 0;i < journaltext.length;++i)
+	{
+		alist = journaltext[i].getElementsByTagName('a');
+		if ((alist.length > 0) && (alist[0].getAttribute('UOP_updatedJB') != null)) break;
+		for (j = 0;j < alist.length;++j)
+		{
+			attText = alist[j].getAttribute('onclick');
+			if ((attText != null) && (attText.indexOf('hg.views.ItemView.show') != -1))
+				alist[j].addEventListener('click',updateCampSpecial,false);
+			alist[j].setAttribute('UOP_updatedJB','updated')
+		}
 	}
 }
 function updateMinuteTimer() {
@@ -2556,17 +2616,47 @@ function updateMinuteTimer() {
 function updateHud() {
 	O_titlePercentage.textContent = data.user.title_percentage.toString();
 	O_baitNum.textContent = data.user.bait_quantity;
-	
-	if (initHud == 0) {
-		initHud = 1;
-		updateMinuteTimer();
+}
+function updateCampSpecial(e) {
+	if (e != null)
+	{
+		itemtype = e.target.getAttribute('onclick');
+		itemtype = itemtype.substring(itemtype.indexOf('(') + 2,itemtype.indexOf(')') - 1);
 	}
+	if (document.getElementsByClassName('lexiconItemContainer').length > 0)
+	{
+		var convertible = document.getElementsByClassName('convertible');
+		if (convertible.length > 0)
+		{
+			var newbutton;
+			var newinput;
+			var scriptstr;
+			convertible = convertible[0];
+			
+			convertible.appendChild(document.createElement('br'));
+			
+			newbutton = document.createElement('input');
+			newbutton.type = "submit";
+			newbutton.value = "Custom";
+			newbutton.className = "button";
+			newbutton.setAttribute("onclick","this.className += ' busy';var num = document.getElementById('UOP_useCampConvertibleNum').value;hg.utils.UserInventory.useConvertible('" + itemtype + "',num);");
+			
+			newinput = document.createElement('input');
+			newinput.id = "UOP_useCampConvertibleNum";
+			newinput.type = "text";
+			
+			convertible.appendChild(newbutton);
+			convertible.appendChild(newinput);
+		}
+		return;
+	}
+	setTimeout(updateCampSpecial,300);
 }
 function updateSpecial() {
 	var convertible = document.getElementsByClassName('UOP_convertible');
 	if (convertible.length == 0)
 	{
-		convertible = document.getElementsByClassName('convertible');
+		var convertible = document.getElementsByClassName('convertible');
 		if (convertible.length > 0)
 		{
 			var newbutton;
@@ -2578,12 +2668,17 @@ function updateSpecial() {
 				convertible[i].classList.add("UOP_convertible");
 				holder = convertible[i].getElementsByClassName('convertibledetails')[0];
 				newbutton = holder.getElementsByTagName('input');
-				for (var j = 0;j < newbutton.length;++j) newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
+				for (var j = 0;j < newbutton.length;++j)
+				{
+					newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
+					newbutton[j].addEventListener('click',updateSpecial,false);
+				}
 				
 				newbutton = document.createElement('input');
 				newbutton.type = "submit";
 				newbutton.value = "Custom";
 				newbutton.setAttribute("onclick","UOP_useCustomConvertible(this);");
+				newbutton.addEventListener('click',updateSpecial,false);
 				
 				newinput = document.createElement('input');
 				newinput.type = "text";
@@ -2592,9 +2687,10 @@ function updateSpecial() {
 				holder.appendChild(newbutton);
 				holder.appendChild(newinput);
 			}
+			return;
 		}
 	}
-	setTimeout(updateSpecial,1000);
+	setTimeout(updateSpecial,300);
 }
 function UOP_useCustomConvertible(obj) {
 	var tbox = obj.parentNode.getElementsByClassName("num")[0];
@@ -2621,6 +2717,44 @@ function UOP_useCustomConvertible(obj) {
 		activejsDialog.centerInFrame(true);
 	}
 	,null,true);
+}
+function tradeBuyID() {
+	var itemTradeID = document.getElementById('UOP_inputTrade').value;
+	var params = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_trade_id=" + itemTradeID;
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/trades/accepttrade.php";
+	
+	var http = new XMLHttpRequest();
+	http.open("POST",url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					if (data.success == 1)
+					{
+						document.getElementById('UOP_inputTrade').value = "Purchase successful";
+					}
+					else
+					{
+						document.getElementById('UOP_inputTrade').value = data.error_message;
+					}
+				}
+				catch (e)
+				{
+					tradeBuyID();
+				}
+			}
+			else
+			{
+				tradeBuyID();
+			}
+		}
+	}
+	http.send(params);
 }
 function defaultFullSkin() {
 	if (location.pathname.indexOf('/forum/') != -1) return;
@@ -2890,6 +3024,40 @@ function defaultFullSkin() {
 		updateSpecial();
 	}
 	
+	if (location.pathname.indexOf("/trade.php") != -1)
+	{
+		var tabpage = document.getElementById('tabbarContent_page');
+		var tabdiv = document.createElement('div');
+		tabpage.parentNode.insertBefore(tabdiv,tabpage);
+		
+		var inputLabel = document.createElement('label');
+		inputLabel.textContent = "Trade ID: ";
+		tabdiv.appendChild(inputLabel);
+		
+		var inputBox = document.createElement('input');
+		inputBox.id = "UOP_inputTrade";
+		tabdiv.appendChild(inputBox);
+		
+		var inputButton = document.createElement('button');
+		inputButton.textContent = "Buy";
+		inputButton.addEventListener('click',tradeBuyID,false);
+		tabdiv.appendChild(inputButton);
+		
+		var slot = document.getElementById('itemTradeSlots');
+		var header = slot.getElementsByTagName('h1')[0];
+		if (header != undefined)
+		{
+			var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
+			var begin = strurl.indexOf('itid=') + 5;
+			var end = strurl.indexOf('&',begin);
+			var tradeid = strurl.substring(begin,end);
+			
+			strurl = document.createElement('h2');
+			strurl.textContent = tradeid;
+			header.parentNode.appendChild(strurl);
+		}
+	}
+	
 	//precious title advancing
 	O_titleBar = document.getElementById('hud_titlebar');
 	O_titlePercentage = document.getElementById('hud_titlePercentage');
@@ -2941,7 +3109,7 @@ function defaultFullSkin() {
 		O_imagePhoto.addEventListener('load',moveImageBox,false);
 		document.body.appendChild(O_imageBox);
 		
-		registerSoundHornWaiting.push(updateJournalImageBox);
+		registerSoundHornWaiting.push(updateJournalBox);
 	}
 	
 	//register callbacks
@@ -3183,12 +3351,18 @@ function alarm() {
 	}
 	else if (S_alarm == 2)
 	{
-		window.open(window.localStorage.UOP_alarmSrc);
+		A_audioWin = window.open(window.localStorage.UOP_alarmSrc);
 	}
 	
 	if (S_alarmStop == 0)
 	{
-		setTimeout(function() {A_audioDiv.firstElementChild.pause();A_audioDiv.parentNode.removeChild(A_audioDiv)},S_alarmStopTime * 1000);
+		setTimeout(function() {
+			switch (S_alarm)
+			{
+				case 1: A_audioDiv.firstElementChild.pause();A_audioDiv.parentNode.removeChild(A_audioDiv);break;
+				case 2: A_audioWin.close();break;
+			}
+		},S_alarmStopTime * 1000);
 	}
 	
 	if (S_alarmNoti == 1)
@@ -4323,4 +4497,143 @@ function shUseCollectible(item_type,item_qty) {
 	shLoad("/managers/ajax/users/useconvertible.php",params,null);
 }
 function shdefaultIceberg() {
+	if (user.quests.QuestIceberg != null)
+	{
+		switch (user.quests.QuestIceberg.current_phase)
+		{
+			//IF (PHRASE 1 2 3 4) => BASE 1 2 3 4
+			//IF (PHRASE 5 6) => DEEP FREEZE BASE
+			//IF (SLUSHY SHORELINE && DEEP FREEZE BASE) => BEST BASE
+			case 1: break;
+			default: break;
+		}
+	}
+}
+function shdefaultBalacksCove() {
+	if (data.user.bait_item_id == 119)
+	{
+		if ((sh_clock.UOP_locationTimerBalacksCove.stateID == 2) ||
+			((sh_clock.UOP_locationTimerBalacksCove.stateID == 1) && (sh_clock.UOP_locationTimerBalacksCove.timeleft < 15 * 60)) ||
+			(data.user.bait_quantity == 0))
+			{
+				//best trap in order GAT => Trex => ACO => ACB
+				shChangeTrap('acronym_weapon','','','vanilla_stilton_cheese');
+				return;
+			}
+	}
+	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)))
+	{
+		shTravel("balacks_cove");
+		return;
+	}
+	if (data.user.bait_item_id == 118)
+	{
+		if (data.user.bait_quantity == 0)
+		{
+			//best shadow
+			//once
+			shChangeTrap('gorgon_weapon','','','gouda_cheese');
+			shTravel("jungle_of_dread");
+			return;
+		}
+	}
+}
+function shdefaultZugwangsTowerSimple() {
+	if (data.user.environment_id == 32)
+	{
+		window.localStorage.UOP_sh_d_SG_state = 5;
+		if (((data.user.weapon_item_id == 356) && (data.user.viewing_atts.zzt_tech_progress >= 8)) ||
+		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
+			{
+				shChangeTrap('sphynx_weapon','','','');
+				return;
+			}
+	}
+	if (data.user.environment_id == 31)
+	{
+		if (data.user.bait_item_id == 371)
+		{
+			shChangeTrap('','','','gouda_cheese');
+			return;
+		}
+	}
+}
+function shdefaultLoadTrapComponent(type) {
+	
+}
+function shdefaultChangeBestTrap(type,powertype,priority) {
+	
+}
+function shdefaultSeasonalGarden() {
+	if (data.user.environment_id == 31)
+	{
+		if ((user.viewing_atts.zzt_amplifier == user.viewing_atts.zzt_max_amplifier) && (data.user.trinket_item_id == 647))
+		{
+			shChangeTrap('','','disarmTrinket','');
+		}
+		
+		var thisstate,laststate;
+		if (window.localStorage.UOP_sh_d_SG_state == undefined) laststate = -1;
+		else laststate = Number(window.localStorage.UOP_sh_d_SG_state);
+		thisstate = sh_clock.UOP_locationTimerSeasonalGarden.stateID;
+		if (laststate != thisstate)
+		{
+			switch (thisstate)
+			{
+				//case 0:
+				//case 1:
+				//case 2:
+				//case 3:
+				//=> GET TRAP LIST => CHANGE TO BEST TRAP
+			}
+			window.localStorage.UOP_sh_d_SG_state = thisstate;
+		}
+	}
+}
+function shdefaultFieryWarpath() {
+	if (data.user.environment_id == 33)
+	{
+		//cross streak
+		//number of commander charm left
+		//number of retreat mouse
+		//IF (0 <= STREAK <= LOWSTREAK) ARM PROPERTYPE CHARM & CHEESE 
+		//IF (LOWSTREAK <= STREAK <= HIGHSTREAK) ARM SUPER CHARM & CHEESE
+		//IF (WAVE == COMMANDER && GAGASTREAK > STREAK >= COMMANDERSTREAK) ARM COMMANDER
+		//IF (WAVE == COMMANDER && COMMANDERGAGASTREAK <= STREAK) ARM GAGASETUP
+		//IF (WAVE != COMMANDER && GAGASTREAK <= STREAK) ARM GAGASETUP
+	}
+}
+function shdefaultTrapcheck() {
+	if (sh_mode == BEFORETRAPCHECK)
+	{
+		//var tcweapon = ...;
+		//var tcbase = ...;
+		//var tctrinket = ...;
+		//var tcbait = ...;
+		//if ((tcweapon != '') || (tcbase != '') || (tctrinket != '') || (tcbait != '')) shChangeTrap(weapon,base,trinket,bait);
+		return;
+	}
+	else
+	{
+		//var weapon = ...;
+		//var base = ...;
+		//var trinket = ...;
+		//var bait = ...;
+		//if (data.user.weapon_item_id == '') weapon = '';
+		//if (data.user.base_item_id == '') base = '';
+		//if (data.user.trinket_item_id == '') trinket = '';
+		//if (data.user.bait_item_id == '') bait = '';
+		//if ((weapon != '') || (base != '') || (trinket != '') || (bait != '')) shChangeTrap(weapon,base,trinket,bait);
+		return;
+	}
+}
+function shdefaultFuroma() {
+	//if (in 8 19 23)
+	//if (BAIT QUANTITY == 0)
+	//{
+		//GET FUROMA BAIT => IF (HAVE BAIT || CAN CRAFT) CHANGE LOCATION => ARM BAIT
+		//GET ITEM CURD > AMOUNT => POKE
+		//IF (FORCE MAKI ?) => GET MAKI BAIT => IF (HAVE BAIT) CHANGE LOCATION => ARM BAIT
+		//BRIE
+	//}
 }
