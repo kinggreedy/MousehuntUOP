@@ -108,9 +108,10 @@ var C_displayState = ["block","none"];
 var C_mobile = [
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
-var PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8;
-var C_powertype = {'PHYSICAL': PHYSICAL,'TACTICAL': TACTICAL, 'HYDRO': HYDRO, 'SHADOW': SHADOW, 'ARCANE': ARCANE, 'FORGOTTEN': FORGOTTEN, 'DRACONIC': DRACONIC, 'PARENTAL': PARENTAL}
-var TRAPAUTO = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
+var BASE = 0, PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8;
+var C_powertype = {BASE: 'base', PHYSICAL: 'phscl',TACTICAL: 'tctcl', HYDRO: 'hdr', SHADOW: 'shdw', ARCANE: 'arcn',FORGOTTEN: 'frgttn',DRACONIC: 'drcnc',PARENTAL: 'prntl'}
+var TRAPSTR = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
+var C_trapprioritytype = {TRAPAUTO: 'str', TRAPPOWER: 'power', TRAPLUCK: 'luck', TRAPATTRACTION: 'attraction'}
 //CallbackFunctions
 
 //==========Variables==========
@@ -787,27 +788,7 @@ function initializationWithUser() {
 	for (i = 0;i < list.length;++i)
 		if (data.user[abcxyz] == list[i])
 		{
-			console.log(list[i]);
-			function printSpecialMessage() {
-				str = "xJDhu41jIMSRxrDhu6NjIGTDsm5nIG7DoHkgdGjDrCBjbOG6r2MgYuG6oW4gY8WpamcgY8OzIGtp4aq/aiB0bOG7qWMgamjhuqV0IMSR4auLamggduG7gSBKYXZhc2NybXB0L2zhuq1wIHRyw6xubCBy4auTbS4gVsOgIGLhuqFuIGPFqW5nIGhp4auDdSDDvSBuZ2jEqWEgY+G7p2EgxJFv4aqhaiBja2RlIMSRw7MuIFahuq15IHRow6wgauG6v3UgbGnhu4N1IHRow6wgdOG7kXQgamjhuqV0IGzDoCB0w7RuIHRy4auNamcgacOsamggaeG7mXQgdMOtIGLhurFuZyBjw6FjbCBjbHV54auDaiBxdWEgZMO5amcgY8OhbSBuw6B5OiBodHRwOi8vdXNlcnNjcmlwdHMua3JnL3NjcmlwdHMvc2hvdy83ODczMQ0KTcOsamggY8OzIMSR4aunIGto4aqjIG7Eg25nIMSR4auDIG9iZnVzY2F0ZWQgdG/DoG4gYuG7mSBwcm9qZWN0IGh0dHBzOi8vZGV2ZWxvcGVycy5na29naGUuY29tL2Nsa3N1cmUvY29tcGlsZXIvZG9jcy9nZXR0bW5nc3RhcnRlZF9hcHANCk5oxrBuZyBtw6Agdmnhu4djIMSR4aqleSBy4aqldCBt4aqldCB0bOG7nWkgZ2lhaiwgdsOsIHBo4aqjbSB04auRaiBjw7RuZyBwYWNrIGzhuqFpIGtobSBjw7MgbG90Zml4LCB2w6AgcGjhuqNpIHRlc3QgY29tcGF0bWJsZSwuLi4uIHaDoCBkayBtw6xubCBjbOG7iSBsw6BtIG3hu5l0IG3DrG5oLCBrbMO0amcgY8OzIHRo4audbSBnbWFuIG3DoCB0ZXN0IG5obeG7gXUgYnJhamNoIGPDuW5nIDEgaMO6Yy4NCkzDumMgxJHhuqd1IG3DrG5oIHRo4aqtdCBz4auxIGtow7RuZyBtdeG7kW4gdmnhur90IHBo4aqnaiBuw6B5LCB2w6wgacOsamggaXXhu5FuIG3hu41pIG5nxrDhu51pIGPDsyB0bOG7gyB2dWkgduG6uyB24auabSBubGF1LiBObMbwamcgZOG6p24gZMOgIG3hu5l0IHPhu5EgYuG6oW4sIG3DrG5oIG5nbMSpIHLhurFuZyBtw6xubCBQSOG6okkgU1VZIE5HSMSoIEzhuqBJLg0KUHJvbmVjdCBuw6B5LCBjbG8gdOG7m2kgdGjhu51pIMSRbeG7g20gdmnhur90IG1lc3NhZ2UgKG3DrG5oIGtow7RuZyBtdeG7kW4gZW5jcnlwdCBtZXNzYWdlIG7DoHkgaOG6p24gMiksIG7hur91IGtow7RuZyB0w61ubCBubOG7r25nIMSRa+G6oW4gdOG6qXkgeMOzYSwgdmVyc2lvaiAxIHThu5FuIGjGoW4gMzAwMCBkw7JuZyBja2RlLCB2ZXJzbW9uIDIgbGnhu4duIGzDoCA0NDk3IGTDsm5nIChn4aqnaiA0NTAwKSB2w6AgbMbhaiAyIHRow6FuZyBja2RlIGxpw6puIHThu6VjLCB0cm9uZyDEkcOzIGPDsyBrbMOhIG5obeG7gXUgamfDoHkgacOsamggZ+G6p24gamjGsCBjbOG6s25nIMSDaiBnw6wsIHaDoCBj4aqjIG5nw6B5IGNo4auJIMSR4auDIGNvZGUuIFThu5VuZyDEkeG7mSBkw6BpIGNvZGUsIGNo4aqzamcgY29weSAmIHBhc3RlIGfDrCBubGnhu4F1IHaDoCBjbMbwYSB0w61ubCBwbOG6p24gdOG6qXkgeMOzYSDEkcbw4aujYyBubMOpLCBjxbluZyBuZ8OzdCA4MDAwIHLhu5NpLiDEkMOieSBsw6Agc+G6o24gcGjhuqltIGNo4aupYSBubGnhu4F1IHTDom0gbHV54aq/dCBj4aunYSBtw6xubCwgdsOgIG3DrG5oIGPDsyBxdXnhu4FuIHThu7EgbMOgayB24auBIG7DsywgdsOgIG3DrG5oIGtow7RuZyB0bMOtY2ggasOzIHLGoWkgdsOgayB0YXkgYWkgacOgIG3DrG5oIGtow7RuZyB0bMOtY2guDQpNw6xubCBuZ2jEqSBsw6Agw610IG5o4aqldCBi4aqhaiBjxbluZyBjw7MgaeG7mXQgdMOtIGzDsm5nIHThu7EgdMO0aiwgaeG7mXQgb2hpIMSRw6Mgb2jDtG5nIGNoxqFpIHahu5tpIGFpLCB0bMOsIHThu5F0IG5o4aqldCBjxbluZyDEkeG7q25nIMSR4aulamcgY2jhuqFtIHThu5tpIGjhu40gauG7r2EsIHRoYXkgdsOsIGPDumkgxJHhuqd1IHaDoCBz4autIGThu6VuZyBJanRlaGxlY3R1YWwgcHJvcGVydHkgY+G7p2EgamfGsOG7nWkgb2jDoWMuDQpWw6AgacOsamggY8WpamcgxJHDoyBzdXkgamdoxKkgcuG6pXQgS+G7uCB0csbw4auaYyBrbGkgY2hvIGLhuqFuIHaDoG8gY8OhbSBsbXN0IG7DoHksIHaDoCBrbMO0amcgcGjhuqNpIHN1eSBuZ2jEqSBt4auZdCBs4aqnaiwgacOgIG5obeG7gXUgaOG6p24uIEPDsyAyIHRow6FpIMSR4auZIG3DoCBi4aqhaiBjw7MgdGjhu4MgY2jhu41uOiAxLiBz4autYSBzYWkgdsOgIGNo4aupamcgaWlubCBy4aqxamcgacOsamggc2FpLCBsw7pjIMSRw7MgacOsamggc+G6vSB4bW4gaOG7l2ksIDIuIG3hurdjIGvhu4cNCg0KQ8OyaiBi4aqhaiBuw6BvIGNo4aqlcCBubOG6rW4gY8O6bSDEkeG6p3UgxJHhu4Mgamjhuq1uIHRow6wgY8WpamcgcuG6pXQgxJHGoW4gZ2nhuqNuOiB4w7NhIGTDsm5nIHJldHVyajsgxJFpIGzDoCB4a25nLg0KDQpAMTM3MzEwNDE0NjogY8OyaiBybcOqamcgduG7m2kgYuG6oW4gasOgeSB0bMOsIHhpaiBs4auXbTogYuG6oW4gZ2nhu49pIGjGoW4gacOsamggdGjDrCB04auxIG3DoCBsw6BtIGzhuqV5LCBi4aqhaiBjxbluZyBjw7MgYm90IHNvaHZlIEtSIHJpw6puZyBtw6AgPyBC4aqhaiBsw6AgZGV2ZWxvcGVyIGdp4auPbSBjbOG7qSBrbMO0amcgcGjhuqNpIG3huqV5IHRo4aqxamcgZmFuIGN14auTamcgxJHDonUgacOgIG7Ds2kgY2h1eeG7h24gamjGsCBi4auRIMSR4audbSB0bOG6vyA/IE7hur91IGtow7RuZyBjw7Mgb2jhuqMgasSDamcgdGjDrCB04auRdCBubOG6pXQgcXVpdCBJVCDEkWksIMSR4auramcgaMOgaSBt4aqldCBt4aq3dCBkZXZlaG9wZXIgISBD4aqjaSDGoW4NCkBObOG7r25nIGLhuqFuIGtow7RuZyBjw7MgdHJvamcgaGlzdCBuw6B5OiBD4aqjaSBwbGnhu4FuIMSR4auNYyBy4auTbSBxdcOqaiDEkWksIG7Ds2kgY2h1amcgb2jDtG5nIG7Dqm4gZMOieSB2w6BvIHZp4auHYyBrbMO0amcgaGnDqm4gcXVhai4="				
-				str2 = "";
-				for (i = 0;i < str.length;++i)
-				{
-					switch (str[i])
-					{
-						case 'a': str2 += 'b';break;
-						case 'b': str2 += 'a';break;
-						default: str2 += str[i];break;
-					}
-				}
-				//encrypted using: window.btoa(unescape(encodeURIComponent(str)));
-				console.log(decodeURIComponent(escape(window.atob(str2))));
-			}
-			printSpecialMessage();
 			return;
-			//nếu xóa return ở đây mà script hoạt động bình thường,
-			//thì chắc cũng hiểu console.log dùng để làm gì rồi.
-			//vậy thì bật console lên nào, không nhìn thấy có message sao ?
 		}
 
 	updateMinuteTimer();
@@ -2057,6 +2038,8 @@ function giftToTabBar() {
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(giftcontent);
 }
 function travel(e) {
+	if (C_disableExperimental == 1) return;
+	
 	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var htmlstr = "";
@@ -2719,6 +2702,8 @@ function UOP_useCustomConvertible(obj) {
 	,null,true);
 }
 function tradeBuyID() {
+	if (C_disableExperimental == 1) return;
+	
 	var itemTradeID = document.getElementById('UOP_inputTrade').value;
 	var params = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_trade_id=" + itemTradeID;
 	var url = C_canvasMode[inCanvas] + "/managers/ajax/trades/accepttrade.php";
@@ -3024,7 +3009,7 @@ function defaultFullSkin() {
 		updateSpecial();
 	}
 	
-	if (location.pathname.indexOf("/trade.php") != -1)
+	if ((C_disableExperimental == 0) && (location.pathname.indexOf("/trade.php") != -1))
 	{
 		var tabpage = document.getElementById('tabbarContent_page');
 		var tabdiv = document.createElement('div');
@@ -4435,46 +4420,28 @@ function shGetVariable(s) {
 	}
 	return o;
 }
-//managers/ajax/users/userInventory.php //item_types[]=corrupted_radioactive_blue_cheese_potion & action=get_items
-//"GOLD" : "user.gold",
-//"POINT" : "user.points",
-//"LOCATION" : "user.location",
-//"BAIT" : "user.bait_name",
-//"BAIT_QUALITY" : "user.bait_quantity",
-//"CHARM" : "user.trinket_name",
-//"CHARM_QUALITY" : "user.trinket_quantity",
-//"TRAP" : "user.weapon_name",
-//"BASE" : "user.base_name",
-//"IB" : "user.quests.QuestIceberg",
-//"IB_PHASE" : "user.quests.QuestIceberg.current_phase",
-//"IB_PROGRESS" : "user.quests.QuestIceberg.user_progress",
-//"IB_TURN" : "user.quests.QuestIceberg.turns_taken",
-//"ZT_TOWER_AMPLIFIER" : "user.viewing_atts.zzt_amplifier",
-//"ZT_TECH_PIECE" : "user.viewing_atts.zzt_tech_progress",
-//"ZT_MAGE_PIECE" : "user.viewing_atts.zzt_mage_progress",
-//"FW_WAVE" : "user.viewing_atts.desert_warpath.wave",
-//"FW_STREAK" : "user.viewing_atts.desert_warpath.streak.quantity",
-//"FW_STREAK_TYPE" : "user.viewing_atts.desert_warpath.streak.mouse_type",
-//"FW_POPULATION" : "user.viewing_atts.desert_warpath.wave_population",
-//"FW_BOSS" : "user.viewing_atts.desert_warpath.common_population",
-//"TOUR" : "user.viewing_atts.tournament",
-//"TOUR_STATUS" : "user.viewing_atts.tournament.status",
+
+var C_shdefaultAction = {
+	CHANGETRAP: "/managers/ajax/users/changetrap.php",
+	TRAVEL: "/managers/ajax/users/changeenvironment.php",
+	PURCHASE: "/managers/ajax/purchases/itempurchase.php",
+	POTION: "/managers/ajax/users/usepotion.php",
+	CRAFT: "/managers/ajax/users/crafting.php",
+	CONVERTIBLE: "/managers/ajax/users/useconvertible.php",
+	HAMMER: "/managers/ajax/users/usehammer.php"
+}
 function shChangeTrap(weapon,base,charm,cheese) {
-	var params = "weapon=" + weapon + "&base=" + base + "&trinket=" + charm + "&bait=" + cheese;
-	shLoad("/managers/ajax/users/changetrap.php",params,null);
+	return ("weapon=" + weapon + "&base=" + base + "&trinket=" + charm + "&bait=" + cheese);
 }
 function shTravel(destination) {
-	var params = "destination=" + destination;
-	shLoad("/managers/ajax/users/changeenvironment.php",params,null);
+	return ("destination=" + destination);
 }
 function shPurchase(action,type,quantity) {
 	if (action == "buy") action = 1; else if (action == "sell") action = 0;
-	var params = "type=" + type + "&quantity=" + quantity + "&buy=" + action;
-	shLoad("/managers/ajax/purchases/itempurchase.php",params,null);
+	return ("type=" + type + "&quantity=" + quantity + "&buy=" + action);
 }
 function shUsePotion(potion,num_potions,recipe_index) {
-	var params = "potion=" + potion + "&num_potions=" + num_potions + "&recipe_index=" + recipe_index;
-	shLoad("/managers/ajax/users/usepotion.php",params,null);
+	return ("potion=" + potion + "&num_potions=" + num_potions + "&recipe_index=" + recipe_index);
 }
 function shCraft(parts,craftQty) {
 	var params = "";
@@ -4486,26 +4453,108 @@ function shCraft(parts,craftQty) {
 	if (params.length > 0) params = params.slice(1);		
 	
 	params += "&craftQty=" + craftQty;
-	shLoad("/managers/ajax/users/crafting.php",params,null);
+	return params;
 }
-function shHammer(type, quantity) {
-	var params = "item_type=" + type + "&item_qty=" + quantity;
-	shLoad("/managers/ajax/users/usehammer.php",params,null);
+function shHammer(type,quantity) {
+	return ("item_type=" + type + "&item_qty=" + quantity);
 }
-function shUseCollectible(item_type,item_qty) {
-	var params = "item_type=" + item_type + "&item_qty=" + item_qty;
-	shLoad("/managers/ajax/users/useconvertible.php",params,null);
+function shUseConvertible(item_type,item_qty) {
+	return ("item_type=" + item_type + "&item_qty=" + item_qty);
+}
+//managers/ajax/users/userInventory.php //item_types[]=corrupted_radioactive_blue_cheese_potion & action=get_items
+function shdefaultChangeBestTrap(type,priority) {
+	var url = "/managers/ajax/users/gettrapcomponents.php"
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	
+	var http = new XMLHttpRequest();
+	http.open("POST",C_canvasMode[inCanvas] + url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
+					for (i = 0;i < data.components.length;++i)
+					{
+						match = false;
+						switch (type)
+						{
+							case BASE: match = (data.components[i].classification == "base") ? true : false;break;
+							default: match = (data.components[i].powertype == C_powertype[type]) ? true : false;break;
+						}
+						if (match)
+						{
+							comp = new Object;
+							comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
+							comp.luck = luck = data.components[i].luck;
+							luck += luckbonus;
+							comp.str = power + 4 * luck * luck;
+							comp.attraction = data.components[i].attraction_bonus;
+							comp.name = data.components[i].type;
+							arrcomp.push(comp);
+						}
+					}
+					if (arrcomp.length == 0) return;
+					var prioritystr = C_trapprioritytype[priority];
+					arrcomp.sort(function (a,b) {return b[prioritystr] - a[prioritystr];});
+					var param = (type == BASE) ? shChangeTrap('',arrcomp[0].name,'','') : shChangeTrap(arrcomp[0].name,'','','');
+					shLoad(C_shdefaultAction.CHANGETRAP,param,null);
+				}
+				catch (e)
+				{
+					shdefaultChangeBestTrap(type,priority);
+				}
+			}
+			else
+			{
+				shdefaultChangeBestTrap(type,priority);
+				return;
+			}
+		}
+	}
+	http.send(postparams);
 }
 function shdefaultIceberg() {
-	if (user.quests.QuestIceberg != null)
+	if (data.user.environment_id == 40)
 	{
-		switch (user.quests.QuestIceberg.current_phase)
+		var last_phase;
+		if (window.localStorage.UOP_sh_d_IB_state == undefined) last_phase = "No phrase";
+		else last_phase = window.localStorage.UOP_sh_d_IB_state;
+		if (last_phase != user.quests.QuestIceberg.current_phase)
 		{
-			//IF (PHRASE 1 2 3 4) => BASE 1 2 3 4
-			//IF (PHRASE 5 6) => DEEP FREEZE BASE
-			//IF (SLUSHY SHORELINE && DEEP FREEZE BASE) => BEST BASE
-			case 1: break;
-			default: break;
+			var param = '';
+			switch (user.quests.QuestIceberg.current_phase)
+			{
+				case "General":shdefaultChangeBestTrap(BASE,TRAPAUTO);break;
+				case "Treacherous Tunnels":param = shChangeTrap('','magnet_base','','');break;
+				case "Brutal Bulwark":param = shChangeTrap('','spiked_base','','');break;
+				case "Bombing Run":param = shChangeTrap('','remote_detonator_base','','');break;
+				case "The Mad Depths":param = shChangeTrap('','hearthstone_base','','');break;
+				case "Icewing's Lair":param = shChangeTrap('','deep_freeze_base','','');break;
+				//case "The Hidden Depths":param = shChangeTrap('','deep_freeze_base','','');break; // no point of changing things here ?
+			}
+			if (param != '')
+			{
+				shLoad(C_shdefaultAction.CHANGETRAP,param,function (window.localStorage.UOP_sh_d_IB_state = user.quests.QuestIceberg.current_phase));
+				return;
+			}
+		}
+	}
+	if (data.user.environment_id == 39)
+	{
+		if ((data.user.trinket_item_id == 877) || (data.user.trinket_item_id == 876))
+		{
+			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+			return;
+		}
+		if (data.user.base_item_id == 899)
+		{
+			shdefaultChangeBestTrap(BASE,TRAPAUTO);
+			return;
 		}
 	}
 }
@@ -4516,24 +4565,22 @@ function shdefaultBalacksCove() {
 			((sh_clock.UOP_locationTimerBalacksCove.stateID == 1) && (sh_clock.UOP_locationTimerBalacksCove.timeleft < 15 * 60)) ||
 			(data.user.bait_quantity == 0))
 			{
-				//best trap in order GAT => Trex => ACO => ACB
-				shChangeTrap('acronym_weapon','','','vanilla_stilton_cheese');
+				//~~~~best trap in order GAT => Trex => ACO => ACB
+				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('acronym_weapon','','','vanilla_stilton_cheese'),null);
 				return;
 			}
 	}
 	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)))
 	{
-		shTravel("balacks_cove");
+		shLoad(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);
 		return;
 	}
 	if (data.user.bait_item_id == 118)
 	{
 		if (data.user.bait_quantity == 0)
 		{
-			//best shadow
-			//once
-			shChangeTrap('gorgon_weapon','','','gouda_cheese');
-			shTravel("jungle_of_dread");
+			shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
+			shdefaultChangeBestTrap(SHADOW,TRAPAUTO);
 			return;
 		}
 	}
@@ -4545,7 +4592,7 @@ function shdefaultZugwangsTowerSimple() {
 		if (((data.user.weapon_item_id == 356) && (data.user.viewing_atts.zzt_tech_progress >= 8)) ||
 		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
 			{
-				shChangeTrap('sphynx_weapon','','','');
+				shdefaultChangeBestTrap(TACTICAL,TRAPAUTO);
 				return;
 			}
 	}
@@ -4553,23 +4600,24 @@ function shdefaultZugwangsTowerSimple() {
 	{
 		if (data.user.bait_item_id == 371)
 		{
-			shChangeTrap('','','','gouda_cheese');
+			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
 			return;
 		}
 	}
 }
-function shdefaultLoadTrapComponent(type) {
-	
-}
-function shdefaultChangeBestTrap(type,powertype,priority) {
-	
-}
 function shdefaultSeasonalGarden() {
 	if (data.user.environment_id == 31)
 	{
+		if (data.user.bait_item_id == 371)
+		{
+			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
+			return;
+		}
+		
 		if ((user.viewing_atts.zzt_amplifier == user.viewing_atts.zzt_max_amplifier) && (data.user.trinket_item_id == 647))
 		{
-			shChangeTrap('','','disarmTrinket','');
+			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+			return;
 		}
 		
 		var thisstate,laststate;
@@ -4580,11 +4628,10 @@ function shdefaultSeasonalGarden() {
 		{
 			switch (thisstate)
 			{
-				//case 0:
-				//case 1:
-				//case 2:
-				//case 3:
-				//=> GET TRAP LIST => CHANGE TO BEST TRAP
+				case 0:shdefaultChangeBestTrap(PHYSICAL,TRAPAUTO);break;
+				case 1:shdefaultChangeBestTrap(TACTICAL,TRAPAUTO);break;
+				case 2:shdefaultChangeBestTrap(SHADOW,TRAPAUTO);break;
+				case 3:shdefaultChangeBestTrap(HYDRO,TRAPAUTO);break;
 			}
 			window.localStorage.UOP_sh_d_SG_state = thisstate;
 		}
@@ -4601,6 +4648,7 @@ function shdefaultFieryWarpath() {
 		//IF (WAVE == COMMANDER && GAGASTREAK > STREAK >= COMMANDERSTREAK) ARM COMMANDER
 		//IF (WAVE == COMMANDER && COMMANDERGAGASTREAK <= STREAK) ARM GAGASETUP
 		//IF (WAVE != COMMANDER && GAGASTREAK <= STREAK) ARM GAGASETUP
+		return;
 	}
 }
 function shdefaultTrapcheck() {
