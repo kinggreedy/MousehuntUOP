@@ -1,6 +1,6 @@
 ﻿support compiler & packer
 schedule have custom defined
 
-images to folder
 scoreboard & clock
 pretty travel
+bug schedule play => Pause
