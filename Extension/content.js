@@ -1,47 +1,5 @@
-// ==UserScript==
-// @name        A.R.L.T.K.S
-// @author      GaCon
-// @version    	2.3
-// @namespace   GaCon
-// @description All roads lead to King's Stockade on a Bugatti Veyron. Rocket speed !!!
-// @grant       GM_xmlhttpRequest
-// @grant       GM_setValue
-// @grant       GM_getValue
-// @run-at      document-start
-// @include     http://mousehuntgame.com/*
-// @include     https://mousehuntgame.com/*
-// @include     http://www.mousehuntgame.com/*
-// @include     https://www.mousehuntgame.com/*
-// @include     http://apps.facebook.com/mousehunt/*
-// @include     https://apps.facebook.com/mousehunt/*
-// ==/UserScript==
-
 // The public prefix for this script is UOP_ . All of the outside variable and function will have this prefix.
-/**************INIT THE SCRIPT****************
- * Attach the init function to DOMContentLoaded
- * And check if the page fail to load in 15 sec.
- * 
- * force the non-HTTPS page if we're at camp
- */
-var C_ForceNonHTTPS = 1;
-if ((location.pathname != "/login.php") && (location.protocol == "https:") && (C_ForceNonHTTPS == 1) && (location.hostname.indexOf('facebook') == -1) && (location.pathname.indexOf('/canvas/') == -1)) //not at login.php & using HTTP, not HTTPS & not facebook
-{
-	location.replace("http"+location.href.substr(5)); //force HTTPS
-}
-else
-{
-	checkDocumentState();
-	window.addEventListener('DOMContentLoaded',initialization,false);
-}
-var documentLoadCounter = 0;
-function checkDocumentState() {
-	if (document.readyState == "loading")
-	{
-		if (documentLoadCounter > 120) location.reload();
-		++documentLoadCounter;
-		setTimeout(checkDocumentState,1000);
-	}
-}
+window.addEventListener('DOMContentLoaded',initialization,false);
 
 /**************VARIABLES*****************/
 //==========Constants==========
@@ -105,13 +63,13 @@ var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
 var C_canvasMode = ["","/canvas"];
 var C_displayState = ["block","none"];
-var C_mobile = [
+var C_mobile = [{},
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
-var BASE = 0, PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8;
-var C_powertype = {BASE: 'base', PHYSICAL: 'phscl',TACTICAL: 'tctcl', HYDRO: 'hdr', SHADOW: 'shdw', ARCANE: 'arcn',FORGOTTEN: 'frgttn',DRACONIC: 'drcnc',PARENTAL: 'prntl'}
+var BASE = 0, PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8, BALACKSCOVE = 9;
+var C_powertype = {BASE: 'base', PHYSICAL: 'phscl',TACTICAL: 'tctcl', HYDRO: 'hdr', SHADOW: 'shdw', ARCANE: 'arcn',FORGOTTEN: 'frgttn',DRACONIC: 'drcnc',PARENTAL: 'prntl'};
 var TRAPSTR = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
-var C_trapprioritytype = {TRAPAUTO: 'str', TRAPPOWER: 'power', TRAPLUCK: 'luck', TRAPATTRACTION: 'attraction'}
+var C_trapprioritytype = {TRAPAUTO: 'str', TRAPPOWER: 'power', TRAPLUCK: 'luck', TRAPATTRACTION: 'attraction'};
 //CallbackFunctions
 
 //==========Variables==========
@@ -132,7 +90,7 @@ var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
 
 //Variables
-var data,itemdata;
+var data,itemdata,appgameinfo;
 var template = new Object;
 var registerSoundHornSounding = new Array;
 var registerSoundHornSounded = new Array;
@@ -150,6 +108,7 @@ function initialization() {
 	
 	//==========LOAD SETTINGS==========
 	loadSettings();
+	initAppEmulation();
 	
 	//==========INIT VARIABLES & TEMPLATE==========
 	runTimeCreateConstant();
@@ -732,14 +691,6 @@ function checkBrowser() {
 	{
 		return 1;
 	}
-	else if (atCamp)
-	{
-		if (document.getElementById('campButton') == null) // no camp button aka error
-		{
-			setTimeout(function () {location.reload();},15000);
-			return 1;
-		}
-	}
 	else if (window.location.hostname.indexOf('facebook') != -1)
 	{
 		var tmp = document.getElementById('rightCol');
@@ -749,6 +700,14 @@ function checkBrowser() {
 		tmp.innerHTML = "#iframe_canvas {min-height: 3036px;}";
 		document.head.appendChild(tmp);
 		canvasWindow = document.getElementById("iframe_canvas").contentWindow;
+		return 1;
+	}
+	else if (document.getElementById('campButton') == null) //no camp button
+	{
+		if (atCamp) // at camp => error
+		{
+			setTimeout(function () {location.reload();},10000);
+		}
 		return 1;
 	}
 	return 0;
@@ -771,6 +730,40 @@ function createTemplate() {
 	tmp = document.createElement('div');
 	tmp.className = "hgSeparator right";
 	template.hgRight = tmp;
+}
+function initAppEmulation() {
+	if (S_emulateMode != 0)
+	{
+		var url = "https://www.mousehuntgame.com/api/info";
+		var request = new XMLHttpRequest();
+		request.open("GET", url, true);
+		request.setRequestHeader("X-Requested-With", "com.hitgrab." + C_mobile[S_emulateMode].xrequestwith + ".mousehunt");
+		//request.setRequestHeader("User-Agent",C_mobile[S_emulateMode].agent);
+		
+		request.onreadystatechange = function()
+		{
+			if (request.readyState === 4)
+			{
+				if ((request.status == 200) || (request.status == 400))
+				{
+					try
+					{
+						appgameinfo = JSON.parse(request.responseText);
+					}
+					catch (excep)
+					{
+						initAppEmulation();
+					}
+
+				}
+				else
+				{
+					initAppEmulation();
+				}
+			}
+		};
+		request.send(null);
+	}
 }
 function initializationWithUser() {
 	var list = [1373104146];
@@ -1280,9 +1273,13 @@ function save_access_token() {
 	{
 		window.localStorage.UOP_access_token = access_token_loaded;
 		facebookWindow.postMessage("UOP_facebookclose", "https://apps.facebook.com");
-		document.getElementById('UOP_access_token').value = access_token_loaded;
-		document.getElementById('UOP_buttonAccessToken').textContent = "Saved";
-		document.getElementById('UOP_buttonAccessToken').disabled = true;
+		try
+		{
+			document.getElementById('UOP_access_token').value = access_token_loaded;
+			document.getElementById('UOP_buttonAccessToken').textContent = "Saved";
+			document.getElementById('UOP_buttonAccessToken').disabled = true;
+		}
+		catch (e){}
 	}
 }
 function get_access_token() {
@@ -1309,7 +1306,11 @@ function get_access_token() {
 }
 function buttonGetAccessToken() {
 	facebookWindow = window.open("https://apps.facebook.com/mousehunt/");
-	document.getElementById('UOP_access_token').value = "Loading....";
+	try
+	{
+		document.getElementById('UOP_access_token').value = "Loading....";
+	}
+	catch (e) {}
 	access_token_loaded = 0;
 	setTimeout(save_access_token,1000);
 }
@@ -1490,7 +1491,6 @@ function sendMessage(str,callfunc) {
 function receiveMessage() {
 	switch (O_receiveMessage.className)
 	{
-		case "getItemData": itemdata = JSON.parse(O_receiveMessage.textContent);break;
 		default: break;
 	}
 }
@@ -1889,14 +1889,14 @@ function travelToTabBar() {
 	O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
 	travelcontentChild.id = "UOP_campTravel";
 	travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
-	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a><br><a id="UOP_travelOld">Click here</a> for normal travel mode';
+	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a><br>[<a id="UOP_travelOld">Normal Travel mode</a>] [<a id="UOP_travelGetAccessToken">Get Access Token</a>]';
 	travelcontentChild = travelcontentChild.firstChild.nextSibling;
 	travelcontentChild.id = "UOP_travelcontentChild";
 	O_travelContent = travelcontentChild;
 	travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
-	
 	document.getElementById('UOP_travelOld').addEventListener('click',travelcontentLoadold,false);
+	document.getElementById('UOP_travelGetAccessToken').addEventListener('click',buttonGetAccessToken,false);
 }
 function shopToTabBar() {
 	//shop => tabbar
@@ -2043,11 +2043,12 @@ function travel(e) {
 	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var htmlstr = "";
-	var params = "v=2&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.7.5&game_version=42861%0A&access_token=" + window.localStorage.UOP_access_token;
+	var params = "v=" + appgameinfo.v + "&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.7.5&game_version=" + appgameinfo.game_version + "%0A&access_token=" + window.localStorage.UOP_access_token;
 
 	var request = new XMLHttpRequest();
 	request.open("POST", url, true);
-	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	//request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	request.setRequestHeader("Accept-Charset", "utf-8, iso-8859-1, utf-16, *;q=0.7");
 	request.setRequestHeader("X-Requested-With", "com.hitgrab." + C_mobile[S_emulateMode].xrequestwith + ".mousehunt");
 	//request.setRequestHeader("User-Agent",C_mobile[S_emulateMode].agent);
 	
@@ -2653,13 +2654,14 @@ function updateSpecial() {
 				newbutton = holder.getElementsByTagName('input');
 				for (var j = 0;j < newbutton.length;++j)
 				{
-					newbutton[j].value = "Use " + newbutton[j].value.slice(-3);
 					newbutton[j].addEventListener('click',updateSpecial,false);
 				}
 				
-				newbutton = document.createElement('input');
+				newbutton = holder.getElementsByTagName('input')[0].cloneNode(true);
+				newbutton.className = "button";
 				newbutton.type = "submit";
 				newbutton.value = "Custom";
+				newbutton.removeAttribute("data-item-quantity");
 				newbutton.setAttribute("onclick","UOP_useCustomConvertible(this);");
 				newbutton.addEventListener('click',updateSpecial,false);
 				
@@ -2667,6 +2669,7 @@ function updateSpecial() {
 				newinput.type = "text";
 				newinput.className = "num";
 				
+				holder.appendChild(document.createElement('br'));
 				holder.appendChild(newbutton);
 				holder.appendChild(newinput);
 			}
@@ -2678,22 +2681,9 @@ function updateSpecial() {
 function UOP_useCustomConvertible(obj) {
 	var tbox = obj.parentNode.getElementsByClassName("num")[0];
 	var num = Number(tbox.value);
-	var itemid = Number(obj.parentNode.parentNode.parentNode.id.slice(13));
-	var itemtype = "";
-	var itemdata = hg.utils.UserInventory.getAllItems().convertible;
+	var itemtype = obj.getAttribute('data-item-type');
 	var i;
-	
-	if (isNaN(num)) return;
-	
-	for (i = 0;i < itemdata.length;++i)
-		if (itemdata[i].item_id == itemid)
-		{
-			itemtype = itemdata[i].type;
-			break;
-		}
-	
-	if (itemtype == "") {tbox.value = "Unknown";return;}
-	
+
 	hg.utils.UserInventory.useConvertible(itemtype,num);
 	eventRegistry.addEventListener('js_dialog_show',function() {
 		activejsDialog.positionCounter = 0
@@ -3872,7 +3862,7 @@ function KR_reload(i) {
 	return function() {
 		KR_imgs[i].src = "";
 		KR_imgs[i].src = '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
-		KR_timeouts[i] = setTimeout(KR_reload(i),30000);
+		KR_timeouts[i] = setTimeout(KR_reload(i),10000);
 	}
 }
 function KRSolverOCRLoadImg() {
@@ -3881,10 +3871,10 @@ function KRSolverOCRLoadImg() {
 	KR_imgs[KR_i].id = "UOP_OCR_" + KR_i;
 	KR_imgs[KR_i].addEventListener('load',KR_solveImg(KR_i),false);
 	KR_imgs[KR_i].src = '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
-	KR_timeouts[KR_i] = setTimeout(KR_reload(KR_i),30000);
+	KR_timeouts[KR_i] = setTimeout(KR_reload(KR_i),10000);
 	
 	++KR_i;
-	setTimeout(KRSolverOCRLoadImg,3000);
+	setTimeout(KRSolverOCRLoadImg,1500);
 }
 function KRSolverOCRCore() {
 	KR_i = 0;
@@ -3931,7 +3921,6 @@ function KR_sendResult() {
 		submitPuzzle(res);
 	}
 }
-/**================================EXPERIMENTAL AREA==================================*/
 /*******************SCHEDULE AREA********************/
 var sh_clock = new Object;
 var sh_scripts = new Array;
@@ -3956,6 +3945,7 @@ function shInitSchedule() {
 	setInterval(shUpdateClock,60000);shUpdateClock();
 	
 	var nscripts = Number(window.localStorage.UOP_nscripts);
+	
 	for (i = 0;i < nscripts;++i)
 	{
 		sh_scripts[i] = JSON.parse(window.localStorage['UOP_scriptInfo' + i]);
@@ -3963,6 +3953,8 @@ function shInitSchedule() {
 		sh_scripts[i].content = window.localStorage['UOP_scriptContent' + i];
 		if (sh_scripts[i].errorHandler != 0) sh_scripts[i].errorContent = window.localStorage['UOP_scriptErrorContent' + i];
 	}
+	
+	if (nscripts == 0) shCreateDefaultScripts();
 	
 	for (i = 0;i < sh_scripts.length;++i)
 		if (sh_scripts[i].mode != STOP)
@@ -3983,6 +3975,15 @@ function shInitSchedule() {
 	registerSoundHornWaiting.push(shStartAfterHorn);
 	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + 60000);
 	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - 60000,0));
+}
+function shCreateDefaultScripts() {
+	var i;
+	sh_scripts = sh_defaultScripts;
+	for (i = 0;i < sh_scripts.length;++i)
+	{
+		shSaveScript(i);
+	}
+	window.localStorage.UOP_nscripts = sh_scripts.length;
 }
 function shUpdateClock() {
 	//update location timer
@@ -4195,7 +4196,7 @@ function shLoad(url,params,successHandler){
 	}
 	http.send(postparams);
 }
-function shLoadOnce(url,params) {
+function shLoadOnce(url,params,successHandler) {
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
@@ -4207,18 +4208,22 @@ function shLoadOnce(url,params) {
 		{
 			if (http.status == 200)
 			{
+				var parseok = 0;
 				try
 				{
 					data = JSON.parse(http.responseText);
+					parseok = 1;
 				}
 				catch (e)
 				{
-					shLoadOnce(url,params);
+					shLoadOnce(url,params,successHandler);
+					return;
 				}
+				if ((parseok == 1) && (successHandler != null)) successHandler();
 			}
 			else
 			{
-				shLoadOnce(url,params);
+				shLoadOnce(url,params,successHandler);
 				return;
 			}
 		}
@@ -4423,6 +4428,7 @@ function shGetVariable(s) {
 
 var C_shdefaultAction = {
 	CHANGETRAP: "/managers/ajax/users/changetrap.php",
+	GETTRAP: "/managers/ajax/users/gettrapcomponents.php",
 	TRAVEL: "/managers/ajax/users/changeenvironment.php",
 	PURCHASE: "/managers/ajax/purchases/itempurchase.php",
 	POTION: "/managers/ajax/users/usepotion.php",
@@ -4430,6 +4436,8 @@ var C_shdefaultAction = {
 	CONVERTIBLE: "/managers/ajax/users/useconvertible.php",
 	HAMMER: "/managers/ajax/users/usehammer.php"
 }
+//managers/ajax/users/userInventory.php //item_types[]=corrupted_radioactive_blue_cheese_potion & action=get_items
+var C_shdefaultBCTrap = {'grand_arcanum_weapon' : 1, 'tarannosaurus_rex_weapon': 2, 'acronym_weapon': 3, 'ancient_box_trap_weapon': 4}, C_shdefaultBCTrapR = ['grand_arcanum_weapon','tarannosaurus_rex_weapon','acronym_weapon','ancient_box_trap_weapon'];
 function shChangeTrap(weapon,base,charm,cheese) {
 	return ("weapon=" + weapon + "&base=" + base + "&trinket=" + charm + "&bait=" + cheese);
 }
@@ -4461,75 +4469,114 @@ function shHammer(type,quantity) {
 function shUseConvertible(item_type,item_qty) {
 	return ("item_type=" + item_type + "&item_qty=" + item_qty);
 }
-//managers/ajax/users/userInventory.php //item_types[]=corrupted_radioactive_blue_cheese_potion & action=get_items
-function shdefaultChangeBestTrap(type,priority) {
-	var url = "/managers/ajax/users/gettrapcomponents.php"
-	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
-	
-	var http = new XMLHttpRequest();
-	http.open("POST",C_canvasMode[inCanvas] + url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-	http.onreadystatechange = function() {
-		if (http.readyState == 4)
+function shChangeBestTrap(type,priority) {
+	shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {
+		var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
+		for (i = 0;i < data.components.length;++i)
 		{
-			if (http.status == 200)
+			match = false;
+			switch (type)
 			{
-				try
-				{
-					data = JSON.parse(http.responseText);
-					var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
-					for (i = 0;i < data.components.length;++i)
-					{
-						match = false;
-						switch (type)
-						{
-							case BASE: match = (data.components[i].classification == "base") ? true : false;break;
-							default: match = (data.components[i].powertype == C_powertype[type]) ? true : false;break;
-						}
-						if (match)
-						{
-							comp = new Object;
-							comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
-							comp.luck = luck = data.components[i].luck;
-							luck += luckbonus;
-							comp.str = power + 4 * luck * luck;
-							comp.attraction = data.components[i].attraction_bonus;
-							comp.name = data.components[i].type;
-							arrcomp.push(comp);
-						}
-					}
-					if (arrcomp.length == 0) return;
-					var prioritystr = C_trapprioritytype[priority];
-					arrcomp.sort(function (a,b) {return b[prioritystr] - a[prioritystr];});
-					var param = (type == BASE) ? shChangeTrap('',arrcomp[0].name,'','') : shChangeTrap(arrcomp[0].name,'','','');
-					shLoad(C_shdefaultAction.CHANGETRAP,param,null);
-				}
-				catch (e)
-				{
-					shdefaultChangeBestTrap(type,priority);
-				}
+				case BASE: match = (data.components[i].classification == "base") ? true : false;break;
+				default: match = (data.components[i].powertype == C_powertype[type]) ? true : false;break;
 			}
-			else
+			if (match)
 			{
-				shdefaultChangeBestTrap(type,priority);
-				return;
+				comp = new Object;
+				comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
+				comp.luck = luck = data.components[i].luck;
+				luck += luckbonus;
+				comp.str = power + 4 * luck * luck;
+				comp.attraction = data.components[i].attraction_bonus;
+				comp.name = data.components[i].type;
+				arrcomp.push(comp);
 			}
 		}
-	}
-	http.send(postparams);
+		if (arrcomp.length == 0) return;
+		var prioritystr = C_trapprioritytype[priority];
+		arrcomp.sort(function (a,b) {return b[prioritystr] - a[prioritystr];});
+		var param = (type == BASE) ? shChangeTrap('',arrcomp[0].name,'','') : shChangeTrap(arrcomp[0].name,'','','');
+		shLoad(C_shdefaultAction.CHANGETRAP,param,null);
+	});
 }
+var sh_defaultScripts = [
+	{
+		name: 'default_iceberg',
+		fullname: 'Iceberg (Base)',
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultIceberg.toString().slice(29,-1)
+	},
+	{
+		name: 'default_balackscove',
+		fullname: "Balack's Cove (Cheese,Location)",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultBalacksCove.toString().slice(33,-1)
+	},
+	{
+		name: 'default_zugwangstowersimple',
+		fullname: "Zugwang's Tower (Pawn,disarm CMC)",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultZugwangsTowerSimple.toString().slice(41,-1)
+	},
+	{
+		name: 'default_seasonalgarden',
+		fullname: "Seasonal Garden (Trap)",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 0,afterHorn: 1,priority: 0, userSync: 0,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultSeasonalGarden.toString().slice(36,-1)
+	},
+	{
+		name: 'default_fierywarpath',
+		fullname: "Fiery Warpath",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultFieryWarpath.toString().slice(34,-1)
+	},
+	{
+		name: 'default_furoma',
+		fullname: "Furoma Cycle",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultFuroma.toString().slice(28,-1)
+	},
+	{
+		name: 'default_trapcheck',
+		fullname: "Change Trap at Trapcheck",
+		setting: {beforeTrapCheck: 1,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		content: shdefaultTrapcheck.toString().slice(31,-1)
+	}
+];
+
 function shdefaultIceberg() {
 	if (data.user.environment_id == 40)
 	{
 		var last_phase;
 		if (window.localStorage.UOP_sh_d_IB_state == undefined) last_phase = "No phrase";
 		else last_phase = window.localStorage.UOP_sh_d_IB_state;
-		if (last_phase != user.quests.QuestIceberg.current_phase)
+		if (last_phase != data.user.quests.QuestIceberg.current_phase)
 		{
 			var param = '';
-			switch (user.quests.QuestIceberg.current_phase)
+			switch (data.user.quests.QuestIceberg.current_phase)
 			{
-				case "General":shdefaultChangeBestTrap(BASE,TRAPAUTO);break;
+				case "General":shChangeBestTrap(BASE,TRAPAUTO);break;
 				case "Treacherous Tunnels":param = shChangeTrap('','magnet_base','','');break;
 				case "Brutal Bulwark":param = shChangeTrap('','spiked_base','','');break;
 				case "Bombing Run":param = shChangeTrap('','remote_detonator_base','','');break;
@@ -4539,7 +4586,7 @@ function shdefaultIceberg() {
 			}
 			if (param != '')
 			{
-				shLoad(C_shdefaultAction.CHANGETRAP,param,function (window.localStorage.UOP_sh_d_IB_state = user.quests.QuestIceberg.current_phase));
+				shLoad(C_shdefaultAction.CHANGETRAP,param,function () {window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;});
 				return;
 			}
 		}
@@ -4553,7 +4600,7 @@ function shdefaultIceberg() {
 		}
 		if (data.user.base_item_id == 899)
 		{
-			shdefaultChangeBestTrap(BASE,TRAPAUTO);
+			shChangeBestTrap(BASE,TRAPAUTO);
 			return;
 		}
 	}
@@ -4565,8 +4612,18 @@ function shdefaultBalacksCove() {
 			((sh_clock.UOP_locationTimerBalacksCove.stateID == 1) && (sh_clock.UOP_locationTimerBalacksCove.timeleft < 15 * 60)) ||
 			(data.user.bait_quantity == 0))
 			{
-				//~~~~best trap in order GAT => Trex => ACO => ACB
-				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('acronym_weapon','','','vanilla_stilton_cheese'),null);
+				shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {
+						var i;
+						var trap,besttrap = 5;
+						for (i = 0;i < data.components.length;++i)
+						{
+							trap = C_shdefaultBCTrap[data.components[i].type];
+							if (trap == undefined) trap = 5;
+							if (besttrap < trap) besttrap = trap;
+						}
+						trap = C_shdefaultBCTrapR[besttrap];
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(trap,'','','vanilla_stilton_cheese'),null);
+					});
 				return;
 			}
 	}
@@ -4580,7 +4637,7 @@ function shdefaultBalacksCove() {
 		if (data.user.bait_quantity == 0)
 		{
 			shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
-			shdefaultChangeBestTrap(SHADOW,TRAPAUTO);
+			shChangeBestTrap(SHADOW,TRAPAUTO);
 			return;
 		}
 	}
@@ -4592,7 +4649,7 @@ function shdefaultZugwangsTowerSimple() {
 		if (((data.user.weapon_item_id == 356) && (data.user.viewing_atts.zzt_tech_progress >= 8)) ||
 		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
 			{
-				shdefaultChangeBestTrap(TACTICAL,TRAPAUTO);
+				shChangeBestTrap(TACTICAL,TRAPAUTO);
 				return;
 			}
 	}
@@ -4628,10 +4685,10 @@ function shdefaultSeasonalGarden() {
 		{
 			switch (thisstate)
 			{
-				case 0:shdefaultChangeBestTrap(PHYSICAL,TRAPAUTO);break;
-				case 1:shdefaultChangeBestTrap(TACTICAL,TRAPAUTO);break;
-				case 2:shdefaultChangeBestTrap(SHADOW,TRAPAUTO);break;
-				case 3:shdefaultChangeBestTrap(HYDRO,TRAPAUTO);break;
+				case 0:shChangeBestTrap(PHYSICAL,TRAPAUTO);break;
+				case 1:shChangeBestTrap(TACTICAL,TRAPAUTO);break;
+				case 2:shChangeBestTrap(SHADOW,TRAPAUTO);break;
+				case 3:shChangeBestTrap(HYDRO,TRAPAUTO);break;
 			}
 			window.localStorage.UOP_sh_d_SG_state = thisstate;
 		}
@@ -4650,6 +4707,16 @@ function shdefaultFieryWarpath() {
 		//IF (WAVE != COMMANDER && GAGASTREAK <= STREAK) ARM GAGASETUP
 		return;
 	}
+}
+function shdefaultFuroma() {
+	//if (in 8 19 23)
+	//if (BAIT QUANTITY == 0)
+	//{
+		//GET FUROMA BAIT => IF (HAVE BAIT || CAN CRAFT) CHANGE LOCATION => ARM BAIT
+		//GET ITEM CURD > AMOUNT => POKE
+		//IF (FORCE MAKI ?) => GET MAKI BAIT => IF (HAVE BAIT) CHANGE LOCATION => ARM BAIT
+		//BRIE
+	//}
 }
 function shdefaultTrapcheck() {
 	if (sh_mode == BEFORETRAPCHECK)
@@ -4674,14 +4741,4 @@ function shdefaultTrapcheck() {
 		//if ((weapon != '') || (base != '') || (trinket != '') || (bait != '')) shChangeTrap(weapon,base,trinket,bait);
 		return;
 	}
-}
-function shdefaultFuroma() {
-	//if (in 8 19 23)
-	//if (BAIT QUANTITY == 0)
-	//{
-		//GET FUROMA BAIT => IF (HAVE BAIT || CAN CRAFT) CHANGE LOCATION => ARM BAIT
-		//GET ITEM CURD > AMOUNT => POKE
-		//IF (FORCE MAKI ?) => GET MAKI BAIT => IF (HAVE BAIT) CHANGE LOCATION => ARM BAIT
-		//BRIE
-	//}
 }
