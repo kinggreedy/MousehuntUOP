@@ -1,0 +1,9 @@
+#GiftSelectorHeader .headerTitle, #GiftSelectorHeader .giftText{width: 200px;}
+#GiftSelectorMenu {display: none!important;}
+.giftlist.claimGifts .giftbox {
+	width: 112px;
+	min-height: 148px;
+	white-space: nowrap;
+}
+#giftSelectorContainer .friendList a.friend {width: 65px;}
+#giftSelectorContainer .friendList .actions {width: auto;}

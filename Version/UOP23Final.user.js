@@ -3935,7 +3935,6 @@ function KRSolverOCRCore() {
 	KRSolverOCRLoadImg();
 }
 function KR_sendResult() {
-	
 	if (++KR_sendResultI == KR_turn)
 	{
 		var res = "",i,j,votingSystem,c,cUpper,r;
