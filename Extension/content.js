@@ -3,14 +3,14 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_version = "2.3";
+var C_version = "3.0";
 var C_versionCompatibleCode = "3";
 var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
 var C_solveStage = 2; //maximum stages of process, offline = 2, server = 4
-var C_cpcontent,C_cpprefix,C_cpsuffix,C_cpstyle,C_cpmessage,C_tabNum,C_groupNum,C_autopanel;
+var C_cpcontent,C_cpprefix,C_cpsuffix,C_cpstyle,C_cpmessage,C_tabNum,C_groupNum,C_autopanel,C_scoreboardContent;
 //Constants
 var C_LOCATION_TIMES = [
 	{
@@ -77,13 +77,15 @@ var S_skin,S_simple,S_auto,S_schedule,S_solve,S_server;
 var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckPriority,S_numScript;
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
+var S_channelScoreboard;
 
 //Object Variables
 var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
 var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode,O_environment;
-var O_sendMessage,O_receiveMessage,O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
+var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
+var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput;
 
 //Auto Variables
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
@@ -94,11 +96,13 @@ var template = new Object;
 var registerSoundHornSounding = new Array;
 var registerSoundHornSounded = new Array;
 var registerSoundHornWaiting = new Array;
-var nextTurnTimestamp,atCamp = false;
+var eval_callback;
+var nextTurnTimestamp,atCamp = false,nextUpdateScoreboardTimeLeft;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var refreshingByError = 0,screenshotSafe = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
+var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array;
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
@@ -126,25 +130,15 @@ function initVariables() {
 	O_hornButton = document.getElementsByClassName('hornbutton')[0].firstChild;
 	O_hornButton.addEventListener('click',soundHorn,false);
 	
-	O_receiveMessage = document.createElement('a');
-	O_receiveMessage.id = "UOP_toScriptMessage";
-	document.body.appendChild(O_receiveMessage);
-	O_receiveMessage.addEventListener('click',receiveMessage,false);
-	O_sendMessage = document.createElement('a');
-	O_sendMessage.id = "UOP_toWindowMessage";
-	document.body.appendChild(O_sendMessage);
-	O_sendMessage.setAttribute('onclick','UOP_receiveMessage();');
-	var scriptstr = windowScript.toString().replace("function windowScript() {","");
-	scriptstr = scriptstr.substring(0,scriptstr.length - 1);
-	scriptstr += sendMessage.toString().replace("function sendMessage","function UOP_sendMessage");
-	scriptstr += UOP_receiveMessage.toString();
+	var scriptstr = windowScript.toString();
+	scriptstr = scriptstr.substring(scriptstr.indexOf("{") + 1, scriptstr.lastIndexOf("}"));
 	var script = document.createElement('script');
 	script.setAttribute("type", "text/javascript");
 	script.innerHTML = scriptstr;
 	document.head.appendChild(script);
 	
-	scriptstr = get_access_token.toString().replace("function get_access_token() {","");
-	scriptstr = scriptstr.substring(0,scriptstr.length - 1);
+	scriptstr = get_access_token.toString();
+	scriptstr = scriptstr.substring(scriptstr.indexOf("{") + 1, scriptstr.lastIndexOf("}"));
 	script = document.createElement('script');
 	script.setAttribute("type", "text/javascript");
 	script.innerHTML = scriptstr;
@@ -169,10 +163,37 @@ function runTimeCreateConstant() {
 	jsArr = [1];
 	cssCustomArr = [1];
 	cssjsSetArr = [1,1,1,1,1,1,1,1];
-	C_cssjsSetArr = [[[],[],[0]], [[0],[0],[1]], [[1],[1,2,3],[2]], [[2,3],[4,5,6,7],[3]], [[],[],[4]],[[],[],[5]],[[3,5],[6,9],[6]],[[4],[8],[7]]];
+	C_cssjsSetArr = [[[],[],[0]], [[0],[0],[1]], [[1],[1,2,3],[2]], [[2,3],[4,5,6,7],[3]], [[],[],[4]],[[],[],[5]],[[3,5],[6,9],[6]],[[4],[8],[7]],[[],[],[8]]];
 	C_cssArr = ["css/views/en/ItemPurchaseView.css","css/views/en/InventoryItemView.css","css/views/en/CraftingView.css","platform/css/views/en/FlexibleDialogBoxView.css","css/views/en/GiftSelectorView.css","css/views/en/SupplyTransferView.css"];
 	C_jsArr = ["js/views/en/ItemPurchaseView.js","js/views/en/InventoryItemView.js","platform/js/jquery/en/jquery.tmpl.min.js","platform/js/classes/en/radioSelector.js","js/views/en/RecipeView.js", "js/views/en/CraftingView.js","platform/js/views/en/FlexibleDialogBoxView.js","platform/js/jquery/en/jquery.scrollTo-min.js","js/views/en/GiftSelectorView.js","js/views/en/SupplyTransferView.js"];
-	C_cssCustomArr = [chrome.extension.getURL("css/system.css"),chrome.extension.getURL("css/itempurchase.css"),chrome.extension.getURL("css/iteminventoryview.css"),chrome.extension.getURL("css/craftingview.css"),chrome.extension.getURL("css/defaultskin.css"),chrome.extension.getURL("css/autoskin.css"),chrome.extension.getURL("css/supply.css"),chrome.extension.getURL("css/gift.css")];
+	C_cssCustomArr = [chrome.extension.getURL("css/system.css"),chrome.extension.getURL("css/itempurchase.css"),chrome.extension.getURL("css/iteminventoryview.css"),chrome.extension.getURL("css/craftingview.css"),chrome.extension.getURL("css/defaultskin.css"),chrome.extension.getURL("css/autoskin.css"),chrome.extension.getURL("css/supply.css"),chrome.extension.getURL("css/gift.css"),chrome.extension.getURL("css/scoreboard.css")];
+	C_scoreboardContent = '\
+<table class="UOP_table">\
+	<thead>\
+		<tr>\
+			<th>Team</th>\
+			<th>Score</th>\
+		</tr>\
+	</thead>\
+	<tfoot>\
+		<tr>\
+			<td colspan="2">Update (<span id="UOP_scoreboardUpdateSecond">...</span>)</td>\
+		</tr>\
+	</tfoot>\
+	<tbody id="UOP_scoreboard">\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+		<tr><td><div class="UOP_teamName">----------</td><td>-----</td></tr>\
+	</tbody>\
+</table>\
+';
 	C_cpstyle = '\
 <style>\
 	#overlayPopup .jsDialogContainer .suffix, #overlayPopup .jsDialogContainer .prefix {background-color: #3c454f;}\
@@ -196,7 +217,7 @@ function runTimeCreateConstant() {
 				<ul id="UOP_ads" role="radiogroup" aria-labelledby="">\
 					<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">ON</li>\
 					<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">REMOVE</li>\
-					<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">REPLACE</li>\
+					<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">FUN</li>\
 				</ul>\
 			</div>\
 		</div>\
@@ -640,8 +661,9 @@ function initializationWithUser() {
 		{
 			return;
 		}
-
-	updateMinuteTimer();
+	
+	if (S_simple == 0) updateMinuteTimer();
+	if (S_ads == 2) startUpdateFunArea();
 	soundHornWaiting();
 }
 /*******************MAIN********************/
@@ -666,7 +688,7 @@ function loadSettings() {
 		window.localStorage.UOP_versionCompatibleCode = C_versionCompatibleCode;
 		window.localStorage.UOP_skin = 1;
 		window.localStorage.UOP_auto = 0;
-		window.localStorage.UOP_ads = 1;
+		window.localStorage.UOP_ads = 2;
 		window.localStorage.UOP_schedule = 0;
 		window.localStorage.UOP_solve = 0;
 		window.localStorage.UOP_server = 1;
@@ -680,12 +702,14 @@ function loadSettings() {
 		window.localStorage.UOP_alarmSrc = "";
 		window.localStorage.UOP_alarmNoti = 1;
 		window.localStorage.UOP_alarmStop = 1;
-		window.localStorage.UOP_alarmStopTime = 600;
+		window.localStorage.UOP_alarmStopTime = 20;
 		window.localStorage.UOP_trapCheck = 1;
 		window.localStorage.UOP_trapCheckTime = -1;
 		window.localStorage.UOP_trapCheckPriority = 1;
 		window.localStorage.UOP_emulateMode = 0;
 		window.localStorage.UOP_access_token = "";
+		
+		window.localStorage.UOP_channelScoreboard = 1;
 		
 		window.localStorage.UOP_nscripts = 0;
 		
@@ -717,10 +741,12 @@ function loadSettings() {
 	S_trapCheckTime = Number(window.localStorage.UOP_trapCheckTime);
 	S_trapCheckPriority = Number(window.localStorage.UOP_trapCheckPriority);
 	S_emulateMode = Number(window.localStorage.UOP_emulateMode);
+
+	S_channelScoreboard = Number(window.localStorage.UOP_channelScoreboard);
 	
 	S_cacheKRstr = window.localStorage.UOP_cacheKRstr;
 	S_serverUrl = window.localStorage.UOP_serverUrl;
-	
+
 	if (S_trapCheckTime == -1) registerSoundHornWaiting.push(shDetectTrapCheckTimestamp);
 }
 function addControlPanel() {
@@ -865,21 +891,25 @@ function saveScript() {
 	errorHandler = 0;
 	vars = {};
 	
-	if (newscript == 0) shChangeScriptState(STOP,sid); else sh_scripts[sid] = new Object;
-	sh_scripts[sid].name = name;
-	sh_scripts[sid].fullname = fullname;
-	if (sh_scripts[sid].setting == null) sh_scripts[sid].setting = new Object;
-	sh_scripts[sid].setting.beforeTrapCheck = beforeTrapCheck;
-	sh_scripts[sid].setting.afterTrapCheck = afterTrapCheck;
-	sh_scripts[sid].setting.afterHorn = afterHorn;
-	sh_scripts[sid].setting.priority = priority;
-	sh_scripts[sid].setting.userSync = userSync;
-	sh_scripts[sid].setting.trapCheckPriority = trapCheckPriority;
-	sh_scripts[sid].content = content;
-	sh_scripts[sid].vars = vars;
-	sh_scripts[sid].errorHandler = errorHandler;
-	shSaveScript(sid);
-	shChangeScriptState(mode,sid);
+	if ((newscript == 0) && (mode == PAUSE)) shChangeScriptState(PAUSE,sid);
+	else
+	{
+		if (newscript == 0) shChangeScriptState(STOP,sid); else sh_scripts[sid] = new Object;
+		sh_scripts[sid].name = name;
+		sh_scripts[sid].fullname = fullname;
+		if (sh_scripts[sid].setting == null) sh_scripts[sid].setting = new Object;
+		sh_scripts[sid].setting.beforeTrapCheck = beforeTrapCheck;
+		sh_scripts[sid].setting.afterTrapCheck = afterTrapCheck;
+		sh_scripts[sid].setting.afterHorn = afterHorn;
+		sh_scripts[sid].setting.priority = priority;
+		sh_scripts[sid].setting.userSync = userSync;
+		sh_scripts[sid].setting.trapCheckPriority = trapCheckPriority;
+		sh_scripts[sid].content = content;
+		sh_scripts[sid].vars = vars;
+		sh_scripts[sid].errorHandler = errorHandler;
+		shSaveScript(sid);
+		shChangeScriptState(mode,sid);
+	}
 	if (newscript == 1)
 	{
 		window.localStorage.UOP_nscripts = sh_scripts.length;
@@ -1105,8 +1135,8 @@ function toggleGroup(e) {
 	}
 }
 function loadControlPanel() {
-	sendMessage(C_cpmessage,"UOP_eval");
-	initControlPanel();
+	window.postMessage({name: "UOP_eval", data: C_cpmessage},location.origin);
+	eval_callback = initControlPanel;
 }
 function alarmTest() {
 	var str = window.localStorage.UOP_alarmSrc;
@@ -1123,13 +1153,13 @@ function alarmTest() {
 function save_access_token() {
 	if (access_token_loaded == 0)
 	{
-		facebookWindow.postMessage("UOP_httpfacebook_request_token", "https://apps.facebook.com");
+		facebookWindow.postMessage({name:"UOP_httpfacebook_request_token"}, "https://apps.facebook.com");
 		setTimeout(save_access_token,500);
 	}
 	else
 	{
 		window.localStorage.UOP_access_token = access_token_loaded;
-		facebookWindow.postMessage("UOP_facebookclose", "https://apps.facebook.com");
+		facebookWindow.close();
 		try
 		{
 			document.getElementById('UOP_access_token').value = access_token_loaded;
@@ -1219,26 +1249,31 @@ function callArrayFunction(element, index, array) {
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
 	//WINDOW <=> FACEBOOK <=> CANVAS
-	if (event.data == "UOP_httpfacebook_request_token") //WINDOW => FACEBOOK
+	if (event.data.name == "UOP_httpfacebook_request_token") //WINDOW => FACEBOOK
 	{
-		if (access_token_loaded == 0) canvasWindow.postMessage("UOP_facebookhttps_request_token","https://www.mousehuntgame.com");
-		else event.source.postMessage(access_token_loaded,event.origin);
+		if (access_token_loaded == 0) canvasWindow.postMessage({name:"UOP_facebookhttps_request_token"},"https://www.mousehuntgame.com");
+		else event.source.postMessage({name:"UOP_facebookhttp_respond_token",data: access_token_loaded},event.origin);
 	}
-	else if (event.data == "UOP_facebookhttps_request_token") //FACEBOOK => CANVAS
+	else if (event.data.name == "UOP_facebookhttps_request_token") //FACEBOOK => CANVAS
 	{
-		if (window.localStorage.UOP_access_token != "Refreshing") event.source.postMessage(window.localStorage.UOP_access_token,event.origin);
+		if (window.localStorage.UOP_access_token != "Refreshing") event.source.postMessage({name:"UOP_httpsfacebook_respond_token",data: window.localStorage.UOP_access_token},event.origin);
 	}
-	else if (event.origin == "https://www.mousehuntgame.com") //CANVAS => FACEBOOK
+	else if (event.data.name == "UOP_httpsfacebook_respond_token") //CANVAS => FACEBOOK
 	{
-		access_token_loaded = event.data;
+		access_token_loaded = event.data.data;
 	}
-	else if (event.origin == "https://apps.facebook.com") //FACEBOOK => WINDOW
+	else if (event.data.name == "UOP_facebookhttp_respond_token") //FACEBOOK => WINDOW
 	{
-		access_token_loaded = event.data;
+		access_token_loaded = event.data.data;
 	}
-	else if (event.data == "UOP_facebookclose") //CLOSE FACEBOOK
+	else if (event.data.name == "UOP_eval_OK")
 	{
-		window.close();
+		if (eval_callback != null)
+		{
+			var temp = eval_callback;
+			eval_callback = null;
+			temp();
+		}
 	}
 }
 function syncUser(callbackFunction) {
@@ -1340,30 +1375,19 @@ function manageCSSJSAdder(num) {
 	
 	cssjsSetArr[num] = 0;
 }
-function sendMessage(str,callfunc) {
-	O_sendMessage.className = callfunc;
-	O_sendMessage.textContent = str;
-	O_sendMessage.click();
-}
-function receiveMessage() {
-	switch (O_receiveMessage.className)
-	{
-		default: break;
-	}
-}
-function UOP_receiveMessage() {
-	switch (O_receiveMessage.className)
-	{
-		case "UOP_userHash": UOP_updateUserHash();break;
-		case "UOP_eval": UOP_eval();break;
-		default: break;
-	}
-}
 function windowScript() {
-	var O_sendMessage = document.getElementById('UOP_toScriptMessage'),O_receiveMessage = document.getElementById('UOP_toWindowMessage');
-	function UOP_sendMessage(str,callfunc) {O_sendMessage.className = callfunc;O_sendMessage.textContent = str;O_sendMessage.click();}
-	function UOP_updateUserHash () { user.unique_hash = O_receiveMessage.textContent;}
-	function UOP_eval() {eval(O_receiveMessage.textContent);}
+	window.addEventListener("message", UOP_receiveWindowMessage, false);
+	function UOP_receiveWindowMessage(event) {
+		if (event.data.name == "UOP_eval")
+		{
+			eval(event.data.data);
+			window.postMessage({name: "UOP_eval_OK", data: "OK"},location.origin);
+		}
+		else if (event.data.name == "UOP_userHash")
+		{
+			user.unique_hash = event.data.data;
+		}
+	}
 }
 /*******************SKIN AREA********************/
 //TOOLS
@@ -1544,7 +1568,7 @@ function shopcontentLoad() {
 				HTMLText += request.responseText.substring(request.responseText.indexOf("<div class='contentcontainer'>"),request.responseText.indexOf("<div class='footer'>"));
 				var JSText = request.responseText.substring(request.responseText.indexOf("app.views.ItemPurchaseView"),request.responseText.indexOf("user = {"));
 				
-				sendMessage(JSText,"UOP_eval");
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
 				HTMLText = HTMLText.replace(/app\.views\.TabBarView\.page\.show\(.\);/g,'');
 				HTMLText = HTMLText.replace(/tabbarContent_page/g,'UOP_tabbarContents_page');
 				HTMLText = HTMLText.replace(/tabbarControls_page/g,'UOP_tabbarControls_page');
@@ -1608,7 +1632,7 @@ function potcontentLoad() {
 				contentDiv.innerHTML = "<br>";
 				contentDiv.appendChild(HTMLdiv);
 				
-				sendMessage(JSText,"UOP_eval");
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
 			}
 			else
 			{
@@ -1644,14 +1668,16 @@ function craftcontentLoad() {
 				contentDiv.innerHTML = "";
 				contentDiv.appendChild(HTMLdiv);
 				
-				sendMessage(JSText,"UOP_eval");
-				var tmp = HTMLdiv.getElementsByClassName('recipeitemnamediv');
-				for (var i = tmp.length - 1;i >= 0;--i)
-				{
-					tmp[i].parentNode.removeChild(tmp[i]);
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
+				eval_callback = function () {
+					var tmp = HTMLdiv.getElementsByClassName('recipeitemnamediv');
+					for (var i = tmp.length - 1;i >= 0;--i)
+					{
+						tmp[i].parentNode.removeChild(tmp[i]);
+					}
+					tmp = HTMLdiv.getElementsByClassName('craftingTabs')[0].getElementsByTagName('li')[4].getElementsByTagName('a')[0];
+					tmp.textContent = "Item";
 				}
-				tmp = HTMLdiv.getElementsByClassName('craftingTabs')[0].getElementsByTagName('li')[4].getElementsByTagName('a')[0];
-				tmp.textContent = "Item";
 			}
 			else
 			{
@@ -1681,7 +1707,7 @@ function supplycontentLoad() {
 				contentDiv.innerHTML = "";
 				contentDiv.appendChild(HTMLdiv);
 				
-				sendMessage(JSText,"UOP_eval");
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
 			}
 			else
 			{
@@ -1711,7 +1737,7 @@ function giftcontentLoad() {
 				contentDiv.innerHTML = "";
 				contentDiv.appendChild(HTMLdiv);
 				
-				sendMessage(JSText,"UOP_eval");
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
 			}
 			else
 			{
@@ -2008,7 +2034,7 @@ function simulateTabBar(e) {
 	main_tab[x].className = "active";
 }
 function updateUserHash() {
-	sendMessage(data.user.unique_hash,'UOP_userHash');
+	window.postMessage({name: "UOP_userHash", data: data.user.unique_hash},location.origin);
 }
 function toggleSkin() {
 	window.localStorage.UOP_simple = 1 - S_simple;
@@ -2957,13 +2983,191 @@ function removeAds() {
 			rightCol.removeChild(rightCol.lastChild);//rightCol.style.display = "none";
 		if (S_ads == 2)
 		{
-			rightCol.appendChild(document.createElement("div"));
-			//~~~~I was left here
+			O_funArea = document.createElement("div");
+			O_funArea.id = "UOP_funArea";
+			rightCol.appendChild(O_funArea);
+			addThings();
 		}
 	}
 }
 function addThings() {
+	addScoreboard();
+}
+function addScoreboard() {
+	manageCSSJSAdder(8);
 	
+	O_scoreboardDiv = document.createElement("div");
+	O_scoreboardDiv.id = "UOP_scoreboardDiv";
+	O_funArea.appendChild(O_scoreboardDiv);
+	
+	var scoreboardControl = document.createElement("div");
+	var button = document.createElement("button");
+	button.className = "UOP_buttonSB";
+	button.textContent = "Off";
+	button.addEventListener('click',function () {localStorage.UOP_channelScoreboard = S_channelScoreboard = 0;switchChannel();},false);
+	scoreboardController.push(button);
+	scoreboardControl.appendChild(button);
+	button = document.createElement("button");
+	button.className = "UOP_buttonSB";
+	button.textContent = "Team";
+	button.addEventListener('click',function () {localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;switchChannel();},false);
+	scoreboardController.push(button);
+	scoreboardControl.appendChild(button);
+	button = document.createElement("button");
+	button.className = "UOP_buttonSB";
+	button.textContent = "Tivi";
+	button.addEventListener('click',getChannel,false);
+	scoreboardController.push(button);
+	scoreboardControl.appendChild(button);
+	O_scoreboardDiv.appendChild(scoreboardControl);
+	
+	scoreboardControl = document.createElement("div");
+	O_scoreboardinput = document.createElement('input');
+	O_scoreboardinput.id = "UOP_tournamentID";
+	O_scoreboardinput.type = "text";
+	O_scoreboardinput.placeholder = "Tournament ID";
+	O_scoreboardinput.className = "UOP_searchinputSB";
+	scoreboardControl.appendChild(O_scoreboardinput);
+	button = document.createElement("button");
+	button.className = "UOP_searchbuttonSB";
+	button.addEventListener('click',searchTournament,false);
+	scoreboardControl.appendChild(button);
+	O_scoreboardDiv.appendChild(scoreboardControl);
+	
+	var scoreboardTableDiv = document.createElement("div");
+	scoreboardTableDiv.innerHTML = C_scoreboardContent.toString();
+	O_scoreboardDiv.appendChild(scoreboardTableDiv);
+	
+	O_scoreboardDiv.getElementsByTagName('tfoot')[0].firstElementChild.firstElementChild.addEventListener('click',updateScoreboard,false);
+	
+	O_scoreboard = document.getElementById('UOP_scoreboard').getElementsByTagName('tr');
+	for (var i = 0;i < O_scoreboard.length;++i) O_scoreboard[i].firstElementChild.addEventListener('click',openTeam,false);
+	O_scoreboardUpdateSecond = document.getElementById('UOP_scoreboardUpdateSecond');
+	
+	O_scoreboardFetch = document.createElement("div");
+	O_scoreboardFetch.id = "UOP_scoreboardFetch";
+	O_scoreboardDiv.appendChild(O_scoreboardFetch);
+}
+function searchTournament() {
+	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
+	localStorage.UOP_currentScoreboardChannel = currentScoreboardChannel = O_scoreboardinput.value;
+	switchChannel();
+}
+function startUpdateFunArea() {
+	if (data.user.has_puzzle == true) return;
+	if (atCamp) registerSoundHornWaiting.push(updateChannel);
+}
+function openTeam(e) {
+	var target = e.target;
+	while (target.tagName != "TR") target = target.parentNode;
+	var teamid = target.getAttribute("teamid");
+	if ((teamid != null) && (teamid != '-')) window.open("/team.php?team_id=" + teamid);
+}
+function secondScoreboardUpdate() {
+	if (nextUpdateScoreboardTimeLeft == -2) return;
+	O_scoreboardUpdateSecond.textContent = nextUpdateScoreboardTimeLeft;
+	if (nextUpdateScoreboardTimeLeft <= 0) updateScoreboard();
+	else
+	{
+		--nextUpdateScoreboardTimeLeft;
+		setTimeout(secondScoreboardUpdate,1000);
+	}
+}
+function getChannel() {
+}
+function switchChannel() {
+	for (var i = 0;i < scoreboardController.length;++i) scoreboardController[i].setAttribute("aria-selected",false);
+	scoreboardController[S_channelScoreboard].setAttribute("aria-selected",true);
+	switch (S_channelScoreboard)
+	{
+		case 0:currentScoreboardChannel = 0;break;
+		case 1:
+			if ((data.user.viewing_atts.tournament != null) && (data.user.viewing_atts.tournament.status == "active")) 
+				currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;
+			else currentScoreboardChannel = 0;
+			break;
+		case 2:currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);break;
+	}
+	updateScoreboard();
+}
+function updateChannel() {
+	if (S_channelScoreboard == 1) switchChannel();
+	else if (initScoreboard == 0)
+	{
+		switchChannel();
+		initScoreboard = 1;
+	}
+}
+function updateScoreboard() {
+	if ((data.user.viewing_atts.tournament != null) && (data.user.viewing_atts.tournament.status == "active"))
+	{
+		nextUpdateScoreboardTimeLeft = -2;
+		O_scoreboardUpdateSecond.textContent = "...";
+		O_scoreboardDiv.className = "transiting";
+		for (var i = 0;i < O_scoreboard.length;++i)
+		{
+			O_scoreboard[i].setAttribute("teamtype","transit");
+		}
+		if (currentScoreboardChannel == 0) return;
+		
+		var url = C_canvasMode[inCanvas] + "/tournament.php?tid=" + currentScoreboardChannel;
+		var request = new XMLHttpRequest();
+		request.open("GET", url, true);
+		request.onreadystatechange = function()
+		{
+			if (request.readyState === 4)
+			{
+				if (request.status == 200)
+				{
+					var HTMLstr = request.responseText;
+					var status = 0;
+					if (HTMLstr.indexOf('"has_puzzle":true') != -1)
+					{
+						location.reload(); //KR
+						return;
+					}
+					else if (HTMLstr.indexOf('<span id="info">Completed</span>') != -1)
+					{
+						status = 1;
+					}
+					HTMLstr = HTMLstr.substring(HTMLstr.indexOf('<div class="FD-content clear-block dialogBox-TournamentWhite"><div class="clear-block">'),HTMLstr.indexOf('Full Scoreboard</a></div>') + 25);
+					O_scoreboardFetch.innerHTML = HTMLstr;
+					var rawSBTeamName = O_scoreboardFetch.getElementsByClassName('tournamentTeamName');
+					var rawSBTeamScore = O_scoreboardFetch.getElementsByClassName('tournamentScore');
+					var i;
+					for (i = 0;i < rawSBTeamName.length;++i)
+					{
+						HTMLstr = rawSBTeamName[i].firstElementChild.href;
+						HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
+						HTMLstr = Number(HTMLstr);
+						if (HTMLstr == data.user.viewing_atts.tournament.team_id) O_scoreboard[i].setAttribute("teamtype","my"); else O_scoreboard[i].setAttribute("teamtype","none");
+						
+						O_scoreboard[i].setAttribute('teamid',HTMLstr);
+						O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].firstElementChild.textContent;
+						O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
+					}
+					for (;i < O_scoreboard.length;++i)
+					{
+						O_scoreboard[i].setAttribute('teamid','-');
+						O_scoreboard[i].setAttribute("teamtype","none");
+						O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
+						O_scoreboard[i].lastElementChild.textContent = "-----";
+					}
+					setTimeout(function () {O_scoreboardDiv.className = "";},800);
+					switch (status)
+					{
+						case 0:nextUpdateScoreboardTimeLeft = 60;setTimeout(secondScoreboardUpdate,0);break;
+						case 1:O_scoreboardUpdateSecond.textContent = "Ended";currentScoreboardChannel = 0;break;
+					}
+				}
+				else
+				{
+					updateScoreboard();
+				}
+			}
+		};
+		request.send(null);
+	}
 }
 /*******************AUTO AREA********************/
 function initAuto() {
@@ -3111,7 +3315,7 @@ function autoSounded() {
 	++A_soundedCounter;
 	if (A_soundedCounter == 1) //first time
 	{
-		if (refreshingByError = 1) return;
+		if (refreshingByError == 1) return;
 		O_autoSounding.textContent = "Completed !";
 		syncUser(null);
 	}

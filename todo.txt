@@ -1,6 +1,7 @@
-﻿support compiler & packer
-schedule have custom defined
+﻿scoreboard
+clock
 
-scoreboard & clock
+compiler & packer
+schedule have custom defined
 pretty travel
-bug schedule play => Pause
+logo

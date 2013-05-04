@@ -205,7 +205,6 @@
 	border-bottom: 1px solid #fff;
 }
 .UOP_table tbody tr td:first-child {
-	width: 230px;
 	cursor:pointer;
 	font-family: "Segoe UI Semibold";
 	background-color: #e1f3fb;
@@ -217,12 +216,10 @@
 	border-bottom-color: #e9f6fc;
 }
 .UOP_table tbody tr:hover td:first-child {
-	width: 230px;
 	background-color: #c3e7f7;
 	border-bottom-color: #c3e7f7;
 	background-repeat: no-repeat;
 	background-position: right center;
-	background-image: url("/images/arrow.png");
 }
 .UOP_table tbody tr:hover td:first-child:hover {background-color: #71b1d1;}
 .UOP_table tbody tr:first-child td {border-top: 10px solid #fff;}
@@ -234,7 +231,6 @@
 	background-color: #3aa0cc;
 	background-repeat: no-repeat;
 	background-position: right center;
-	background-image: url("/images/arrow.png");
 }
 .UOP_table tfoot tr {
 	cursor: default;
@@ -243,7 +239,6 @@
 .UOP_table tfoot tr:hover {background-color: #f2f2f2;}
 .UOP_table tfoot tr:hover td:first-child {background-color: #cecece;}
 .UOP_table tfoot tr td:first-child {
-	width: 230px;
 	padding-bottom: 4px;
 	padding-right: 6px;
 	cursor:pointer;
@@ -254,7 +249,11 @@
 	text-align: right;
 }
 .UOP_table tfoot tr td:first-child:hover{background-color: #dfdfdf;}
-.UOP_table tbody tr td .UOP_scriptStatusImg {
+#UOP_scriptTable tr:hover td:first-child, #UOP_scriptTable tr[aria-selected="true"] td:first-child {
+	background-image: url("/images/arrow.png");
+}
+#UOP_scriptTable tr td:first-child {width: 230px;}
+#UOP_scriptTable tr td .UOP_scriptStatusImg {
 	width: 16px;
 	height: 16px;
 	position: relative;
@@ -263,28 +262,28 @@
 	margin-right: 6px;
 	vertical-align: middle;
 }
-.UOP_table tbody tr td .UOP_scriptStatusImg[status="Running"] {
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Running"] {
 	background-image: url("/images/tick.png");
 }
-.UOP_table tbody tr td .UOP_scriptStatusImg[status="Stopped"] {
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Stopped"] {
 	background-image: url("/images/stop.png");
 }
-.UOP_table tbody tr td .UOP_scriptStatusImg[status="Paused"] {
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Paused"] {
 	background-image: url("/images/pause.png");
 }
-.UOP_table tbody tr td .UOP_scriptStatusImg[status="Error"] {
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Error"] {
 	background-image: url("/images/error.png");
 }
-.UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Running"] {
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Running"] {
 	background-image: url("/images/tickwhite.png");
 }
-.UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Stopped"] {
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Stopped"] {
 	background-image: url("/images/stopwhite.png");
 }
-.UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Paused"] {
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Paused"] {
 	background-image: url("/images/pausewhite.png");
 }
-.UOP_table tbody tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Error"] {
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Error"] {
 	background-image: url("/images/errorwhite.png");
 }
 #UOP_access_token {width:116px;}

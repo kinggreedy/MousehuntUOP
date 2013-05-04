@@ -1,6 +1,6 @@
 .recipeitemdetails {
 	height: auto;
-	padding: auto;
+	padding: 0px;
 	width: auto;
 }
 #recipeClippingMask, #recipeContentContainer {width:auto;}
