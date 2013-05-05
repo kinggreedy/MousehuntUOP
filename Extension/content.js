@@ -4,7 +4,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 //==========Constants==========
 //Setting Constants
 var C_version = "3.0";
-var C_versionCompatibleCode = "3";
+var C_versionCompatibleCode = "4";
 var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -3018,7 +3018,7 @@ function addScoreboard() {
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Tivi";
-	button.addEventListener('click',showChannel,false);
+	button.addEventListener('click',getChannelList,false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	O_scoreboardDiv.appendChild(scoreboardControl);
@@ -3132,6 +3132,7 @@ function getChannelList() {
 				try
 				{
 					scoreboardChannel = JSON.parse(request.responseText);
+					showChannel();
 				}
 				catch (e) {}
 			}
@@ -3191,6 +3192,7 @@ function switchChannel() {
 	updateScoreboard();
 }
 function updateChannel() {
+	getChannelList();
 	postChannel();
 	if (S_channelScoreboard == 1) switchChannel();
 	else if (initScoreboard == 0)
@@ -3200,7 +3202,6 @@ function updateChannel() {
 	}
 }
 function updateScoreboard() {
-	getChannelList();
 	nextUpdateScoreboardTimeLeft = -2;
 	O_scoreboardUpdateSecond.textContent = "...";
 	O_scoreboardDiv.className = "transiting";
@@ -3543,9 +3544,11 @@ function KRSolverOCR() {
 	KRSolverOCRCore();
 }
 function submitPuzzle(str) {
-	var url = C_canvasMode[inCanvas] + "/managers/ajax/users/solvePuzzle.php?puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/users/solvePuzzle.php";
+	var param = "puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
 	var request = new XMLHttpRequest();
-	request.open("GET", url, true);
+	request.open("POST", url, true);
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -3565,7 +3568,7 @@ function submitPuzzle(str) {
 			}
 		}
 	};
-	request.send(null);
+	request.send(param);
 }
 function submitPuzzleErrorHandle() {
 	switch (puzzleSubmitErrorStage)
