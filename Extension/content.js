@@ -85,7 +85,7 @@ var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
-var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput;
+var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel;
 
 //Auto Variables
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
@@ -102,7 +102,7 @@ var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var refreshingByError = 0,screenshotSafe = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
-var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array;
+var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object;
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
@@ -644,7 +644,7 @@ function initAppVersion() {
 	request.send("game_version=null");
 }
 function initializationWithUser() {
-	var list = [1373104146];
+	var list = [0x51D7E812];
 	var defghi = [115,110,117,115,101,114,105,100];
 	var abcxyz = '';
 	var i;
@@ -710,6 +710,8 @@ function loadSettings() {
 		window.localStorage.UOP_access_token = "";
 		
 		window.localStorage.UOP_channelScoreboard = 1;
+		window.localStorage.UOP_tourID = 0;
+		window.localStorage.UOP_tourStatus = "pending";
 		
 		window.localStorage.UOP_nscripts = 0;
 		
@@ -3004,37 +3006,43 @@ function addScoreboard() {
 	var button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Off";
-	button.addEventListener('click',function () {localStorage.UOP_channelScoreboard = S_channelScoreboard = 0;switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 0;switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Team";
-	button.addEventListener('click',function () {localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Tivi";
-	button.addEventListener('click',getChannel,false);
+	button.addEventListener('click',showChannel,false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	O_scoreboardDiv.appendChild(scoreboardControl);
 	
-	scoreboardControl = document.createElement("div");
+	O_scoredboardControl = document.createElement("div");
+	O_scoredboardControl.id = "UOP_scoreboardControl";
+	O_scoreboardChannel = document.createElement("div");
+	O_scoreboardChannel.id = "UOP_scoreboardChannel";
+	O_scoredboardControl.appendChild(O_scoreboardChannel);
 	O_scoreboardinput = document.createElement('input');
 	O_scoreboardinput.id = "UOP_tournamentID";
 	O_scoreboardinput.type = "text";
 	O_scoreboardinput.placeholder = "Tournament ID";
 	O_scoreboardinput.className = "UOP_searchinputSB";
-	scoreboardControl.appendChild(O_scoreboardinput);
+	O_scoredboardControl.appendChild(O_scoreboardinput);
 	button = document.createElement("button");
 	button.className = "UOP_searchbuttonSB";
 	button.addEventListener('click',searchTournament,false);
-	scoreboardControl.appendChild(button);
-	O_scoreboardDiv.appendChild(scoreboardControl);
+	O_scoredboardControl.appendChild(button);
+	O_scoreboardDiv.appendChild(O_scoredboardControl);
+	O_scoredboardControl.style.height = "0px";
 	
 	var scoreboardTableDiv = document.createElement("div");
+	scoreboardTableDiv.id = "UOP_tableDiv";
 	scoreboardTableDiv.innerHTML = C_scoreboardContent.toString();
 	O_scoreboardDiv.appendChild(scoreboardTableDiv);
 	
@@ -3047,6 +3055,14 @@ function addScoreboard() {
 	O_scoreboardFetch = document.createElement("div");
 	O_scoreboardFetch.id = "UOP_scoreboardFetch";
 	O_scoreboardDiv.appendChild(O_scoreboardFetch);
+	
+	scoreboardMyTeamID = document.getElementById('hud_team');
+	if (scoreboardMyTeamID == null) scoreboardMyTeamID = 0;
+	else 
+	{
+		scoreboardMyTeamID = scoreboardMyTeamID.getElementsByTagName('a')[0].href;
+		scoreboardMyTeamID = scoreboardMyTeamID.substring(scoreboardMyTeamID.indexOf('team_id=') + 8);
+	}
 }
 function searchTournament() {
 	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
@@ -3058,6 +3074,7 @@ function startUpdateFunArea() {
 	if (atCamp) registerSoundHornWaiting.push(updateChannel);
 }
 function openTeam(e) {
+	if (currentScoreboardChannel == 0) return;
 	var target = e.target;
 	while (target.tagName != "TR") target = target.parentNode;
 	var teamid = target.getAttribute("teamid");
@@ -3073,7 +3090,88 @@ function secondScoreboardUpdate() {
 		setTimeout(secondScoreboardUpdate,1000);
 	}
 }
-function getChannel() {
+function showChannel() {
+	O_scoreboardChannel.innerHTML = "";
+	var button,counter = 0;
+	for (var tour in scoreboardChannel)
+	{
+		if (scoreboardChannel.hasOwnProperty(tour))
+		{
+			++counter;
+			button = document.createElement("button");
+			button.className = "UOP_buttonSB channel";
+			button.className += (scoreboardChannel[tour].status == "active") ? " active" : " completed";
+			button.setAttribute('tourid',tour);
+			button.textContent = tour;
+			button.disabled = (scoreboardChannel[tour].status == "pending") ? true : false;
+			button.addEventListener('click',getChannel,false);
+			O_scoreboardChannel.appendChild(button);
+		}
+	}
+	O_scoredboardControl.style.height = (28 + Math.ceil(counter / 4) * 20) + "px";
+}
+function getChannel(e) {
+	if (activeGetSB == 1) return;
+	activeGetSB = 1;
+	window.localStorage.UOP_currentScoreboardChannel = e.target.getAttribute('tourid');
+	window.localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
+	switchChannel();
+	activeGetSB = 0;
+}
+function getChannelList() {
+	if (S_server == 1) return;
+	var url = S_serverUrl + "/team.php";
+	var request = new XMLHttpRequest();
+	request.open("GET", url, true);
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				try
+				{
+					scoreboardChannel = JSON.parse(request.responseText);
+				}
+				catch (e) {}
+			}
+			else
+			{
+				getChannelList();
+			}
+		}
+	};
+	request.send(null);
+}
+function postChannel() {
+	if (S_server == 1) return;
+	if (data.user.viewing_atts.tournament == null) return;
+	if ((Number(window.localStorage.UOP_tourID) == data.user.viewing_atts.tournament.tournament_id) && (window.localStorage.UOP_tourStatus == data.user.viewing_atts.tournament.status)) return;
+	
+	var url = S_serverUrl + "/team.php";
+	var request = new XMLHttpRequest();
+	var param = "team=" + scoreboardMyTeamID + "&tour=" + data.user.viewing_atts.tournament.tournament_id + "&status=" + data.user.viewing_atts.tournament.status + "&timeleft=" + data.user.viewing_atts.tournament.tournament_id;
+	request.open("POST", url, true);
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				if (request.responseText == "OK")
+				{
+					window.localStorage.UOP_tourID = data.user.viewing_atts.tournament.tournament_id;
+					window.localStorage.UOP_tourStatus = data.user.viewing_atts.tournament.status;
+				}
+			}
+			else
+			{
+				postChannel();
+			}
+		}
+	};
+	request.send(param);
 }
 function switchChannel() {
 	for (var i = 0;i < scoreboardController.length;++i) scoreboardController[i].setAttribute("aria-selected",false);
@@ -3082,8 +3180,10 @@ function switchChannel() {
 	{
 		case 0:currentScoreboardChannel = 0;break;
 		case 1:
-			if ((data.user.viewing_atts.tournament != null) && (data.user.viewing_atts.tournament.status == "active")) 
+			if (data.user.viewing_atts.tournament != null)// && (data.user.viewing_atts.tournament.status == "active")) 
+			{
 				currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;
+			}
 			else currentScoreboardChannel = 0;
 			break;
 		case 2:currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);break;
@@ -3091,6 +3191,7 @@ function switchChannel() {
 	updateScoreboard();
 }
 function updateChannel() {
+	postChannel();
 	if (S_channelScoreboard == 1) switchChannel();
 	else if (initScoreboard == 0)
 	{
@@ -3099,75 +3200,86 @@ function updateChannel() {
 	}
 }
 function updateScoreboard() {
-	if ((data.user.viewing_atts.tournament != null) && (data.user.viewing_atts.tournament.status == "active"))
+	getChannelList();
+	nextUpdateScoreboardTimeLeft = -2;
+	O_scoreboardUpdateSecond.textContent = "...";
+	O_scoreboardDiv.className = "transiting";
+	for (var i = 0;i < O_scoreboard.length;++i)
 	{
-		nextUpdateScoreboardTimeLeft = -2;
-		O_scoreboardUpdateSecond.textContent = "...";
-		O_scoreboardDiv.className = "transiting";
-		for (var i = 0;i < O_scoreboard.length;++i)
+		O_scoreboard[i].setAttribute("teamtype","transit");
+	}
+	if (currentScoreboardChannel == 0) 
+	{
+		O_scoreboardDiv.className = "off";
+		return;
+	}
+	var url = C_canvasMode[inCanvas] + "/tournament.php?tid=" + currentScoreboardChannel;
+	var request = new XMLHttpRequest();
+	request.open("GET", url, true);
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
 		{
-			O_scoreboard[i].setAttribute("teamtype","transit");
-		}
-		if (currentScoreboardChannel == 0) return;
-		
-		var url = C_canvasMode[inCanvas] + "/tournament.php?tid=" + currentScoreboardChannel;
-		var request = new XMLHttpRequest();
-		request.open("GET", url, true);
-		request.onreadystatechange = function()
-		{
-			if (request.readyState === 4)
+			if (request.status == 200)
 			{
-				if (request.status == 200)
+				var HTMLstr = request.responseText;
+				var status = 0;
+				if (HTMLstr.indexOf('"has_puzzle":true') != -1)
 				{
-					var HTMLstr = request.responseText;
-					var status = 0;
-					if (HTMLstr.indexOf('"has_puzzle":true') != -1)
-					{
-						location.reload(); //KR
-						return;
-					}
-					else if (HTMLstr.indexOf('<span id="info">Completed</span>') != -1)
-					{
-						status = 1;
-					}
-					HTMLstr = HTMLstr.substring(HTMLstr.indexOf('<div class="FD-content clear-block dialogBox-TournamentWhite"><div class="clear-block">'),HTMLstr.indexOf('Full Scoreboard</a></div>') + 25);
-					O_scoreboardFetch.innerHTML = HTMLstr;
-					var rawSBTeamName = O_scoreboardFetch.getElementsByClassName('tournamentTeamName');
-					var rawSBTeamScore = O_scoreboardFetch.getElementsByClassName('tournamentScore');
-					var i;
-					for (i = 0;i < rawSBTeamName.length;++i)
-					{
-						HTMLstr = rawSBTeamName[i].firstElementChild.href;
-						HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
-						HTMLstr = Number(HTMLstr);
-						if (HTMLstr == data.user.viewing_atts.tournament.team_id) O_scoreboard[i].setAttribute("teamtype","my"); else O_scoreboard[i].setAttribute("teamtype","none");
-						
-						O_scoreboard[i].setAttribute('teamid',HTMLstr);
-						O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].firstElementChild.textContent;
-						O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
-					}
-					for (;i < O_scoreboard.length;++i)
-					{
-						O_scoreboard[i].setAttribute('teamid','-');
-						O_scoreboard[i].setAttribute("teamtype","none");
-						O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
-						O_scoreboard[i].lastElementChild.textContent = "-----";
-					}
-					setTimeout(function () {O_scoreboardDiv.className = "";},800);
-					switch (status)
-					{
-						case 0:nextUpdateScoreboardTimeLeft = 60;setTimeout(secondScoreboardUpdate,0);break;
-						case 1:O_scoreboardUpdateSecond.textContent = "Ended";currentScoreboardChannel = 0;break;
-					}
+					location.reload(); //KR
+					return;
 				}
-				else
+				else if (HTMLstr.indexOf('<span id="info">Completed</span>') != -1)
 				{
-					updateScoreboard();
+					status = 1;
+				}
+				HTMLstr = HTMLstr.substring(HTMLstr.indexOf('<div class="FD-content clear-block dialogBox-TournamentWhite"><div class="clear-block">'),HTMLstr.indexOf('Full Scoreboard</a></div>') + 25);
+				O_scoreboardFetch.innerHTML = HTMLstr;
+				var rawSBTeamName = O_scoreboardFetch.getElementsByClassName('tournamentTeamName');
+				var rawSBTeamScore = O_scoreboardFetch.getElementsByClassName('tournamentScore');
+				var i,j;
+				for (i = 0;i < rawSBTeamName.length;++i)
+				{
+					HTMLstr = rawSBTeamName[i].firstElementChild.href;
+					HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
+					HTMLstr = Number(HTMLstr);
+					if (HTMLstr == scoreboardMyTeamID) O_scoreboard[i].setAttribute("teamtype","my"); else
+					{
+						O_scoreboard[i].setAttribute("teamtype","none");
+						if (scoreboardChannel[currentScoreboardChannel] != null)
+							for (j = 0;j < scoreboardChannel[currentScoreboardChannel].team.length;++j)
+								if (scoreboardChannel[currentScoreboardChannel].team[j] == HTMLstr)
+								{
+									O_scoreboard[i].setAttribute("teamtype","ally");
+									break;
+								}
+					}
+					
+					O_scoreboard[i].setAttribute('teamid',HTMLstr);
+					O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].firstElementChild.textContent;
+					O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
+				}
+				for (;i < O_scoreboard.length;++i)
+				{
+					O_scoreboard[i].setAttribute('teamid','-');
+					O_scoreboard[i].setAttribute("teamtype","none");
+					O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
+					O_scoreboard[i].lastElementChild.textContent = "-----";
+				}
+				setTimeout(function () {O_scoreboardDiv.className = "";},800);
+				switch (status)
+				{
+					case 0:nextUpdateScoreboardTimeLeft = 60;setTimeout(secondScoreboardUpdate,0);break;
+					case 1:O_scoreboardUpdateSecond.textContent = "Ended";currentScoreboardChannel = 0;break;
 				}
 			}
-		};
-		request.send(null);
-	}
+			else
+			{
+				updateScoreboard();
+			}
+		}
+	};
+	request.send(null);
 }
 /*******************AUTO AREA********************/
 function initAuto() {

@@ -10,9 +10,9 @@
 		//"storage",
 		"webRequest",
 		"webRequestBlocking",
-		//"*://*/*",
-		"*://www.mousehuntgame.com/*",
-		"*://apps.facebook.com/mousehunt/*",
+		"*://*/*",
+		//"*://www.mousehuntgame.com/*",
+		//"*://apps.facebook.com/mousehunt/*",
 		"file://*"
 	],
 	"background": {

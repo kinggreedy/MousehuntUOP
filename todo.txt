@@ -1,7 +1,7 @@
-﻿scoreboard
-clock
-
-compiler & packer
-schedule have custom defined
+﻿scoreboard //don't forget the IP
 pretty travel
 logo
+
+compiler & packer
+clock
+schedule have custom defined
