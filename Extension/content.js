@@ -2997,6 +2997,7 @@ function addThings() {
 }
 function addScoreboard() {
 	manageCSSJSAdder(8);
+	var i;
 	
 	O_scoreboardDiv = document.createElement("div");
 	O_scoreboardDiv.id = "UOP_scoreboardDiv";
@@ -3018,7 +3019,7 @@ function addScoreboard() {
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Tivi";
-	button.addEventListener('click',getChannelList,false);
+	button.addEventListener('click',showChannel,false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	O_scoreboardDiv.appendChild(scoreboardControl);
@@ -3049,19 +3050,25 @@ function addScoreboard() {
 	O_scoreboardDiv.getElementsByTagName('tfoot')[0].firstElementChild.firstElementChild.addEventListener('click',updateScoreboard,false);
 	
 	O_scoreboard = document.getElementById('UOP_scoreboard').getElementsByTagName('tr');
-	for (var i = 0;i < O_scoreboard.length;++i) O_scoreboard[i].firstElementChild.addEventListener('click',openTeam,false);
+	for (i = 0;i < O_scoreboard.length;++i) O_scoreboard[i].firstElementChild.addEventListener('click',openTeam,false);
 	O_scoreboardUpdateSecond = document.getElementById('UOP_scoreboardUpdateSecond');
 	
 	O_scoreboardFetch = document.createElement("div");
 	O_scoreboardFetch.id = "UOP_scoreboardFetch";
 	O_scoreboardDiv.appendChild(O_scoreboardFetch);
-	
+
 	scoreboardMyTeamID = document.getElementById('hud_team');
 	if (scoreboardMyTeamID == null) scoreboardMyTeamID = 0;
 	else 
 	{
 		scoreboardMyTeamID = scoreboardMyTeamID.getElementsByTagName('a')[0].href;
 		scoreboardMyTeamID = scoreboardMyTeamID.substring(scoreboardMyTeamID.indexOf('team_id=') + 8);
+	}
+	if (!atCamp)
+	{
+		for (i = 0;i < scoreboardControl.children.length;++i) scoreboardControl.children[i].disabled = true;
+		S_channelScoreboard = 0;
+		switchChannel();
 	}
 }
 function searchTournament() {
@@ -3091,6 +3098,7 @@ function secondScoreboardUpdate() {
 	}
 }
 function showChannel() {
+	getChannelList();
 	O_scoreboardChannel.innerHTML = "";
 	var button,counter = 0;
 	for (var tour in scoreboardChannel)
@@ -3132,7 +3140,6 @@ function getChannelList() {
 				try
 				{
 					scoreboardChannel = JSON.parse(request.responseText);
-					showChannel();
 				}
 				catch (e) {}
 			}
@@ -3230,7 +3237,7 @@ function updateScoreboard() {
 					location.reload(); //KR
 					return;
 				}
-				else if (HTMLstr.indexOf('<span id="info">Completed</span>') != -1)
+				else if (HTMLstr.indexOf('<span id="info">Complete</span>') != -1)
 				{
 					status = 1;
 				}
@@ -3267,7 +3274,7 @@ function updateScoreboard() {
 					O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
 					O_scoreboard[i].lastElementChild.textContent = "-----";
 				}
-				setTimeout(function () {O_scoreboardDiv.className = "";},800);
+				setTimeout(function () {if (currentScoreboardChannel == 0) return;O_scoreboardDiv.className = "";},800);
 				switch (status)
 				{
 					case 0:nextUpdateScoreboardTimeLeft = 60;setTimeout(secondScoreboardUpdate,0);break;
@@ -3484,6 +3491,8 @@ function autoChangeState() {
 	}
 }
 function loadSettingKRimage() {
+	alert("locked feature");
+	return;
 	var imageLoadStr = C_canvasMode[inCanvas] + '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
 	document.getElementById('UOP_loadKRimage').src = imageLoadStr;
 	

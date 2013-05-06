@@ -1,4 +1,4 @@
-﻿scoreboard //don't forget the IP
+﻿scoreboard
 pretty travel
 logo
 
