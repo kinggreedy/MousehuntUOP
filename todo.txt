@@ -1,5 +1,4 @@
-﻿logo
-schedule have custom defined
+﻿schedule have custom defined
 
 compiler & packer
 clock

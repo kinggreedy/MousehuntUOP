@@ -3,7 +3,8 @@
 	"description": "Hơm có thắng hơm phải vì xe hơm có thắng....Hơm có thắng là để tới King's Stockade nhanh hơn :yaoming:",
 	"version": "3.0",
 	"manifest_version": 2,
-
+	"icons": { "128": "icon.jpg"},
+	
 	"permissions": [
 		"app",
 		"tabs",
