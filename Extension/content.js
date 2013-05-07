@@ -85,7 +85,7 @@ var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
-var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel;
+var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel, O_scoreboardStatus, O_scoreboardCounter;
 
 //Auto Variables
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
@@ -102,7 +102,8 @@ var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var refreshingByError = 0,screenshotSafe = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
-var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object;
+var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
+var travelPlacesHeight;
 /*******************INITIALIZATION********************/
 function initialization() {
 	//==========CHECK THE BROWSER LOCATIONS. Ex: login, turn, https, mobile, loaded with error,...==========
@@ -168,6 +169,7 @@ function runTimeCreateConstant() {
 	C_jsArr = ["js/views/en/ItemPurchaseView.js","js/views/en/InventoryItemView.js","platform/js/jquery/en/jquery.tmpl.min.js","platform/js/classes/en/radioSelector.js","js/views/en/RecipeView.js", "js/views/en/CraftingView.js","platform/js/views/en/FlexibleDialogBoxView.js","platform/js/jquery/en/jquery.scrollTo-min.js","js/views/en/GiftSelectorView.js","js/views/en/SupplyTransferView.js"];
 	C_cssCustomArr = [chrome.extension.getURL("css/system.css"),chrome.extension.getURL("css/itempurchase.css"),chrome.extension.getURL("css/iteminventoryview.css"),chrome.extension.getURL("css/craftingview.css"),chrome.extension.getURL("css/defaultskin.css"),chrome.extension.getURL("css/autoskin.css"),chrome.extension.getURL("css/supply.css"),chrome.extension.getURL("css/gift.css"),chrome.extension.getURL("css/scoreboard.css")];
 	C_scoreboardContent = '\
+<span id="UOP_scoreboardStatus">Loading...</span><span id="UOP_scoreboardCounter">--:--:--</span>\
 <table class="UOP_table">\
 	<thead>\
 		<tr>\
@@ -1429,10 +1431,23 @@ function skinSecondTimer() {
 	//set the second time interval
 	setTimeout(function () { (skinSecondTimer)() }, C_SecondInterval * 1000);
 }
+function travelgroupchange(e) {
+	var target = e.target;
+	while (target.className.indexOf("UOP_buttonTravel") == -1) target = target.parentNode;
+	var id = Number(target.getAttribute("groupid"));
+	var tmp = document.getElementsByClassName("UOP_groupPlacesDiv");
+	for (var i = 0;i < tmp.length;++i)
+	{
+		tmp[i].style.height = "0px";
+		tmp[i].style.transition = "";
+	}
+	tmp[id].style.transition = "height 200ms linear";
+	tmp[id].style.height = travelPlacesHeight[id] + "px";
+}
 function travelcontentLoad() {
 	if ((C_disableExperimental == 1) || (S_emulateMode == 0))
 	{
-		travelcontentLoadold();
+		travelcontentLoadNormal();
 		return;
 	}
 	var request = new XMLHttpRequest();
@@ -1473,6 +1488,7 @@ function travelcontentLoad() {
 					env_obj = new Object;
 					env_obj.name = O_environment[i].name;
 					env_obj.type = O_environment[i].type;
+					env_obj.travelCost = O_environment[i].travelCost;
 					env_obj.environment_id = O_environment[i].environment_id;
 					env_obj.display_order = O_environment[i].displayOrder;
 					group_env[group_name[O_environment[i].region.type]].data.push(env_obj);
@@ -1483,23 +1499,176 @@ function travelcontentLoad() {
 				}
 				group_env.sort(function(a, b) {return a.display_order - b.display_order;});
 				
+				travelPlacesHeight = new Array;
 				var HTMLdiv = document.createElement('div');
-				var envitem,groupitem;
+				var envitem,listitem,envgroupitem,placegroupitem;
+				envgroupitem = document.createElement('div');
+				envgroupitem.className = "UOP_groupPlacesArea";
+				HTMLdiv.appendChild(envgroupitem);
 				for (i = 0;i < group_env.length;++i)
 				{
-					groupitem = document.createElement('h3');
-					groupitem.textContent = group_env[i].name;
-					HTMLdiv.appendChild(groupitem);
+					placegroupitem = document.createElement('div');
+					placegroupitem.className = "UOP_groupPlacesDiv Mobile";
+					placegroupitem.style.height = "0px";
+					travelPlacesHeight.push(35 * group_env[i].data.length);
+					envitem = document.createElement('div');
+					envitem.textContent = group_env[i].name;
+					envitem.className = "UOP_buttonTravel UOP_travelRegionMobile";
+					envitem.setAttribute("groupid",i);
+					envitem.addEventListener('click',travelgroupchange,false);
+					envgroupitem.appendChild(envitem);
 					for (j = 0;j < group_env[i].data.length;++j)
 					{
-						listitem = document.createElement('a');
-						listitem.className = "UOP_travelPlace";
+						listitem = document.createElement('div');
+						if (group_env[i].data[j].travelCost == null)
+						{
+							listitem.className = "UOP_buttonTravel UOP_travelPlaceMobileImpossible";
+						}
+						else
+						{
+							listitem.className = "UOP_buttonTravel UOP_travelPlaceMobile";
+						}
+						
 						listitem.setAttribute("value",group_env[i].data[j].environment_id);
-						listitem.innerHTML = group_env[i].data[j].name + "&nbsp;&nbsp;";
+						listitem.textContent = group_env[i].data[j].name;
 						listitem.addEventListener('click',travel,false);
-						HTMLdiv.appendChild(listitem);
+						placegroupitem.appendChild(listitem);
 					}
-					HTMLdiv.appendChild(document.createElement("br"));
+					HTMLdiv.appendChild(placegroupitem);
+				}
+				
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
+			}
+			else
+			{
+				contentDiv.innerHTML = "Cannot load the page, please refresh";
+			}
+		}
+	};
+	request.send(null);
+	return false;
+}
+function travelcontentLoadNormal() {
+	var request = new XMLHttpRequest();
+	var contentDiv = O_travelContent;
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php", true);
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				var JSUnknownStringStart = request.responseText.indexOf("app.views.TravelView.");
+				var JSUnknownStringEnd = request.responseText.indexOf(" =",JSUnknownStringStart);
+				var JSUnknownString = request.responseText.substring(JSUnknownStringStart,JSUnknownStringEnd);
+				var JSStartString = JSUnknownString + ".populate(";
+				var index = request.responseText.indexOf(JSStartString);
+				if (index == -1)
+				{
+					contentDiv.innerHTML = "Cannot load data, possibility because of King's Reward";
+					return;
+				}
+				
+				var JSText = request.responseText.substring(index + JSStartString.length,request.responseText.indexOf(");" + JSUnknownString + ".setCurrentUserEnvironmentType"));
+				O_environment = JSON.parse(JSText);
+				var group_env = new Array;
+				var group_name = new Object;
+				var env_obj,group_num = 0,i,j;
+				for (i = 0;i < O_environment.length;++i)
+				{
+					if (group_env[group_name[O_environment[i].region.type]] == null)
+					{
+						group_name[O_environment[i].region.type] = group_num++;
+						group_env[group_name[O_environment[i].region.type]] = new Object;
+						group_env[group_name[O_environment[i].region.type]].name = O_environment[i].region.name;
+						group_env[group_name[O_environment[i].region.type]].data = new Array;
+						group_env[group_name[O_environment[i].region.type]].display_order = O_environment[i].region.display_order;
+					}
+					env_obj = new Object;
+					env_obj.name = O_environment[i].name;
+					env_obj.type = O_environment[i].type;
+					env_obj.travelCost = O_environment[i].travelCost;
+					env_obj.environment_id = O_environment[i].environment_id;
+					env_obj.display_order = O_environment[i].displayOrder;
+					group_env[group_name[O_environment[i].region.type]].data.push(env_obj);
+				}
+				for (i = 0;i < group_env.length;++i)
+				{
+					group_env[i].data.sort(function(a, b) {return a.display_order - b.display_order;});
+				}
+				group_env.sort(function(a, b) {return a.display_order - b.display_order;});
+				
+				travelPlacesHeight = new Array;
+				var HTMLdiv = document.createElement('div');
+				var envitem,envgroupitem,placegroupitem,listitem,nameitem,costitem,x,divholder;
+				envgroupitem = document.createElement('div');
+				envgroupitem.className = "UOP_groupPlacesArea";
+				HTMLdiv.appendChild(envgroupitem);
+				placegroupitem = document.createElement('div');
+				placegroupitem.className = "UOP_groupPlacesDiv Normal";
+				placegroupitem.style.height = "0px";
+				travelPlacesHeight.push(31);
+				HTMLdiv.appendChild(placegroupitem);
+				envitem = document.createElement('div');
+				envitem.textContent = "Free Travel";
+				envitem.className = "UOP_buttonTravel UOP_travelRegion";
+				envitem.setAttribute("groupid",0);
+				envitem.addEventListener('click',travelgroupchange,false);
+				envgroupitem.appendChild(envitem);
+				listitem = document.createElement('div');
+				listitem.className = "UOP_travelPlaceDiv";
+				listitem.setAttribute("value","freetravel");
+				listitem.addEventListener('click',travel_normal,false);
+				nameitem = document.createElement('div');
+				nameitem.className = "UOP_travelPlaceName";
+				nameitem.textContent = "Meadow";
+				costitem = document.createElement('div');
+				costitem.className = "UOP_travelPlaceCost";
+				costitem.textContent = "Free";
+				listitem.appendChild(nameitem);
+				listitem.appendChild(costitem);
+				placegroupitem.appendChild(listitem);
+				for (i = 0;i < group_env.length;++i)
+				{
+					placegroupitem = document.createElement('div');
+					placegroupitem.className = "UOP_groupPlacesDiv Normal";
+					placegroupitem.style.height = "0px";
+					travelPlacesHeight.push(31 * group_env[i].data.length);
+					envitem = document.createElement('div');
+					envitem.textContent = group_env[i].name;
+					envitem.className = "UOP_buttonTravel UOP_travelRegion";
+					envitem.setAttribute("groupid",i + 1);
+					envitem.addEventListener('click',travelgroupchange,false);
+					envgroupitem.appendChild(envitem);
+					for (j = 0;j < group_env[i].data.length;++j)
+					{
+						listitem = document.createElement('div');
+						listitem.className = "UOP_travelPlaceDiv";
+						listitem.setAttribute("value",group_env[i].data[j].type);
+						listitem.addEventListener('click',travel_normal,false);
+						nameitem = document.createElement('div');
+						nameitem.className = "UOP_travelPlaceName";
+						nameitem.textContent = group_env[i].data[j].name;
+						costitem = document.createElement('div');
+						x = group_env[i].data[j].travelCost;
+						if (x == null)
+						{
+							costitem.textContent = "N/A";
+							costitem.className = "UOP_travelPlaceImpossible";
+						}
+						else
+						{
+							costitem.textContent = x;
+							costitem.className = "UOP_travelPlaceCost";
+						}
+						listitem.appendChild(nameitem);
+						listitem.appendChild(costitem);
+						divholder = document.createElement('div');
+						divholder.appendChild(listitem);
+						placegroupitem.appendChild(divholder);
+					}
+					HTMLdiv.appendChild(placegroupitem);
 				}
 				
 				contentDiv.innerHTML = "";
@@ -1774,13 +1943,14 @@ function travelToTabBar() {
 	O_travelTab = travelcontentChild.getElementsByClassName('content')[0];
 	travelcontentChild.id = "UOP_campTravel";
 	travelcontentChild.firstChild.firstChild.innerHTML = '<a href="travel.php">Travel</a> to Location';
-	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a><br>[<a id="UOP_travelOld">Normal Travel mode</a>] [<a id="UOP_travelGetAccessToken">Get Access Token</a>]';
+	travelcontentChild.firstChild.lastChild.innerHTML = 'Traveling Service by <a href="profile.php?snuid=larry">Larry</a><br>[<a id="UOP_travelNormal">Normal</a>] [<a id="UOP_travelOld">Quick</a>] [<a id="UOP_travelGetAccessToken">Get Access Token</a>]';
 	travelcontentChild = travelcontentChild.firstChild.nextSibling;
 	travelcontentChild.id = "UOP_travelcontentChild";
 	O_travelContent = travelcontentChild;
 	travelcontentChild.innerHTML = '<div class="UOP_waitingTab"></div>';
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(travelcontent);
 	document.getElementById('UOP_travelOld').addEventListener('click',travelcontentLoadold,false);
+	document.getElementById('UOP_travelNormal').addEventListener('click',travelcontentLoadNormal,false);
 	document.getElementById('UOP_travelGetAccessToken').addEventListener('click',buttonGetAccessToken,false);
 }
 function shopToTabBar() {
@@ -1987,6 +2157,59 @@ function travel(e) {
 	};
 	request.send(params);
 }
+function travel_normal(e) {
+	var target = e.target;
+	while (target.className != "UOP_travelPlaceDiv") target = target.parentNode;
+	var destination = target.getAttribute("value");
+	var url = C_canvasMode[inCanvas],param,htmlstr = "",request = new XMLHttpRequest();
+	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
+	
+	if (destination == "freetravel")
+	{
+		url += "travel.php?freeTravel=true&uh=" + data.user.unique_hash;
+		param = null;
+		request.open("GET", url, true);
+	}
+	else
+	{
+		url += "/managers/ajax/users/changeenvironment.php";
+		param = "destination=" + destination + "&uh=" + data.user.unique_hash;
+		request.open("POST", url, true);
+		request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	}
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				try
+				{
+					var tmpRespondJSON = JSON.parse(request.responseText);
+					if (tmpRespondJSON.success == 1) htmlstr = "Success ! "; else htmlstr = "Not success ! ";
+					htmlstr += tmpRespondJSON.result;
+					htmlstr += "<br>";
+				}
+				catch (excep) {}
+				htmlstr += "Refreshing....";
+				htmlstr += '<div class="UOP_waitingTab"></div>';
+				O_travelTab.innerHTML = htmlstr;
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+				travelcontentLoadNormal();
+				if (destination == "freetravel") syncUser(updateUserHash);
+			}
+			else
+			{
+				O_travelTab.innerHTML = "Network error, refreshing...";
+				O_travelTab.innerHTML += '<div class="UOP_waitingTab"></div>';
+				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
+				travelcontentLoadNormal();
+			}
+		}
+	};
+
+	request.send(param);
+}
 function travel_old(e) {
 	var url = e.target.href;
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
@@ -2011,7 +2234,7 @@ function travel_old(e) {
 				htmlstr += '<div class="UOP_waitingTab"></div>';
 				O_travelTab.innerHTML = htmlstr;
 				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
-				travelcontentLoad();
+				travelcontentLoadold();
 				if (url.indexOf('freeTravel=true') != -1) syncUser(updateUserHash);
 			}
 			else
@@ -2019,7 +2242,7 @@ function travel_old(e) {
 				O_travelTab.innerHTML = "Network error, refreshing...";
 				O_travelTab.innerHTML += '<div class="UOP_waitingTab"></div>';
 				O_shopContent.innerHTML = '<div class="UOP_waitingTab"></div>';
-				travelcontentLoad();
+				travelcontentLoadold();
 			}
 		}
 	};
@@ -2576,8 +2799,6 @@ function UOP_useCustomConvertible(obj) {
 	,null,true);
 }
 function tradeBuyID() {
-	if (C_disableExperimental == 1) return;
-	
 	var itemTradeID = document.getElementById('UOP_inputTrade').value;
 	var params = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash + "&item_trade_id=" + itemTradeID;
 	var url = C_canvasMode[inCanvas] + "/managers/ajax/trades/accepttrade.php";
@@ -2883,7 +3104,7 @@ function defaultFullSkin() {
 		updateSpecial();
 	}
 	
-	if ((C_disableExperimental == 0) && (location.pathname.indexOf("/trade.php") != -1))
+	if (location.pathname.indexOf("/trade.php") != -1)
 	{
 		var tabpage = document.getElementById('tabbarContent_page');
 		var tabdiv = document.createElement('div');
@@ -3046,6 +3267,8 @@ function addScoreboard() {
 	scoreboardTableDiv.id = "UOP_tableDiv";
 	scoreboardTableDiv.innerHTML = C_scoreboardContent.toString();
 	O_scoreboardDiv.appendChild(scoreboardTableDiv);
+	O_scoreboardStatus = document.getElementById('UOP_scoreboardStatus');
+	O_scoreboardCounter = document.getElementById('UOP_scoreboardCounter');
 	
 	O_scoreboardDiv.getElementsByTagName('tfoot')[0].firstElementChild.firstElementChild.addEventListener('click',updateScoreboard,false);
 	
@@ -3070,10 +3293,39 @@ function addScoreboard() {
 		S_channelScoreboard = 0;
 		switchChannel();
 	}
+	else
+	{
+		scoreboardTimestamp = 0;
+		setInterval(scoreboardTourTimecounter,1000);
+		scoreboardTourTimecounter();
+	}
+}
+function scoreboardTourTimecounter() {
+	var timeleft = scoreboardTimestamp - Math.ceil(new Date().getTime());
+	if (timeleft >= 0)
+	{
+		O_scoreboardCounter.textContent = formatHour(timeleft);
+		O_scoreboardStatus.textContent = scoreboardTimestatus;
+	}
+	else
+	{
+		if (scoreboardTimestatus == 'active')
+		{
+			O_scoreboardStatus.textContent = 'Completed';
+		}
+		else if (scoreboardTimestatus == 'pending')
+		{
+			O_scoreboardStatus.textContent = "Starting...";
+			scoreboardTimestatus = "update";
+		}
+		O_scoreboardCounter.textContent = "--:--:--";
+	}
 }
 function searchTournament() {
 	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
 	localStorage.UOP_currentScoreboardChannel = currentScoreboardChannel = O_scoreboardinput.value;
+	localStorage.UOP_scoreboardTimestamp = scoreboardTimestamp = 0;
+	localStorage.UOP_scoreboardTimestatus = scoreboardTimestatus = "auto";
 	switchChannel();
 }
 function startUpdateFunArea() {
@@ -3098,36 +3350,43 @@ function secondScoreboardUpdate() {
 	}
 }
 function showChannel() {
-	getChannelList();
-	O_scoreboardChannel.innerHTML = "";
-	var button,counter = 0;
-	for (var tour in scoreboardChannel)
-	{
-		if (scoreboardChannel.hasOwnProperty(tour))
+	getChannelList(function() {
+		O_scoreboardChannel.innerHTML = "";
+		var curTime = new Date().getTime();
+		var button,counter = 0;
+		for (var tour in scoreboardChannel)
 		{
-			++counter;
-			button = document.createElement("button");
-			button.className = "UOP_buttonSB channel";
-			button.className += (scoreboardChannel[tour].status == "active") ? " active" : " completed";
-			button.setAttribute('tourid',tour);
-			button.textContent = tour;
-			button.disabled = (scoreboardChannel[tour].status == "pending") ? true : false;
-			button.addEventListener('click',getChannel,false);
-			O_scoreboardChannel.appendChild(button);
+			if (scoreboardChannel.hasOwnProperty(tour))
+			{
+				++counter;
+				button = document.createElement("button");
+				button.className = "UOP_buttonSB channel";				
+				button.className += (scoreboardChannel[tour].status == "pending") ? " pending" : ((scoreboardChannel[tour].timeleft * 1000 > curTime) ? " active" : " completed");
+				button.setAttribute('tourid',tour);
+				button.textContent = tour;
+				button.addEventListener('click',getChannel,false);
+				O_scoreboardChannel.appendChild(button);
+			}
 		}
-	}
-	O_scoredboardControl.style.height = (28 + Math.ceil(counter / 4) * 20) + "px";
+		O_scoredboardControl.style.height = (28 + Math.ceil(counter / 4) * 20) + "px";
+	});
 }
 function getChannel(e) {
 	if (activeGetSB == 1) return;
 	activeGetSB = 1;
-	window.localStorage.UOP_currentScoreboardChannel = e.target.getAttribute('tourid');
-	window.localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
+	localStorage.UOP_currentScoreboardChannel = currentScoreboardChannel = e.target.getAttribute('tourid');
+	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
+	localStorage.UOP_scoreboardTimestamp = scoreboardChannel[currentScoreboardChannel].timeleft;
+	localStorage.UOP_scoreboardTimestatus = scoreboardChannel[currentScoreboardChannel].status;
 	switchChannel();
 	activeGetSB = 0;
 }
-function getChannelList() {
-	if (S_server == 1) return;
+function getChannelList(callbackFunction) {
+	if (S_server == 1)
+	{
+		if (callbackFunction != null) callbackFunction();
+		return;
+	}
 	var url = S_serverUrl + "/team.php";
 	var request = new XMLHttpRequest();
 	request.open("GET", url, true);
@@ -3140,12 +3399,13 @@ function getChannelList() {
 				try
 				{
 					scoreboardChannel = JSON.parse(request.responseText);
+					if (callbackFunction != null) callbackFunction();
 				}
 				catch (e) {}
 			}
 			else
 			{
-				getChannelList();
+				getChannelList(callbackFunction);
 			}
 		}
 	};
@@ -3158,7 +3418,7 @@ function postChannel() {
 	
 	var url = S_serverUrl + "/team.php";
 	var request = new XMLHttpRequest();
-	var param = "team=" + scoreboardMyTeamID + "&tour=" + data.user.viewing_atts.tournament.tournament_id + "&status=" + data.user.viewing_atts.tournament.status + "&timeleft=" + data.user.viewing_atts.tournament.tournament_id;
+	var param = "team=" + scoreboardMyTeamID + "&tour=" + data.user.viewing_atts.tournament.tournament_id + "&status=" + data.user.viewing_atts.tournament.status + "&timeleft=" + (Math.ceil(new Date().getTime() / 1000) + data.user.viewing_atts.tournament.seconds_remaining);
 	request.open("POST", url, true);
 	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
 	request.onreadystatechange = function()
@@ -3188,18 +3448,19 @@ function switchChannel() {
 	{
 		case 0:currentScoreboardChannel = 0;break;
 		case 1:
-			if (data.user.viewing_atts.tournament != null)// && (data.user.viewing_atts.tournament.status == "active")) 
+			if (data.user.viewing_atts.tournament != null)
 			{
 				currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;
+				scoreboardTimestamp = data.user.viewing_atts.tournament.seconds_remaining + Math.ceil(new Date().getTime() / 1000);
+				scoreboardTimestatus = data.user.viewing_atts.tournament.status;
 			}
 			else currentScoreboardChannel = 0;
 			break;
-		case 2:currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);break;
+		case 2:currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);scoreboardTimestamp = Number(window.localStorage.UOP_scoreboardTimestamp);scoreboardTimestatus = window.localStorage.UOP_scoreboardTimestatus;break;
 	}
 	updateScoreboard();
 }
 function updateChannel() {
-	getChannelList();
 	postChannel();
 	if (S_channelScoreboard == 1) switchChannel();
 	else if (initScoreboard == 0)
@@ -3212,6 +3473,19 @@ function updateScoreboard() {
 	nextUpdateScoreboardTimeLeft = -2;
 	O_scoreboardUpdateSecond.textContent = "...";
 	O_scoreboardDiv.className = "transiting";
+	if (scoreboardTimestatus == 'update')
+	{
+		getChannelList(function() {
+			if (currentScoreboardChannel[currentScoreboardChannel] != null)
+			{
+				if (currentScoreboardChannel[currentScoreboardChannel].status == "active")
+				{
+					scoreboardTimestatus = "active";
+					scoreboardTimestamp = currentScoreboardChannel[currentScoreboardChannel].timeleft;
+				}
+			}
+		});
+	}
 	for (var i = 0;i < O_scoreboard.length;++i)
 	{
 		O_scoreboard[i].setAttribute("teamtype","transit");
@@ -3221,6 +3495,12 @@ function updateScoreboard() {
 		O_scoreboardDiv.className = "off";
 		return;
 	}
+	if (scoreboardTimestatus == "pending")
+	{
+		O_scoreboardDiv.className = "";
+		return;
+	}
+
 	var url = C_canvasMode[inCanvas] + "/tournament.php?tid=" + currentScoreboardChannel;
 	var request = new XMLHttpRequest();
 	request.open("GET", url, true);
@@ -3239,8 +3519,15 @@ function updateScoreboard() {
 				}
 				else if (HTMLstr.indexOf('<span id="info">Complete</span>') != -1)
 				{
+					if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Completed";
 					status = 1;
 				}
+				else if (HTMLstr.indexOf('<span id="info">Pending</span>') != -1)
+				{
+					if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Pending";
+					status = 2;
+				}
+				else if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Active";
 				HTMLstr = HTMLstr.substring(HTMLstr.indexOf('<div class="FD-content clear-block dialogBox-TournamentWhite"><div class="clear-block">'),HTMLstr.indexOf('Full Scoreboard</a></div>') + 25);
 				O_scoreboardFetch.innerHTML = HTMLstr;
 				var rawSBTeamName = O_scoreboardFetch.getElementsByClassName('tournamentTeamName');
@@ -3279,6 +3566,7 @@ function updateScoreboard() {
 				{
 					case 0:nextUpdateScoreboardTimeLeft = 60;setTimeout(secondScoreboardUpdate,0);break;
 					case 1:O_scoreboardUpdateSecond.textContent = "Ended";currentScoreboardChannel = 0;break;
+					case 2:O_scoreboardUpdateSecond.textContent = "Not started";currentScoreboardChannel = 0;break;
 				}
 			}
 			else
@@ -3549,6 +3837,7 @@ function KRSolverCache() {
 }
 function KRSolverOCR() {
 	--A_solveStage;
+	window.localStorage.UOP_solveStage = A_solveStage;
 	KR_initKR();
 	KRSolverOCRCore();
 }
@@ -3564,9 +3853,18 @@ function submitPuzzle(str) {
 		{
 			if (request.status == 200)
 			{
-				var tmpRespondJSON = JSON.parse(request.responseText);
-				document.getElementById('pagemessage').textContent = tmpRespondJSON.result;
-				location.reload();
+				try
+				{
+					var tmpRespondJSON = JSON.parse(request.responseText);
+					document.getElementById('pagemessage').textContent = tmpRespondJSON.result;
+					window.localStorage.UOP_puzzleLastResult = str + " - " + tmpRespondJSON.result;
+					location.reload();
+				}
+				catch (e)
+				{
+					document.getElementById('pagemessage').textContent = request.responseText;
+					window.localStorage.UOP_puzzleLastResult = str + " - " + request.responseText;
+				}
 			}
 			else
 			{
@@ -4068,10 +4366,10 @@ function KRSolverOCRLoadImg() {
 	KR_imgs[KR_i].id = "UOP_OCR_" + KR_i;
 	KR_imgs[KR_i].addEventListener('load',KR_solveImg(KR_i),false);
 	KR_imgs[KR_i].src = '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
-	KR_timeouts[KR_i] = setTimeout(KR_reload(KR_i),10000);
+	KR_timeouts[KR_i] = setTimeout(KR_reload(KR_i),20000);
 	
 	++KR_i;
-	setTimeout(KRSolverOCRLoadImg,1500);
+	setTimeout(KRSolverOCRLoadImg,3000);
 }
 function KRSolverOCRCore() {
 	KR_i = 0;

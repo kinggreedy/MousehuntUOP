@@ -1,7 +1,5 @@
-﻿scoreboard
-pretty travel
-logo
+﻿logo
+schedule have custom defined
 
 compiler & packer
 clock
-schedule have custom defined

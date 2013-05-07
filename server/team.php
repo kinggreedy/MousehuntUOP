@@ -12,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 	$count = $conn->prepare($sql);
 	$count->execute(array($tour,$status,$timeleft,$tour));
 	
+	$sql = "UPDATE Tour SET status = ?, timeleft = ? WHERE ID = ?";
+	$count = $conn->prepare($sql);
+	$count->execute(array($status,$timeleft,$tour));
+	
 	$sql = "INSERT INTO Team(ID,tourID,IP) SELECT ?,?,? WHERE NOT EXISTS (SELECT * FROM Team WHERE ID = ? AND tourID = ?)";
 	$count = $conn->prepare($sql);
 	$count->execute(array($team,$tour,$fromip,$team,$tour));
@@ -22,16 +26,31 @@ else if ($_SERVER['REQUEST_METHOD'] == 'GET')
 {
 	require 'connect.php';
 	
-	//$arr = array();
-	//$sql = 'SELECT ID, status, timeleft FROM Tour ORDER BY ID';
-	//$res = $conn->query($sql)
-	//foreach ($res as $row) {
-		//$arr[$row['ID']] = array('team' => array(),'status' => $row['status'],'timeleft' => $row['timeleft']);
-	//}
+	$arr = array();
+		
+	$sql = 'SELECT ID, status, timeleft FROM Tour ORDER BY ID';
+	$res = $conn->query($sql);
+	
+	$sql = 'DELETE FROM Tour WHERE ID = ?';
+	$count = $conn->prepare($sql);
+	
+	foreach ($res as $row) {
+		if ($row['timeleft'] < (time() + 30 * 60))
+		{
+			$count->execute(array($row['ID']));
+		}
+		else
+		{
+			$arr[$row['ID']] = array('team' => array(),'status' => $row['status'],'timeleft' => $row['timeleft']);
+		}
+	}
 
-	$arr = array('6931' => array('team' => array(947),'status' => 'active'),
-				 '6936' => array('team' => array(11054),'status' => 'active'),
-				 '6945' => array('team' => array(77350),'status' => 'pending'));
+	$sql = 'SELECT ID, tourID FROM Team';
+	$res = $conn->query($sql);
+	foreach ($res as $row) {
+		array_push($arr[$row['tourID']]['team'], $row['ID']);
+	}
+
 	echo json_encode($arr);
 }
 ?>
