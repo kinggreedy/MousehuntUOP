@@ -4,7 +4,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 //==========Constants==========
 //Setting Constants
 var C_version = "3.0";
-var C_versionCompatibleCode = "4";
+var C_versionCompatibleCode = "5";
 var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -66,15 +66,15 @@ var C_mobile = [{},
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
 var BASE = 0, PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FORGOTTEN = 6, DRACONIC = 7, PARENTAL = 8, BALACKSCOVE = 9;
-var C_powertype = {BASE: 'base', PHYSICAL: 'phscl',TACTICAL: 'tctcl', HYDRO: 'hdr', SHADOW: 'shdw', ARCANE: 'arcn',FORGOTTEN: 'frgttn',DRACONIC: 'drcnc',PARENTAL: 'prntl'};
-var TRAPSTR = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
-var C_trapprioritytype = {TRAPAUTO: 'str', TRAPPOWER: 'power', TRAPLUCK: 'luck', TRAPATTRACTION: 'attraction'};
+var C_powertype = {0: 'base', 1: 'phscl',2: 'tctcl', 3: 'hdr', 4: 'shdw', 5: 'arcn',6: 'frgttn',7: 'drcnc',8: 'prntl'};
+var TRAPAUTO = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
+var C_trapprioritytype = {0: 'str', 1: 'power', 2: 'luck', 3: 'attraction'};
 //CallbackFunctions
 
 //==========Variables==========
 //Setting Variables
 var S_skin,S_simple,S_auto,S_schedule,S_solve,S_server;
-var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckPriority,S_numScript;
+var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_alarmNoti,S_alarmStop,S_alarmStopTime,S_trapCheck,S_trapCheckTime,S_trapCheckRange,S_trapCheckPriority,S_numScript;
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
 var S_channelScoreboard;
@@ -378,7 +378,9 @@ function runTimeCreateConstant() {
 					<div>\
 						<label>Trapcheck at </label>\
 						<input id="UOP_trapCheckTime" type="text">\
-						<label> minute</label>\
+						<label> minute for</label>\
+						<input id="UOP_trapCheckRange" type="text">\
+						<label> seconds</label>\
 					</div>\
 				</div>\
 			</div>\
@@ -707,6 +709,7 @@ function loadSettings() {
 		window.localStorage.UOP_alarmStopTime = 20;
 		window.localStorage.UOP_trapCheck = 1;
 		window.localStorage.UOP_trapCheckTime = -1;
+		window.localStorage.UOP_trapCheckRange = 60;
 		window.localStorage.UOP_trapCheckPriority = 1;
 		window.localStorage.UOP_emulateMode = 0;
 		window.localStorage.UOP_access_token = "";
@@ -743,6 +746,7 @@ function loadSettings() {
 	S_alarmStopTime = Number(window.localStorage.UOP_alarmStopTime);
 	S_trapCheck = Number(window.localStorage.UOP_trapCheck);
 	S_trapCheckTime = Number(window.localStorage.UOP_trapCheckTime);
+	S_trapCheckRange = Number(window.localStorage.UOP_trapCheckRange);
 	S_trapCheckPriority = Number(window.localStorage.UOP_trapCheckPriority);
 	S_emulateMode = Number(window.localStorage.UOP_emulateMode);
 
@@ -787,6 +791,7 @@ function saveSettings() {
 	S_alarmNoti = document.getElementById("UOP_alarmNoti").checked ? 1 : 0;
 	S_alarmStopTime = document.getElementById("UOP_alarmStopTime").value;
 	S_trapCheckTime = document.getElementById("UOP_trapCheckTime").value;
+	S_trapCheckRange = document.getElementById("UOP_trapCheckRange").value;
 	S_cacheKRstr = document.getElementById("UOP_cacheKRstr").value;
 	S_serverUrl = document.getElementById("UOP_serverUrl").value;
 	window.localStorage.UOP_access_token = document.getElementById("UOP_access_token").value;
@@ -809,6 +814,7 @@ function saveSettings() {
 	window.localStorage.UOP_alarmStopTime = S_alarmStopTime;
 	window.localStorage.UOP_trapCheck = S_trapCheck;
 	window.localStorage.UOP_trapCheckTime = S_trapCheckTime;
+	window.localStorage.UOP_trapCheckRange = S_trapCheckRange;
 	window.localStorage.UOP_trapCheckPriority = S_trapCheckPriority;
 	
 	window.localStorage.UOP_cacheKRstr = S_cacheKRstr;
@@ -1067,6 +1073,7 @@ function initControlPanel() {
 	document.getElementById("UOP_delaymin").value = S_delaymin;
 	document.getElementById("UOP_delaymax").value = S_delaymax;
 	document.getElementById("UOP_trapCheckTime").value = S_trapCheckTime;
+	document.getElementById("UOP_trapCheckRange").value = S_trapCheckRange;
 	document.getElementById("UOP_alarmStopTime").value = S_alarmStopTime;
 	document.getElementById("UOP_access_token").value = window.localStorage.UOP_access_token;
 	
@@ -2461,7 +2468,7 @@ function updateSimpleHud() {
 	for (var i = 0;i < C_LOCATION_TIMES.length;++i)
 	{
 		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
-		for (j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
+		for (var j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
 		{
 			timetmp -= C_LOCATION_TIMES[i].length[j];
 			if (timetmp < 0) break;
@@ -4434,7 +4441,6 @@ function shInitSchedule() {
 	if (C_disableExperimental == 1) return;
 	var str;
 	var i;
-	
 	for (i = 0;i < C_LOCATION_TIMES.length;++i) sh_clock[C_LOCATION_TIMES[i].id] = new Object;
 	setInterval(shUpdateClock,60000);shUpdateClock();
 	
@@ -4467,8 +4473,13 @@ function shInitSchedule() {
 	d = d - new Date();
 	
 	registerSoundHornWaiting.push(shStartAfterHorn);
-	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + 60000);
-	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - 60000,0));
+	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + S_trapCheckRange * 1000);
+	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - S_trapCheckRange * 1000,0));
+	
+	d = new Date();
+	d.setMinutes(trapcheck);
+	d.setSeconds(0);
+	if ((d + S_trapCheckRange * 1000) > (new Date())) setTimeout(shStartAfterTrapCheck,(d - new Date()) + S_trapCheckRange * 1000);
 }
 function shCreateDefaultScripts() {
 	var i;
@@ -4728,14 +4739,14 @@ function shStartBeforeTrapCheck() {
 	sh_mode = BEFORETRAPCHECK;
 	sh_si = 0;
 	sh_sq = 0;
-	
+	var range = S_trapCheckRange * 2 + 10;
 	var timeRemaining = A_delayTimestamp - new Date().getTime();
-	if ((timeRemaining > 0) && (timeRemaining < 130000)) //130 = 2 min 10 sec
+	if ((timeRemaining > 0) && (timeRemaining < (range * 1000))) //130 = 2 min 10 sec
 	{
 		if (((S_trapCheckPriority == 1) && (sh_trapCheckPriority > 0)) || (S_trapCheckPriority == 2))
 		{
-			A_delayTimestamp = new Date().getTime() + 130000;
-			A_delayTime = 130;
+			A_delayTimestamp = new Date().getTime() + range * 1000;
+			A_delayTime = range;
 			shBeforeTrapCheck();
 		}
 	}
@@ -4972,7 +4983,7 @@ function shChangeBestTrap(type,priority) {
 			switch (type)
 			{
 				case BASE: match = (data.components[i].classification == "base") ? true : false;break;
-				default: match = (data.components[i].powertype == C_powertype[type]) ? true : false;break;
+				default: match = (data.components[i].power_type == C_powertype[type]) ? true : false;break;
 			}
 			if (match)
 			{
@@ -5083,6 +5094,7 @@ function shdefaultIceberg() {
 				shLoad(C_shdefaultAction.CHANGETRAP,param,function () {window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;});
 				return;
 			}
+			//drill
 		}
 	}
 	if (data.user.environment_id == 39)
@@ -5123,7 +5135,7 @@ function shdefaultBalacksCove() {
 	}
 	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)))
 	{
-		shLoad(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);
+		setTimeout(function() {shLoad(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);},5000);
 		return;
 	}
 	if (data.user.bait_item_id == 118)
@@ -5165,7 +5177,7 @@ function shdefaultSeasonalGarden() {
 			return;
 		}
 		
-		if ((user.viewing_atts.zzt_amplifier == user.viewing_atts.zzt_max_amplifier) && (data.user.trinket_item_id == 647))
+		if ((data.user.viewing_atts.zzt_amplifier == data.user.viewing_atts.zzt_max_amplifier) && (data.user.trinket_item_id == 647))
 		{
 			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
 			return;
@@ -5199,6 +5211,7 @@ function shdefaultFieryWarpath() {
 		//IF (WAVE == COMMANDER && GAGASTREAK > STREAK >= COMMANDERSTREAK) ARM COMMANDER
 		//IF (WAVE == COMMANDER && COMMANDERGAGASTREAK <= STREAK) ARM GAGASETUP
 		//IF (WAVE != COMMANDER && GAGASTREAK <= STREAK) ARM GAGASETUP
+		//Monger Charm 
 		return;
 	}
 }
