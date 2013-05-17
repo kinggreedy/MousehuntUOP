@@ -1,0 +1,31 @@
+#supplytransfer .tabs {width: auto;}
+#supplytransfer .tabs .tab {
+	float: left;
+	display: inline-block;
+	margin-left: 8px;
+}
+#supplytransfer .drawer {
+	margin-left: 0;
+	width:auto;
+	padding: 5px;
+	float: left;
+}
+#supplytransfer .drawer .listContainer {width: auto;}
+#supplytransfer .drawer .tabContent .summary {width: auto;}
+#supplytransfer .drawer .tabContent h2 {white-space: nowrap;}
+#supplytransfer .categoryContent {margin-left: 0;}
+#supplytransfer .tabContent.item .listContainer {width: auto;}
+#supplytransfer .categoryMenu {
+	width: auto;
+	min-width: 80px;
+	margin-right: 10px;
+}
+#supplytransfer .listContainer a.element.recipient {
+	width: 65px;
+	height: 68px;
+}
+#supplytransfer .listContainer a.element {margin: 1px;}
+#supplytransfer .listContainer a.element.item {
+	width: 95px;
+	white-space: nowrap;
+}

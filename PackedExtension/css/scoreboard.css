@@ -1,0 +1,91 @@
+@font-face {
+	font-family: "digital";
+	src: url("/css/DS-DIGIB.TTF") format("truetype");
+}
+
+#UOP_scoreboardDiv #UOP_tableDiv {height: 390px;overflow:hidden;transition: height 700ms ease-in-out;}
+#UOP_scoreboardDiv.off #UOP_tableDiv {height: 0px;}
+#UOP_scoreboardDiv .UOP_table tbody {counter-reset: UOP_scoreboardRankCounter;}
+#UOP_scoreboardDiv .UOP_table tbody tr {counter-increment: UOP_scoreboardRankCounter;}
+#UOP_scoreboardDiv .UOP_table td .UOP_teamName:before  {content: counter(UOP_scoreboardRankCounter) ". ";}
+#UOP_scoreboardDiv .UOP_table td .UOP_teamName{
+	width: 111px;
+	text-overflow:ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+#UOP_scoreboardDiv .UOP_table th:last-child {width: 45px;}
+#UOP_scoreboardDiv .UOP_table tfoot td:first-child {
+	font-size: 12px;
+	text-align: center;
+}
+#UOP_scoreboardDiv .UOP_table tbody tr td {transition: color 300ms linear, background-color 300ms linear;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"] td {color: #fff;background-color: #99ea6a;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"] td:first-child {background-color: #74cc3a;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"]:hover td:first-child:hover {background-color: #84d171;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"] td {color: #fff;background-color: #fae29A;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"] td:first-child {background-color: #eac500;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"]:hover td:first-child:hover {background-color: #ffd700;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="transit"] td:first-child {background-color: #bdbdbd;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="transit"] td {color: rgba(0, 0, 0, 0);background-color: #dfdfdf;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(1) td{transition-delay: 0s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(2) td{transition-delay: 0.04s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(3) td{transition-delay: 0.08s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(4) td{transition-delay: 0.12s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(5) td{transition-delay: 0.16s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(6) td{transition-delay: 0.20s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(7) td{transition-delay: 0.24s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(8) td{transition-delay: 0.28s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(9) td{transition-delay: 0.32s;}
+#UOP_scoreboardDiv.transiting .UOP_table tbody tr:nth-child(10) td{transition-delay: 0.36s;}
+#UOP_scoreboardDiv.transiting .UOP_table a {
+	color: inherit;
+	text-decoration: none;
+}
+#UOP_scoreboardFetch {display: none;}
+#UOP_scoreboardControl {overflow: hidden;transition: height 700ms ease-in-out}
+#UOP_scoreboardStatus {
+	font-family:'Helvetica Neue',Arial,sans-serif;
+	font-size:12px;
+	font-weight:700;
+	text-transform:uppercase;
+	color: red;
+	margin-right: 10px;
+}
+#UOP_scoreboardCounter {font-family:digital;font-size:14px;}
+.UOP_buttonSB  {
+	box-shadow:rgba(0,0,0,0.2) 0 1px 0 0;
+	color:#333;
+	background-color:#FA2;
+	border-radius:5px;
+	border:none;
+	font-family:'Helvetica Neue',Arial,sans-serif;
+	font-size:11px;
+	font-weight:700;
+	text-transform:uppercase;
+	padding: 4px 9px;
+	text-shadow:#FE6 0 1px 0;
+	cursor:pointer;
+}
+.UOP_buttonSB:hover {background-color: #ffcc7b;}
+.UOP_buttonSB.channel {margin: 2px 2px;padding: 4px 4px;font-size: 10px;}
+.UOP_buttonSB.channel.active {background-color:#D5526C;text-shadow:#DA3765 0 1px 0;}
+.UOP_buttonSB.channel.active:hover {background-color: #D86B80;}
+.UOP_buttonSB.channel.completed {background-color:#12CC28;text-shadow:#7EFF66 0 1px 0;}
+.UOP_buttonSB.channel.completed:hover {background-color: #4CCF5C;}
+.UOP_buttonSB.channel.pending  {background-color: #bdbdbd;text-shadow:#dfdfdf 0 1px 0;}
+.UOP_buttonSB.channel.pending:hover {background-color: #dfdfdf;}
+.UOP_buttonSB[aria-selected="true"]  {background-color:#12BDCC;text-shadow:#66DAFF 0 1px 0;}
+.UOP_buttonSB[aria-selected="true"]:hover {background-color: #32D4DB;}
+.UOP_searchbuttonSB {
+	width: 24px;
+	height: 24px;
+	background: url("/images/iconsearch.png") no-repeat;
+	background-position:center center;
+	background-color: white;
+	cursor: pointer;
+	border-width: 0px;
+	border-color: gray;
+}
+.UOP_searchbuttonSB:hover {background-color: #f2f2f2;}
+.UOP_searchinputSB {width: 140px;}

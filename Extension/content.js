@@ -99,7 +99,7 @@ var registerSoundHornWaiting = new Array;
 var eval_callback;
 var nextTurnTimestamp,atCamp = false,nextUpdateScoreboardTimeLeft;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var refreshingByError = 0,screenshotSafe = 0;
+var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
@@ -3308,7 +3308,7 @@ function addScoreboard() {
 	}
 }
 function scoreboardTourTimecounter() {
-	var timeleft = scoreboardTimestamp - Math.ceil(new Date().getTime());
+	var timeleft = scoreboardTimestamp - Math.ceil(new Date().getTime() / 1000);
 	if (timeleft >= 0)
 	{
 		O_scoreboardCounter.textContent = formatHour(timeleft);
@@ -3786,8 +3786,13 @@ function autoChangeState() {
 	}
 }
 function loadSettingKRimage() {
-	alert("locked feature");
-	return;
+	if (lockedfeature == 1)
+	{
+		alert("This feature is deprecated and only use for experimental. Use it at your own risk !!! (click again to use)");
+		lockedfeature = 0;
+		return;
+	}
+	
 	var imageLoadStr = C_canvasMode[inCanvas] + '/puzzleimage.php?t=' + new Date().getTime() + '&snuid=' + data.user.sn_user_id + '&hash='+data.user.unique_hash;
 	document.getElementById('UOP_loadKRimage').src = imageLoadStr;
 	
@@ -4475,7 +4480,7 @@ function shInitSchedule() {
 	registerSoundHornWaiting.push(shStartAfterHorn);
 	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + S_trapCheckRange * 1000);
 	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - S_trapCheckRange * 1000,0));
-	
+
 	d = new Date();
 	d.setMinutes(trapcheck);
 	d.setSeconds(0);
@@ -5012,7 +5017,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultIceberg.toString().slice(29,-1)
+		content: shdefaultIceberg.toString().slice(28,-1)
 	},
 	{
 		name: 'default_balackscove',
@@ -5021,7 +5026,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultBalacksCove.toString().slice(33,-1)
+		content: shdefaultBalacksCove.toString().slice(32,-1)
 	},
 	{
 		name: 'default_zugwangstowersimple',
@@ -5030,7 +5035,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultZugwangsTowerSimple.toString().slice(41,-1)
+		content: shdefaultZugwangsTowerSimple.toString().slice(40,-1)
 	},
 	{
 		name: 'default_seasonalgarden',
@@ -5039,7 +5044,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultSeasonalGarden.toString().slice(36,-1)
+		content: shdefaultSeasonalGarden.toString().slice(35,-1)
 	},
 	{
 		name: 'default_fierywarpath',
@@ -5048,7 +5053,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultFieryWarpath.toString().slice(34,-1)
+		content: shdefaultFieryWarpath.toString().slice(33,-1)
 	},
 	{
 		name: 'default_furoma',
@@ -5057,7 +5062,7 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultFuroma.toString().slice(28,-1)
+		content: shdefaultFuroma.toString().slice(27,-1)
 	},
 	{
 		name: 'default_trapcheck',
@@ -5066,11 +5071,11 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultTrapcheck.toString().slice(31,-1)
+		content: shdefaultTrapcheck.toString().slice(30,-1)
 	}
 ];
 
-function shdefaultIceberg() {
+function shdefaultIceberg(){
 	if (data.user.environment_id == 40)
 	{
 		var last_phase;
@@ -5111,7 +5116,7 @@ function shdefaultIceberg() {
 		}
 	}
 }
-function shdefaultBalacksCove() {
+function shdefaultBalacksCove(){
 	if (data.user.bait_item_id == 119)
 	{
 		if ((sh_clock.UOP_locationTimerBalacksCove.stateID == 2) ||
@@ -5148,7 +5153,7 @@ function shdefaultBalacksCove() {
 		}
 	}
 }
-function shdefaultZugwangsTowerSimple() {
+function shdefaultZugwangsTowerSimple(){
 	if (data.user.environment_id == 32)
 	{
 		window.localStorage.UOP_sh_d_SG_state = 5;
@@ -5156,8 +5161,15 @@ function shdefaultZugwangsTowerSimple() {
 		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
 			{
 				shChangeBestTrap(TACTICAL,TRAPAUTO);
+				window.localStorage.UOP_ZTS_changeBestBase = 1;
 				return;
 			}
+		if (window.localStorage.UOP_ZTS_changeBestBase == 1)
+		{
+			shChangeBestTrap(BASE,TRAPAUTO);
+			window.localStorage.UOP_ZTS_changeBestBase = 0;
+			return;
+		}
 	}
 	if (data.user.environment_id == 31)
 	{
@@ -5168,7 +5180,7 @@ function shdefaultZugwangsTowerSimple() {
 		}
 	}
 }
-function shdefaultSeasonalGarden() {
+function shdefaultSeasonalGarden(){
 	if (data.user.environment_id == 31)
 	{
 		if (data.user.bait_item_id == 371)
@@ -5200,32 +5212,40 @@ function shdefaultSeasonalGarden() {
 		}
 	}
 }
-function shdefaultFieryWarpath() {
+function shdefaultFieryWarpath(){
 	if (data.user.environment_id == 33)
 	{
-		//cross streak
-		//number of commander charm left
+		//number of commander charm left for this streak
 		//number of retreat mouse
-		//IF (0 <= STREAK <= LOWSTREAK) ARM PROPERTYPE CHARM & CHEESE 
-		//IF (LOWSTREAK <= STREAK <= HIGHSTREAK) ARM SUPER CHARM & CHEESE
-		//IF (WAVE == COMMANDER && GAGASTREAK > STREAK >= COMMANDERSTREAK) ARM COMMANDER
-		//IF (WAVE == COMMANDER && COMMANDERGAGASTREAK <= STREAK) ARM GAGASETUP
-		//IF (WAVE != COMMANDER && GAGASTREAK <= STREAK) ARM GAGASETUP
-		//Monger Charm 
+		//var wave = data.user.viewing_atts.desert_warpath.wave;
+		//var streak = data.user.viewing_atts.desert_warpath.streak.quantity;
+		//cross streak
+		//if ((0 <= streak) && (streak <= 2)) ARM gouda + charm //BRIE
+		//IF (LOWSTREAK <= STREAK <= HIGHSTREAK) ARM GOUDA
+		//if ((3 <= streak) && (streak <= 5)) ARM SB+ + Supercharm
+		//if ((wave == 3) && ((6 <= streak) && (streak <= 7))) ARM + Commander
+		
+		//IF ((WAVE == COMMANDER && COMMANDERGAGASTREAK <= streak) ||
+		//    (WAVE != COMMANDER && GAGASTREAK <= streak)) ARM GAGASETUP
+		//if ((wave == 4) && (vulnerable)) Monger Charm
 		return;
 	}
 }
-function shdefaultFuroma() {
-	//if (in 8 19 23)
-	//if (BAIT QUANTITY == 0)
-	//{
-		//GET FUROMA BAIT => IF (HAVE BAIT || CAN CRAFT) CHANGE LOCATION => ARM BAIT
-		//GET ITEM CURD > AMOUNT => POKE
-		//IF (FORCE MAKI ?) => GET MAKI BAIT => IF (HAVE BAIT) CHANGE LOCATION => ARM BAIT
-		//BRIE
-	//}
+function shdefaultFuroma(){
+	if ((data.user.environment_id == 8) || (data.user.environment_id == 19) || (data.user.environment_id == 23))
+	{
+		if (data.user.bait_quantity == 0)
+		{
+			//GET STUDENT SHARD => CRAFT AND USE
+			//ELSE GET MASTER SHARD => CRAFT AND USE
+			//ELSE GET CURD => POKE
+			//ELSE GET ONYX GORDAR => USE
+			//ELSE IF ESSENCE => MAKI
+			//ELSE BRIE
+		}
+	}
 }
-function shdefaultTrapcheck() {
+function shdefaultTrapcheck(){
 	if (sh_mode == BEFORETRAPCHECK)
 	{
 		//var tcweapon = ...;

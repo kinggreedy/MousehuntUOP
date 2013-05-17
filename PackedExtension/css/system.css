@@ -1,0 +1,347 @@
+.UOP_hgMenu {padding: 0px 8px 0px 0px!important;
+	cursor: pointer;
+	height: 35px;
+}
+.UOP_hgMenu .userPic {
+	float: left;
+	width :40px;
+	position: relative;
+}
+.UOP_hgMenu .picture {
+	width: 29px;
+	height: 29px;
+	position: relative;
+	top: 3px;
+	left: 0px;
+	margin-left: 5px;
+}
+.UOP_hgMenu .userText {
+	float: right;
+	padding-top: 10px;
+	font-size: 12px;
+	color: #64696D;
+	font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
+	font-weight: bold;
+}
+.UOP_hgMenu a {
+	text-decoration: none;
+}
+#UOP_appControlPanel {
+	float: left;
+	padding-right: 4px;
+}
+#UOP_appControlPanel .picture {
+	background: url("/images/controlpanelbutton.png");
+}
+#UOP_toScriptMessage, #UOP_toWindowMessage {
+	display:none;
+}
+#UOP_cpdiv {
+	width: 646px;
+}
+#UOP_cpdiv, #UOP_settingdiv, .UOP_drawertaskbar {
+	font-family: "Segoe UI";
+	font-size: 12px;
+	color: #323232;
+	text-shadow: none;
+}
+.UOP_drawertaskbar {
+	background-color: #3c454f;
+	height: 60px;
+	position: relative;
+	text-align: center;
+	color: #fff;
+}
+.UOP_button {
+	background-color: transparent;
+	border: 0;
+	width: 85px;
+	height: 60px;
+	font-size: 9px;
+	color: #fff;
+	cursor: pointer;
+	text-decoration: none;
+	display:inline-block;
+}
+.UOP_buttonseparator {
+	background-color: transparent;
+	border: 0;
+	width: 85px;
+	display: inline-block;
+}
+.UOP_button:hover {
+	background-color: #505861;
+}
+.UOP_buttonicon {
+	padding-top: 2px;
+	position: relative;
+	overflow: hidden;
+	width: 32px;
+	height: 32px;
+	margin: 0 auto;
+	padding: 4px 0 0;
+}
+.UOP_buttontext {
+	text-align: center;
+	text-transform: uppercase;
+	line-height: 1em;
+	word-wrap: break-word;
+	padding: 0 2px;
+}
+.UOP_section h2 {
+	border: 0;
+	float: left;
+	margin-bottom: 0;
+	padding-bottom: 5px;
+	font-size: 20px;
+	border-bottom: 2px solid #88b9e3;
+	margin: 10px 0 22px 0;
+	font-family: "Segoe UI Light";
+	font-weight: normal;
+	min-width: 100%;
+}
+.UOP_settinggroup {
+	transition: all 0.7s ease-in-out;
+	-moz-transition: all 0.7s ease-in-out;
+	-webkit-transition: all 0.7s ease-in-out;
+	-o-transition: all 0.7s ease-in-out;
+	opacity: 1;
+	overflow: hidden;
+}
+.UOP_setting >label {
+	display: block;
+	padding-top: 10px;
+	font-size: 11px;
+	font-family: "Segoe UI Semibold";
+	text-transform: uppercase;
+	float: left;
+	width: 218px;
+	word-wrap: break-word;
+}
+.UOP_setting ul {
+	list-style-type: none;
+}
+.UOP_setting {
+	position: relative;
+	border-bottom: 1px solid #d8d8d8;
+	padding-bottom: 18px;
+	margin-top: 18px;
+	min-height: 37px;
+	display: block;
+	clear: both;
+	display: block;
+}
+.UOP_settingvalue {
+	display: inline-block;
+}
+.UOP_settingvalue ul {
+	display: block;
+	float: left;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding-left: 0px;
+}
+.UOP_settingvalue li {
+	float:left;
+	border:2px solid #ccc;
+	margin-right:-2px;
+}
+.UOP_settingvalue li:hover {background-color:#ddd}
+.UOP_settingvalue li[aria-checked="true"] {
+	position:relative;
+	background-color:#c84fd7;
+	border-color:#434343;
+	color:#fff;
+}
+.UOP_settingvalue li[aria-checked="true"][origin="true"] {background-color:#4f9dd7;}
+.UOP_settingvalue li {
+	min-width:46px;
+	line-height:20px;
+	padding:5px;
+	text-align:center;
+	text-transform:uppercase;
+	color:#535353;
+	cursor:default;
+}
+.UOP_settingvalue input[type="text"] {
+	vertical-align: bottom;
+	width: 36px;
+}
+.UOP_scriptDiv {
+	margin-left: -70px;
+	overflow-y:hidden;
+	height:200px;
+}
+.UOP_scriptDiv:hover {
+	overflow-y:scroll;
+}
+.UOP_table thead tr th {
+	cursor:pointer;
+	width: 100px;
+	border-bottom: 3px solid #ccc;
+	font-family: "Segoe UI Semibold";
+	font-weight: bold;
+	text-transform: uppercase;
+	font-size: 11px;
+	padding: 0 0 0 10px;
+	border-right: 1px solid #ccc;
+	text-align: left;
+	line-height: 24px;
+}
+.UOP_table thead tr th:hover {
+	background-color: #f2f2f2;
+}
+.UOP_table thead tr th:last-child {
+	border-right-color: #fff;
+}
+.UOP_table tbody tr td {
+	cursor:default;
+	padding: 0 0 0 10px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 11px;
+	line-height: 30px;
+	border-bottom: 1px solid #fff;
+}
+.UOP_table tbody tr td:first-child {
+	cursor:pointer;
+	font-family: "Segoe UI Semibold";
+	background-color: #e1f3fb;
+}
+.UOP_table tbody tr:hover {
+	background-color: #daf0fa;
+}
+.UOP_table tbody tr:hover td {
+	border-bottom-color: #e9f6fc;
+}
+.UOP_table tbody tr:hover td:first-child {
+	background-color: #c3e7f7;
+	border-bottom-color: #c3e7f7;
+	background-repeat: no-repeat;
+	background-position: right center;
+}
+.UOP_table tbody tr:hover td:first-child:hover {background-color: #71b1d1;}
+.UOP_table tbody tr:first-child td {border-top: 10px solid #fff;}
+.UOP_table tbody tr[aria-selected="true"] td {
+	color: #fff;
+	background-color: #6ac4ea;
+}
+.UOP_table tbody tr[aria-selected="true"] td:first-child {
+	background-color: #3aa0cc;
+	background-repeat: no-repeat;
+	background-position: right center;
+}
+.UOP_table tfoot tr {
+	cursor: default;
+	line-height: 24px;
+}
+.UOP_table tfoot tr:hover {background-color: #f2f2f2;}
+.UOP_table tfoot tr:hover td:first-child {background-color: #cecece;}
+.UOP_table tfoot tr td:first-child {
+	padding-bottom: 4px;
+	padding-right: 6px;
+	cursor:pointer;
+	color: #fff;
+	background-color: #bdbdbd;
+	font-weight: bold;
+	font-size: 20px;
+	text-align: right;
+}
+.UOP_table tfoot tr td:first-child:hover{background-color: #dfdfdf;}
+#UOP_scriptTable tr:hover td:first-child, #UOP_scriptTable tr[aria-selected="true"] td:first-child {
+	background-image: url("/images/arrow.png");
+}
+#UOP_scriptTable tr td:first-child {width: 230px;}
+#UOP_scriptTable tr td .UOP_scriptStatusImg {
+	width: 16px;
+	height: 16px;
+	position: relative;
+	overflow: hidden;
+	display: inline-block;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Running"] {
+	background-image: url("/images/tick.png");
+}
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Stopped"] {
+	background-image: url("/images/stop.png");
+}
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Paused"] {
+	background-image: url("/images/pause.png");
+}
+#UOP_scriptTable tr td .UOP_scriptStatusImg[status="Error"] {
+	background-image: url("/images/error.png");
+}
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Running"] {
+	background-image: url("/images/tickwhite.png");
+}
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Stopped"] {
+	background-image: url("/images/stopwhite.png");
+}
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Paused"] {
+	background-image: url("/images/pausewhite.png");
+}
+#UOP_scriptTable tr[aria-selected="true"] td .UOP_scriptStatusImg[status="Error"] {
+	background-image: url("/images/errorwhite.png");
+}
+#UOP_access_token {width:116px;}
+#UOP_serverUrl {width:128px;}
+#UOP_cacheKRstr {width:56px;}
+#UOP_alarmSrc {width:108px;}
+#UOP_update_available, #UOP_is_uptodate, #UOP_cannot_update {display:none;}
+#UOP_update_available div, #UOP_is_uptodate div, #UOP_cannot_update div {
+	display:inline-block;
+	width: 17px;
+	height: 17px;
+	top: 3px;
+	position: relative;
+}
+#UOP_update_available div {
+	background-image: url("/images/updateavailable.png");
+}
+#UOP_is_uptodate div {
+	background-image: url("/images/uptodate.png");
+}
+#UOP_cannot_update div {
+	background-image: url("/images/servernotavailable.png");
+}
+#UOP_is_uptodate div, #UOP_cannot_update div {
+	top: 3px;
+	position: relative;
+}
+#UOP_buttonGeneral .UOP_buttonicon {
+	background-image: url("/images/generalbutton.png");
+}
+#UOP_buttonBot .UOP_buttonicon {
+	background-image: url("/images/botbutton.png");
+}
+#UOP_buttonSchedule .UOP_buttonicon {
+	background-image: url("/images/schedulebutton.png");
+}
+#UOP_buttonSave .UOP_buttonicon,#UOP_buttonSaveScript .UOP_buttonicon {
+	background-image: url("/images/savebutton.png");
+}
+#UOP_buttonReset .UOP_buttonicon,#UOP_buttonCancelScript .UOP_buttonicon {
+	background-image: url("/images/resetbutton.png");
+}
+#UOP_buttonDeleteScript .UOP_buttonicon {
+	background-image: url("/images/cancelbutton.png");
+}
+.UOP_hiddenTaskbar {
+	display: none;
+	opacity: 0;
+}
+.UOP_activeTaskbar {
+	display: block;
+	opacity: 1;
+	}
+#UOP_scriptFullName, #UOP_scriptName {width: 130px;}
+#UOP_scriptFullName {margin-left:11px;}
+.UOP_scriptContentDiv {margin-left: -70px;}
+#UOP_scriptContent {
+	height: 150px;
+	width: 490px;
+	white-space: nowrap;
+}
