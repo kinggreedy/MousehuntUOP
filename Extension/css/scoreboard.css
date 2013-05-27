@@ -2,14 +2,17 @@
 	font-family: "digital";
 	src: url("/css/DS-DIGIB.TTF") format("truetype");
 }
-
+#hgSideBar {
+	margin-left: 765px;
+	width: 230px;
+}
 #UOP_scoreboardDiv #UOP_tableDiv {height: 390px;overflow:hidden;transition: height 700ms ease-in-out;}
 #UOP_scoreboardDiv.off #UOP_tableDiv {height: 0px;}
 #UOP_scoreboardDiv .UOP_table tbody {counter-reset: UOP_scoreboardRankCounter;}
 #UOP_scoreboardDiv .UOP_table tbody tr {counter-increment: UOP_scoreboardRankCounter;}
 #UOP_scoreboardDiv .UOP_table td .UOP_teamName:before  {content: counter(UOP_scoreboardRankCounter) ". ";}
 #UOP_scoreboardDiv .UOP_table td .UOP_teamName{
-	width: 111px;
+	width: 166px;
 	text-overflow:ellipsis;
 	overflow: hidden;
 	white-space: nowrap;

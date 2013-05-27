@@ -1,18 +1,8 @@
 ﻿compiler & packer
-Unlock tasks ZT
-TIVI save friend
+get assignment from everywhere
 
 schedule FW & Furoma & LG
 schedule have custom defined
 clock
 
 bug: after trapcheck bug
-
-app.views.HeadsUpDisplayView.hud.relicHunterAcceptInvite('100000022885091');
-app.views.HeadsUpDisplayView.hud.relicHunterAcceptInvite('100001042996782');
-Request URL:http://www.mousehuntgame.com/managers/ajax/users/upgradeOnboarding.php
-Request Method:POST
-sn:Hitgrab
-hg_is_ajax:1
-test:true
-uh:HoUw2WB3

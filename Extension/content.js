@@ -102,7 +102,7 @@ var cssArr, jsArr, cssCustomArr, cssjsSetArr;
 var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
-var currentScoreboardChannel,initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
+var currentScoreboardChannel,currentScoreboardChannelTeamData, initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
 var travelPlacesHeight;
 /*******************INITIALIZATION********************/
 function initialization() {
@@ -601,6 +601,11 @@ function createTemplate() {
 	tmp = document.createElement('div');
 	tmp.className = "hgSeparator right";
 	template.hgRight = tmp;
+	
+	tmp = document.createElement('div');
+	tmp.className = "objective clear-block";
+	tmp.innerHTML = '<div class="image"><img src="https://www.mousehuntgame.com/images/mice/thumb/70b81f94dfabf120f5b1bc9b3a421b87.gif?cv=190" width="50" height="50"><div class="status"></div></div><div class="content"><b>Collect 3 Warp Nails from Realm Rippers</b><br><div class="progressBarContainer"><div class="number">1 / 3</div><div class="bar" style="background-position: 66.66666666666667% 50%;"></div></div><div class="description"></div></div>';
+	template.progressObj = tmp;
 }
 function initAppEmulation() {
 	if (S_emulateMode != 0)
@@ -2843,6 +2848,71 @@ function tradeBuyID() {
 	}
 	http.send(params);
 }
+function listenResearchQuest() {
+	if (document.getElementsByClassName("questContainer").length != 0)
+	{
+		showResearchFullButton();
+	}
+	else
+	{
+		setTimeout(listenResearchQuest,200);
+	}
+}
+function showResearchFullButton() {
+	var tmp = document.createElement('a');
+	tmp.textContent = "[Full]";
+	tmp.addEventListener('click',showResearchFullTask,false);
+	document.getElementById("jsDialogAjaxPrefix").appendChild(tmp);
+}
+function showResearchFullTask() {
+	var params = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	var url = C_canvasMode[inCanvas] + "managers/ajax/users/questsprogress.php";
+	
+	var http = new XMLHttpRequest();
+	http.open("POST",url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				try
+				{
+					data = JSON.parse(http.responseText);
+					var questContainer = document.getElementsByClassName("questContainer")[0];
+					questContainer.innerHTML = "";
+					for (var key in data.progress) {
+						if (data.progress.hasOwnProperty(key)) {
+							var obj = data.progress[key].progress;
+							questContainer.innerHTML += "<h2>" + data.progress[key].name + "</h2>";
+							for (var prop in obj) {
+								if (obj.hasOwnProperty(prop)) {
+									var tmp = template.progressObj.cloneNode(true);
+									var objdata = obj[prop];
+									if (objdata.complete) tmp.className += " complete";
+									tmp.getElementsByClassName("image")[0].getElementsByTagName("img")[0].src = objdata.thumb;
+									tmp.getElementsByClassName("content")[0].getElementsByTagName("b")[0].textContent = objdata.string;
+									tmp.getElementsByClassName("number")[0].textContent = objdata.progress + " / " + objdata.repetitions;
+									tmp.getElementsByClassName("bar")[0].style.backgroundPosition = (100 - objdata.progress * 100 / objdata.repetitions) + "% 50%";
+									questContainer.appendChild(tmp);
+								}
+							}
+						}
+					}
+				}
+				catch (e)
+				{
+					showResearchTask();
+				}
+			}
+			else
+			{
+				showResearchTask();
+			}
+		}
+	}
+	http.send(params);
+}
 function defaultFullSkin() {
 	if (location.pathname.indexOf('/forum/') != -1) return;
 	manageCSSJSAdder(4);
@@ -3100,6 +3170,8 @@ function defaultFullSkin() {
 		tmp = document.getElementById('friendsOnlineCampTab');
 		tmp.style.display = "none";
 		tmp.parentNode.insertBefore(friendtmp,tmp);
+		
+		document.getElementById("questBarDetails").addEventListener("click",listenResearchQuest,false);
 	}
 	
 	if (location.pathname.indexOf("/inventory.php") != -1)
@@ -3203,7 +3275,7 @@ function defaultFullSkin() {
 	registerSoundHornWaiting.push(updateHud);
 	registerSoundHornWaiting.push(skinSecondTimer);
 }
-/*******************ADS AREA*********************/
+/*******************FUN AREA*********************/
 function removeAds() {
 	//remove mousehunt ads
 	var rightCol = document.getElementById('hgSideBar'); //mousehunt ads
@@ -3235,13 +3307,13 @@ function addScoreboard() {
 	var button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Off";
-	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 0;switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 0;localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Team";
-	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
@@ -3331,6 +3403,7 @@ function scoreboardTourTimecounter() {
 function searchTournament() {
 	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
 	localStorage.UOP_currentScoreboardChannel = currentScoreboardChannel = O_scoreboardinput.value;
+	localStorage.UOP_currentScoreboardChannelTeamData = "[]";
 	localStorage.UOP_scoreboardTimestamp = scoreboardTimestamp = 0;
 	localStorage.UOP_scoreboardTimestatus = scoreboardTimestatus = "auto";
 	switchChannel();
@@ -3385,6 +3458,8 @@ function getChannel(e) {
 	localStorage.UOP_channelScoreboard = S_channelScoreboard = 2;
 	localStorage.UOP_scoreboardTimestamp = scoreboardChannel[currentScoreboardChannel].timeleft;
 	localStorage.UOP_scoreboardTimestatus = scoreboardChannel[currentScoreboardChannel].status;
+	currentScoreboardChannelTeamData = scoreboardChannel[currentScoreboardChannel].team;
+	localStorage.UOP_currentScoreboardChannelTeamData = JSON.stringify(currentScoreboardChannelTeamData);
 	switchChannel();
 	activeGetSB = 0;
 }
@@ -3463,7 +3538,12 @@ function switchChannel() {
 			}
 			else currentScoreboardChannel = 0;
 			break;
-		case 2:currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);scoreboardTimestamp = Number(window.localStorage.UOP_scoreboardTimestamp);scoreboardTimestatus = window.localStorage.UOP_scoreboardTimestatus;break;
+		case 2:
+			currentScoreboardChannel = Number(window.localStorage.UOP_currentScoreboardChannel);
+			scoreboardTimestamp = Number(window.localStorage.UOP_scoreboardTimestamp);
+			scoreboardTimestatus = window.localStorage.UOP_scoreboardTimestatus;
+			currentScoreboardChannelTeamData = JSON.parse(localStorage.UOP_currentScoreboardChannelTeamData);
+			break;
 	}
 	updateScoreboard();
 }
@@ -3535,22 +3615,23 @@ function updateScoreboard() {
 					status = 2;
 				}
 				else if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Active";
-				HTMLstr = HTMLstr.substring(HTMLstr.indexOf('<div class="FD-content clear-block dialogBox-TournamentWhite"><div class="clear-block">'),HTMLstr.indexOf('Full Scoreboard</a></div>') + 25);
+				var scoreboardTableIndex = HTMLstr.indexOf('<table class="scoreboard-tournaments">');
+				HTMLstr = HTMLstr.substring(scoreboardTableIndex,HTMLstr.indexOf('</table>',scoreboardTableIndex) + 8);
 				O_scoreboardFetch.innerHTML = HTMLstr;
-				var rawSBTeamName = O_scoreboardFetch.getElementsByClassName('tournamentTeamName');
-				var rawSBTeamScore = O_scoreboardFetch.getElementsByClassName('tournamentScore');
+				var rawSBTeamName = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamName');
+				var rawSBTeamScore = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamScore');
 				var i,j;
 				for (i = 0;i < rawSBTeamName.length;++i)
 				{
-					HTMLstr = rawSBTeamName[i].firstElementChild.href;
+					HTMLstr = rawSBTeamName[i].lastElementChild.href;
 					HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
 					HTMLstr = Number(HTMLstr);
 					if (HTMLstr == scoreboardMyTeamID) O_scoreboard[i].setAttribute("teamtype","my"); else
 					{
 						O_scoreboard[i].setAttribute("teamtype","none");
-						if (scoreboardChannel[currentScoreboardChannel] != null)
-							for (j = 0;j < scoreboardChannel[currentScoreboardChannel].team.length;++j)
-								if (scoreboardChannel[currentScoreboardChannel].team[j] == HTMLstr)
+						if (currentScoreboardChannelTeamData != [])
+							for (j = 0;j < currentScoreboardChannelTeamData.length;++j)
+								if (currentScoreboardChannelTeamData[j] == HTMLstr)
 								{
 									O_scoreboard[i].setAttribute("teamtype","ally");
 									break;
@@ -3558,7 +3639,7 @@ function updateScoreboard() {
 					}
 					
 					O_scoreboard[i].setAttribute('teamid',HTMLstr);
-					O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].firstElementChild.textContent;
+					O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].lastElementChild.textContent;
 					O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
 				}
 				for (;i < O_scoreboard.length;++i)
