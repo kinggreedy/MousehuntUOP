@@ -1,0 +1,171 @@
+.lux-countdown {
+	float:left;
+	width:200px;
+	height:auto;
+	box-shadow:0 3px 6px rgba(0,0,0,0.45);
+	-webkit-box-shadow:0 3px 6px rgba(0,0,0,0.45);
+	-moz-box-shadow:0 3px 6px rgba(0,0,0,0.45);
+	-o-box-shadow:0 3px 6px rgba(0,0,0,0.45);
+	background:#e6e6e6;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#E6E6E6');
+	background:-webkit-gradient(linear,left top,left bottom,from(#fff),to(#e6e6e6));
+	background:-moz-linear-gradient(top,#fff,#e6e6e6);
+	background:-o-linear-gradient(top,#fff,#e6e6e6);
+	border-radius:6px;
+	padding:12px;
+	font:14px Verdana,Arial,Geneva,Helvetica,sans-serif;
+	color:#1e1e1e;
+	line-height:17px;
+}
+.lux-countdown p {
+	float:left;
+	width:100%;
+	margin: auto;
+}
+.lux-countdown-title {
+	font-size:20px;
+	line-height:23px;
+	height:23px;
+	font-weight:bold;
+	text-shadow:0 0 1px #222;
+	transition: color 1s;
+}
+.lux-countdown-text {
+	height:auto;
+	text-shadow:0 0 1px #222;
+	transition: color 1s;
+}
+.lux-countdown-text,.lux-countdown-countdown,.lux-countdown-datesWrap,.lux-countdown-countdownBar {
+	margin-top:6px
+}
+.lux-countdown-datesWrap {
+	margin-top:12px;
+	text-align:center;
+	font-weight: bold;
+}
+.lux-countdown-countdown {
+	margin-top:24px;
+	text-align:center;
+	line-height:23px;
+	height:23px;
+	font-size:23px;
+	text-shadow:0 0 1px #222;
+}
+.lux-countdown-datesWrap span {
+	font-size:12px;
+}
+.lux-countdown-start {
+	float:left;
+	transition: color 1s;
+}
+.lux-countdown-end {
+	float:right;
+	transition: color 1s;
+}
+.lux-countdown-mid {
+	transition: color 1s;
+}
+.lux-countdown-perc {
+	color:red;
+	transition-property:opacity;
+	transition-duration:.5s;
+	-webkit-transition-property:opacity;
+	-webkit-transition-duration:.5s;
+	-moz-transition-property:opacity;
+	-moz-transition-duration:.5s;
+	-0-transition-property:opacity;
+	-0-transition-duration:.5s;
+	opacity:0;
+	filter:alpha(opacity=0);
+	filter:"alpha(opacity=0)";
+	text-shadow:0 0 5px #d00
+}
+.lux-countdown-countdownBar {
+	border:1px solid #ccc;
+	border-radius:3px;
+	height:10px;
+	padding:2px;
+	transition-property:border-color;
+	transition-duration:.5s;
+	-webkit-transition-property:border-color;
+	-webkit-transition-duration:.5s;
+	-moz-transition-property:border-color;
+	-moz-transition-duration:.5s;
+	-o-transition-property:border-color;
+	-o-transition-duration:.5s;
+}
+.lux-countdown-countdownBar:hover {
+	border-color:#ff7f00;
+	opacity:.5;
+	filter:alpha(opacity=50)
+}
+.lux-countdown-countdownBar span {
+	float:left;
+	border-radius:3px;
+	background:#ff7f00;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFD700',endColorstr='#FF7F00');
+	background:-webkit-gradient(linear,left top,left bottom,from(#ffd700),to(#ff7f00));
+	background:-moz-linear-gradient(top,#ffd700,#ff7f00);
+	background:-o-linear-gradient(top,#ffd700,#ff7f00);
+	height:10px
+}
+.lux-countdown-countdownBar:hover span {
+	background:#f00;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF7F00',endColorstr='#FF0000');
+	background:-webkit-gradient(linear,left top,left bottom,from(#ff7f00),to(#f00));
+	background:-moz-linear-gradient(top,#ff7f00,#f00);
+	background: -o-linear-gradient(top,#ff7f00,#f00)
+}
+.UOP_FGclosed .lux-countdown-countdownBar:hover {
+	border-color:#979797;
+}
+.UOP_FGclosed .lux-countdown-countdownBar span {
+	background:#979797;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#CACACA',endColorstr='#979797');
+	background:-webkit-gradient(linear,left top,left bottom,from(#CACACA),to(#979797));
+	background:-moz-linear-gradient(top,#CACACA,#979797);
+	background:-o-linear-gradient(top,#CACACA,#979797);
+}
+.UOP_FGclosed .lux-countdown-countdownBar:hover span {
+	background:#f00;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#979797',endColorstr='#f00');
+	background:-webkit-gradient(linear,left top,left bottom,from(#979797),to(#f00));
+	background:-moz-linear-gradient(top,#979797,#f00);
+	background: -o-linear-gradient(top,#979797,#f00)
+}
+.UOP_FGopen .lux-countdown-start {color: green;}
+.UOP_FGopen .lux-countdown-end {color: red;}
+.UOP_FGclosed .lux-countdown-start {color: #4C4C4C;}
+.UOP_FGclosed .lux-countdown-end {color: #969696;}
+
+.UOP_BClow .lux-countdown-title, .UOP_BClow .lux-countdown-text {color: #4682B4;text-shadow:0 0 1px #90B4D2;}
+.UOP_BClow .lux-countdown-start {color: #4682B4;}
+.UOP_BClow .lux-countdown-mid {color: LightBlue;}
+.UOP_BClow .lux-countdown-end {color: LightBlue;}
+.UOP_BCmedium .lux-countdown-title, .UOP_BCmedium .lux-countdown-text {color: #1E90FF;text-shadow:0 0 1px #62B1FF;}
+.UOP_BCmedium .lux-countdown-start {color: #4682B4;}
+.UOP_BCmedium .lux-countdown-mid {color: #1E90FF;}
+.UOP_BCmedium .lux-countdown-end {color: LightBlue;}
+.UOP_BChigh .lux-countdown-title, .UOP_BChigh .lux-countdown-text {color: blue;text-shadow:0 0 1px #22f;}
+.UOP_BChigh .lux-countdown-start {color: #4682B4;}
+.UOP_BChigh .lux-countdown-mid {color: #1E90FF;}
+.UOP_BChigh .lux-countdown-end {color: blue;}
+#UOP_BCclock .lux-countdown-countdownBar-bar {
+	background-image: url('/images/cove_tidebar.png');
+	background-repeat: no-repeat;
+	position: relative;
+	transition: height 1s, top 1s, background-position 1s;
+}
+#UOP_BCclock.UOP_BClow .lux-countdown-countdownBar-bar {
+	height: 6px;
+	background-position: 0 -23px;
+	top: 4px;
+}
+#UOP_BCclock.UOP_BCmedium .lux-countdown-countdownBar-bar {
+	height: 10px;
+	background-position: 0 -19px;
+}
+#UOP_BCclock.UOP_BChigh .lux-countdown-countdownBar-bar {
+	height: 29px;
+	top: -19px;
+}

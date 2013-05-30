@@ -1,8 +1,8 @@
 ﻿compiler & packer
-get assignment from everywhere
+get assignment from everywhere app.views.HeadsUpDisplayView.hud.zugzwangsLibraryQuestShopPopup();
+SG, BC clock
 
-schedule FW & Furoma & LG
 schedule have custom defined
-clock
-
+schedule FW & Furoma & LG
 bug: after trapcheck bug
+

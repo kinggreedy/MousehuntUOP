@@ -86,6 +86,44 @@
 }
 #hgDropDownCommunity {right: 91px;}
 #hgDropDownSupport {right: 5px;}
+.gamelogo {
+	background-image:url("/images/LGS.png") !important;
+	transition: opacity 2s;
+}
+#UOP_LGSTimerDayLeft {
+	position: relative;
+	top: -115px;
+	text-align: center;
+	color: white;
+	font-weight: bold;
+}
+#UOP_LGSTimerDay {
+	position: relative;
+	font-weight: bolder;
+	text-align: center;
+	color: white;
+}
+.UOP_LGSTimerDay {
+	top: -115px;
+	left: 41px;
+	width: 50px;
+	font-size: 24px;
+}
+.UOP_LGSTimerToday {
+	top: -100px;
+	font-size: 20px;
+}
+.UOP_LGSTimerToday + #UOP_LGSTimerDayLeft {
+	display: none;
+}
+#UOP_LGSTimerHourMin {
+	position: relative;
+	top: -41px;
+	color: #9A1107;
+	font-size: 17px;
+	font-weight: bolder;
+	text-align: center;
+}
 #UOP_simpleSkin {float: left;}
 #UOP_simpleSkin .picture {
 	background: url("/images/simpleskinbutton.png");

@@ -6,6 +6,10 @@
 	margin-left: 765px;
 	width: 230px;
 }
+#UOP_tournamentID {
+	position: relative;
+	top: -7px;
+}
 #UOP_scoreboardDiv #UOP_tableDiv {height: 390px;overflow:hidden;transition: height 700ms ease-in-out;}
 #UOP_scoreboardDiv.off #UOP_tableDiv {height: 0px;}
 #UOP_scoreboardDiv .UOP_table tbody {counter-reset: UOP_scoreboardRankCounter;}

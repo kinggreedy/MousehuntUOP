@@ -11,6 +11,7 @@ var C_MinuteInterval = 60;
 var C_autoInterval = 1;
 var C_solveStage = 2; //maximum stages of process, offline = 2, server = 4
 var C_cpcontent,C_cpprefix,C_cpsuffix,C_cpstyle,C_cpmessage,C_tabNum,C_groupNum,C_autopanel,C_scoreboardContent;
+var C_toolboxMessage;
 //Constants
 var C_LOCATION_TIMES = [
 	{
@@ -45,18 +46,18 @@ var C_LOCATION_TIMES = [
 		state: ['OPEN', 'CLOSED'],
 		shortstate: ['OPEN','CLOSED'],
 		color: ['LightGreen', 'Red']
-	},
-	{
-		name: 'Relic Hunter',
-		shortname: "RH",
-		id: 'UOP_locationTimerRelicHunter',
-		base: 1346284800,
-		totaltime: 604800,
-		length: [86400, 86400, 86400, 86400, 86400, 86400, 86400],
-		state: ['Mountain', 'Town of Digby', 'Laboratory', 'S. S. Huntington III', 'Seasonal Garden', 'Slushy Shoreline', 'Muridae Market'],
-		shortstate: ['Mt.', 'ToD', 'Lab', 'SSH', 'SG', 'SS', 'MM'],
-		color: ['#CD853F', '#8B4513', 'Skyblue', 'Blue', 'Green', 'Silver', '#B22222']
-	}
+	}//,
+	//{
+		//name: 'Relic Hunter',
+		//shortname: "RH",
+		//id: 'UOP_locationTimerRelicHunter',
+		//base: 1346284800,
+		//totaltime: 604800,
+		//length: [86400, 86400, 86400, 86400, 86400, 86400, 86400],
+		//state: ['Mountain', 'Town of Digby', 'Laboratory', 'S. S. Huntington III', 'Seasonal Garden', 'Slushy Shoreline', 'Muridae Market'],
+		//shortstate: ['Mt.', 'ToD', 'Lab', 'SSH', 'SG', 'SS', 'MM'],
+		//color: ['#CD853F', '#8B4513', 'Skyblue', 'Blue', 'Green', 'Silver', '#B22222']
+	//}
 ];
 var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
@@ -81,11 +82,12 @@ var S_channelScoreboard;
 
 //Object Variables
 var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
-var O_huntTimer,O_LGSTimer,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
+var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel, O_scoreboardStatus, O_scoreboardCounter;
+var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGcounter;
 
 //Auto Variables
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
@@ -128,6 +130,7 @@ function initialization() {
 function initVariables() {
 	O_hornHeader = document.getElementById('header');
 	O_hgRow = document.getElementById('hgRow');
+	O_gamelogo = document.getElementsByClassName('gamelogo')[0];
 	O_hornButton = document.getElementsByClassName('hornbutton')[0].firstChild;
 	O_hornButton.addEventListener('click',soundHorn,false);
 	
@@ -532,6 +535,17 @@ function runTimeCreateConstant() {
 	popup.addToken('{*prefix*}','"+ C_cpstyle.toString() + C_cpprefix.toString() + "');\
 	popup.addToken('{*content*}','" + C_cpcontent.toString() + "');\
 	popup.addToken('{*suffix*}','" + C_cpsuffix.toString() + "');\
+	popup.show();\
+	delete popup;";
+	
+	C_toolboxMessage = "\
+	var popup = new jsDialog();\
+	popup.addToken('{*content*}','\
+	<h2 style=" + '"font-weight:bold;"' + ">These features are very dangerous, please think twice before advancing any further.</h2>\
+	<ul style=" + '"list-style-type: disc;margin: 5px 0 0 25px;"' + ">\
+		<li><a onclick=" + '"app.views.HeadsUpDisplayView.hud.zugzwangsLibraryQuestShopPopup();"' + ">Get Library Assignment</a></li>\
+	</ul>\
+	');\
 	popup.show();\
 	delete popup;";
 }
@@ -1237,6 +1251,13 @@ function formatMinute(sec) {
 	var min = Math.floor(sec / 60);
 	sec = sec % 60;
 	var textTime = min+":"+(sec < 10 ? '0'+sec : sec);
+	return textTime;
+}
+function formatHourMin(sec) {
+	var hour = Math.floor(sec / 3600); 
+	var min = Math.floor(sec / 60) % 60;
+	sec = sec % 60;
+	var textTime = (hour<10?"0"+hour:hour) + ":" + (min<10?"0"+min:min);
 	return textTime;
 }
 function formatHour(sec) {
@@ -2277,6 +2298,9 @@ function toggleSkin() {
 	window.localStorage.UOP_simple = 1 - S_simple;
 	location.reload();
 }
+function showToolbox() {
+	window.postMessage({name: "UOP_eval", data: C_toolboxMessage},location.origin);
+}
 //DEFAULT skin
 function defaultSkin() {
 	if (S_simple == 0) defaultFullSkin(); else defaultSimpleSkin();
@@ -2683,7 +2707,7 @@ function updateMinuteTimer() {
 	var locationTimerObject,timetmp,t1,t2;
 	var currentDate = new Date();
 	var currentTime = Math.floor(currentDate.getTime() / 1000);
-	var i,j;
+	var i,j,day;
 	for (i = 0;i < C_LOCATION_TIMES.length;++i)
 	{
 		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
@@ -2703,14 +2727,34 @@ function updateMinuteTimer() {
 		locationTimerObject = document.getElementById(C_LOCATION_TIMES[i].id);
 		locationTimerObject.innerHTML = "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].state[j]+ "</span>" + " - " + timetmp;
 	}
-	if (data.user.has_shield == false) O_LGSTimer.innerHTML = "Expired";
+	if (data.user.has_shield == false)
+	{
+		O_gamelogo.style.opacity = 0;
+		O_LGSTimerHourMin.textContent = "Expired";
+	}
 	else
 	{
 		timetmp = data.user.shield_expiry.split('-');
 		timetmp = Date.UTC(timetmp[0],timetmp[1] - 1,timetmp[2]);
 		timetmp = Math.floor((new Date(timetmp) - currentDate) / 1000);
-		timetmp = formatWeek(timetmp);
-		O_LGSTimer.textContent = timetmp;
+		if (timetmp < 0)
+		{
+			O_gamelogo.style.opacity = 0;
+			O_LGSTimerHourMin.textContent = "Expired";
+		}
+		else
+		{
+			day = Math.floor(timetmp / (60 * 60 * 24));
+			timetmp = (timetmp % (60 * 60 * 24));
+			timetmp = formatHourMin(timetmp);
+			O_LGSTimerDay.textContent = (day == 0) ? "Today" : day;
+			O_LGSTimerHourMin.textContent = timetmp;
+			if (day == 0) O_LGSTimerDay.className = "UOP_LGSTimerToday"; else
+			{
+				O_LGSTimerDayLeft.textContent = ((day == 1) ? "day" : "days") + " left";
+				O_LGSTimerDay.className = "UOP_LGSTimerDay";
+			}
+		}
 	}
 	
 	//set the minute time interval
@@ -3047,8 +3091,18 @@ function defaultFullSkin() {
 	
 	//=======gameinfo changes=======
 	//add Golden shield expires day (more obvious)
-	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.innerHTML = "<span style='font-weight: bold;'>LGS:</span> <span id='UOP_LGSTimer' style='color: #3B5998; font-weight: bold;'></span>";
-	O_LGSTimer = document.getElementById('UOP_LGSTimer');
+	O_LGSTimerHourMin = document.createElement("div");
+	O_LGSTimerHourMin.id = "UOP_LGSTimerHourMin";
+	O_gamelogo.appendChild(O_LGSTimerHourMin);
+	O_LGSTimerDay = document.createElement("div");
+	O_LGSTimerDay.id = "UOP_LGSTimerDay";
+	O_gamelogo.appendChild(O_LGSTimerDay);
+	O_LGSTimerDayLeft = document.createElement("div");
+	O_LGSTimerDayLeft.id = "UOP_LGSTimerDayLeft";
+	O_gamelogo.appendChild(O_LGSTimerDayLeft);
+	
+	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.innerHTML = "<a>Toolbox</a>";
+	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.firstChild.addEventListener("click",showToolbox,false);
 	
 	//=======NAVIGATOR changes======
 	//move camp and marketplace button
@@ -3171,7 +3225,8 @@ function defaultFullSkin() {
 		tmp.style.display = "none";
 		tmp.parentNode.insertBefore(friendtmp,tmp);
 		
-		document.getElementById("questBarDetails").addEventListener("click",listenResearchQuest,false);
+		tmp = document.getElementById("questBarDetails");
+		if (tmp != null) tmp.addEventListener("click",listenResearchQuest,false);
 	}
 	
 	if (location.pathname.indexOf("/inventory.php") != -1)
@@ -3249,8 +3304,8 @@ function defaultFullSkin() {
 		locationTimerObject.innerHTML = "<span class='hudstatlabel'>" + C_LOCATION_TIMES[i].name + ": </span><span id='" + C_LOCATION_TIMES[i].id + "'></span>";
 		O_locationTimer[i] = locationTimerObject.lastChild;
 	}
-	document.getElementsByClassName('gameinfo')[0].firstChild.firstChild.innerHTML = "<span style='font-weight: bold;'>" + C_LOCATION_TIMES[3].name + ": </span><span id='" + C_LOCATION_TIMES[3].id + "'></span>";
-	O_locationTimer[3] = locationTimerObject.lastChild;
+	//document.getElementsByClassName('gameinfo')[0].firstChild.firstChild.innerHTML = "<span style='font-weight: bold;'>" + C_LOCATION_TIMES[3].name + ": </span><span id='" + C_LOCATION_TIMES[3].id + "'></span>";
+	//O_locationTimer[3] = locationTimerObject.lastChild;
 	
 	//New bait number location
 	var baitnum = document.getElementById('hud_baitIcon').parentNode;
@@ -3294,6 +3349,154 @@ function removeAds() {
 }
 function addThings() {
 	addScoreboard();
+	addClock();
+}
+function addClock() {
+	O_clockDiv = document.createElement("div");
+	O_clockDiv.id = "UOP_clockDiv";
+	O_funArea.appendChild(O_clockDiv);
+	
+	var css = document.createElement('link');
+	css.rel = 'stylesheet';
+	css.href = chrome.extension.getURL("resources/luxCountdown/luxCountdown.css");
+	document.head.appendChild(css);
+	
+	addFGClock();
+	addBCClock();
+	addSGClock();
+}
+function addFGClock() {
+	O_FGclock = document.createElement("div");
+	O_FGclock.id = "UOP_FGclock";
+	O_clockDiv.appendChild(O_FGclock);
+	
+	O_FGcounter = new luxCountdown({title:"Forbidden Grove",callbackFunc:updateFGClock,text:"LOADING",startText:"Loading...",endText:"Loading..."});
+	document.getElementById("UOP_FGclock").appendChild(O_FGcounter.getCountdown());
+	
+	updateFGClock();
+}
+function updateFGClock() {
+	var currentDate = new Date();
+	var currentTime = Math.floor(currentDate.getTime() / 1000);
+	
+	var timetmp = (currentTime - C_LOCATION_TIMES[2].base) % C_LOCATION_TIMES[2].totaltime;
+	
+	var j,nextj;
+	for (j = 0;j < C_LOCATION_TIMES[2].length.length;++j)
+	{
+		timetmp -= C_LOCATION_TIMES[2].length[j];
+		if (timetmp < 0) break;
+		else if (timetmp == 0)
+		{
+			j = (j + 1) % C_LOCATION_TIMES[2].length.length;
+			timetmp = -C_LOCATION_TIMES[2].length[j];
+			break;
+		}
+	}
+	nextj = (j + 1) % C_LOCATION_TIMES[2].length.length;
+	timetmp = -timetmp; //secleft
+	var end = new Date((currentTime + timetmp) * 1000);
+	var start = new Date((currentTime + timetmp - C_LOCATION_TIMES[2].length[j]) * 1000);
+	
+	O_FGclock.className = "UOP_FG" + C_LOCATION_TIMES[2].state[j].toLowerCase();
+	O_FGcounter._start = start;
+	O_FGcounter._end = end;
+	O_FGcounter._theTimer.getElementsByClassName("lux-countdown-text")[0].textContent = C_LOCATION_TIMES[2].state[j];
+	O_FGcounter._theTimer.getElementsByClassName("lux-countdown-start")[0].textContent = C_LOCATION_TIMES[2].state[j][0] + C_LOCATION_TIMES[2].state[j].slice(1).toLowerCase();
+	O_FGcounter._theTimer.getElementsByClassName("lux-countdown-end")[0].textContent = C_LOCATION_TIMES[2].state[nextj][0] + C_LOCATION_TIMES[2].state[nextj].slice(1).toLowerCase();
+	O_FGcounter._startTimer();
+}
+function addBCClock() {
+	O_BCclock = document.createElement("div");
+	O_BCclock.id = "UOP_BCclock";
+	O_clockDiv.appendChild(O_BCclock);
+	
+	O_BCcounter = new luxCountdownExpand({title:"Balack's Cove",callbackFunc:updateBCClock,text:"LOADING",startText:"Low",midText:"Medium",endText:"High"});
+	document.getElementById("UOP_BCclock").appendChild(O_BCcounter.getCountdown());
+	
+	updateBCClock();
+}
+function updateBCClock() {
+	var currentDate = new Date();
+	var currentTime = Math.floor(currentDate.getTime() / 1000);
+	
+	var timetmp = (currentTime - C_LOCATION_TIMES[1].base) % C_LOCATION_TIMES[1].totaltime;
+	var intervalstart = currentTime - timetmp + Math.floor(C_LOCATION_TIMES[1].length[0] / 2);
+	var intervalend = intervalstart + C_LOCATION_TIMES[1].totaltime;
+	if (intervalstart > currentTime)
+	{
+		intervalend = intervalstart;
+		intervalstart = intervalend - C_LOCATION_TIMES[1].totaltime;
+	}
+	
+	intervalstart = new Date(intervalstart * 1000);
+	intervalend = new Date(intervalend * 1000);
+	
+	var j,nextj;
+	for (j = 0;j < C_LOCATION_TIMES[1].length.length;++j)
+	{
+		timetmp -= C_LOCATION_TIMES[1].length[j];
+		if (timetmp < 0) break;
+		else if (timetmp == 0)
+		{
+			j = (j + 1) % C_LOCATION_TIMES[1].length.length;
+			timetmp = -C_LOCATION_TIMES[1].length[j];
+			break;
+		}
+	}
+	nextj = (j + 1) % C_LOCATION_TIMES[1].length.length;
+	timetmp = -timetmp; //secleft
+	var end = new Date((currentTime + timetmp) * 1000);
+	var start = new Date((currentTime + timetmp - C_LOCATION_TIMES[1].length[j]) * 1000);
+	
+	O_BCclock.className = "UOP_BC" + C_LOCATION_TIMES[1].state[j].toLowerCase();
+	O_BCcounter._barstart = intervalstart;
+	O_BCcounter._barend = intervalend;
+	O_BCcounter._start = start;
+	O_BCcounter._end = end;
+	O_BCcounter._theTimer.getElementsByClassName("lux-countdown-text")[0].textContent = C_LOCATION_TIMES[1].state[j];
+	O_BCcounter._startTimer();
+}
+function addSGClock() {
+	O_SGclock = document.createElement("div");
+	O_SGclock.id = "UOP_SGclock";
+	O_clockDiv.appendChild(O_SGclock);
+	
+	O_SGcounter = new luxCountdown({title:"Seasonal Garden",callbackFunc:updateSGClock,text:"LOADING",startText:"Loading...",endText:"Loading..."});
+	document.getElementById("UOP_SGclock").appendChild(O_SGcounter.getCountdown());
+	
+	updateSGClock();
+}
+function updateSGClock() {
+	var currentDate = new Date();
+	var currentTime = Math.floor(currentDate.getTime() / 1000);
+	
+	var timetmp = (currentTime - C_LOCATION_TIMES[0].base) % C_LOCATION_TIMES[0].totaltime;
+	
+	var j,nextj;
+	for (j = 0;j < C_LOCATION_TIMES[0].length.length;++j)
+	{
+		timetmp -= C_LOCATION_TIMES[0].length[j];
+		if (timetmp < 0) break;
+		else if (timetmp == 0)
+		{
+			j = (j + 1) % C_LOCATION_TIMES[0].length.length;
+			timetmp = -C_LOCATION_TIMES[0].length[j];
+			break;
+		}
+	}
+	nextj = (j + 1) % C_LOCATION_TIMES[0].length.length;
+	timetmp = -timetmp; //secleft
+	var end = new Date((currentTime + timetmp) * 1000);
+	var start = new Date((currentTime + timetmp - C_LOCATION_TIMES[0].length[j]) * 1000);
+	
+	if (j == 1) O_SGclock.className = "UOP_SGclosed"; else O_SGclock.className = "";
+	O_SGcounter._start = start;
+	O_SGcounter._end = end;
+	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-text")[0].textContent = C_LOCATION_TIMES[0].state[j];
+	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-start")[0].textContent = C_LOCATION_TIMES[0].state[j][0] + C_LOCATION_TIMES[0].state[j].slice(1).toLowerCase();
+	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-end")[0].textContent = C_LOCATION_TIMES[0].state[nextj][0] + C_LOCATION_TIMES[0].state[nextj].slice(1).toLowerCase();
+	O_SGcounter._startTimer();
 }
 function addScoreboard() {
 	manageCSSJSAdder(8);
@@ -3334,6 +3537,7 @@ function addScoreboard() {
 	O_scoreboardinput.type = "text";
 	O_scoreboardinput.placeholder = "Tournament ID";
 	O_scoreboardinput.className = "UOP_searchinputSB";
+	O_scoreboardinput.addEventListener('keypress',function(e) {if (e.keyCode == 13) searchTournament();},false);
 	O_scoredboardControl.appendChild(O_scoreboardinput);
 	button = document.createElement("button");
 	button.className = "UOP_searchbuttonSB";
@@ -3615,39 +3819,42 @@ function updateScoreboard() {
 					status = 2;
 				}
 				else if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Active";
-				var scoreboardTableIndex = HTMLstr.indexOf('<table class="scoreboard-tournaments">');
-				HTMLstr = HTMLstr.substring(scoreboardTableIndex,HTMLstr.indexOf('</table>',scoreboardTableIndex) + 8);
-				O_scoreboardFetch.innerHTML = HTMLstr;
-				var rawSBTeamName = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamName');
-				var rawSBTeamScore = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamScore');
-				var i,j;
-				for (i = 0;i < rawSBTeamName.length;++i)
+				if (status != 2)
 				{
-					HTMLstr = rawSBTeamName[i].lastElementChild.href;
-					HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
-					HTMLstr = Number(HTMLstr);
-					if (HTMLstr == scoreboardMyTeamID) O_scoreboard[i].setAttribute("teamtype","my"); else
+					var scoreboardTableIndex = HTMLstr.indexOf('<table class="scoreboard-tournaments">');
+					HTMLstr = HTMLstr.substring(scoreboardTableIndex,HTMLstr.indexOf('</table>',scoreboardTableIndex) + 8);
+					O_scoreboardFetch.innerHTML = HTMLstr;
+					var rawSBTeamName = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamName');
+					var rawSBTeamScore = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamScore');
+					var i,j;
+					for (i = 0;i < rawSBTeamName.length;++i)
 					{
-						O_scoreboard[i].setAttribute("teamtype","none");
-						if (currentScoreboardChannelTeamData != [])
+						HTMLstr = rawSBTeamName[i].lastElementChild.href;
+						HTMLstr = HTMLstr.slice(HTMLstr.indexOf("team_id=") + 8);
+						HTMLstr = Number(HTMLstr);
+						if (HTMLstr == scoreboardMyTeamID) O_scoreboard[i].setAttribute("teamtype","my"); else
+						{
+							O_scoreboard[i].setAttribute("teamtype","none");
+							if (currentScoreboardChannelTeamData != [])
 							for (j = 0;j < currentScoreboardChannelTeamData.length;++j)
-								if (currentScoreboardChannelTeamData[j] == HTMLstr)
-								{
-									O_scoreboard[i].setAttribute("teamtype","ally");
-									break;
-								}
+							if (currentScoreboardChannelTeamData[j] == HTMLstr)
+							{
+								O_scoreboard[i].setAttribute("teamtype","ally");
+								break;
+							}
+						}
+						
+						O_scoreboard[i].setAttribute('teamid',HTMLstr);
+						O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].lastElementChild.textContent;
+						O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
 					}
-					
-					O_scoreboard[i].setAttribute('teamid',HTMLstr);
-					O_scoreboard[i].firstElementChild.firstElementChild.textContent = rawSBTeamName[i].lastElementChild.textContent;
-					O_scoreboard[i].lastElementChild.textContent = rawSBTeamScore[i].textContent;
-				}
-				for (;i < O_scoreboard.length;++i)
-				{
-					O_scoreboard[i].setAttribute('teamid','-');
-					O_scoreboard[i].setAttribute("teamtype","none");
-					O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
-					O_scoreboard[i].lastElementChild.textContent = "-----";
+					for (;i < O_scoreboard.length;++i)
+					{
+						O_scoreboard[i].setAttribute('teamid','-');
+						O_scoreboard[i].setAttribute("teamtype","none");
+						O_scoreboard[i].firstElementChild.firstElementChild.textContent = "----------";
+						O_scoreboard[i].lastElementChild.textContent = "-----";
+					}
 				}
 				setTimeout(function () {if (currentScoreboardChannel == 0) return;O_scoreboardDiv.className = "";},800);
 				switch (status)
