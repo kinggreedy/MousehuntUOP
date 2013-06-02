@@ -9,7 +9,7 @@ var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
-var C_solveStage = 2; //maximum stages of process, offline = 2, server = 4
+var C_solveStage = 4; //try 3 times OCR + 1 pre-cache
 var C_cpcontent,C_cpprefix,C_cpsuffix,C_cpstyle,C_cpmessage,C_tabNum,C_groupNum,C_autopanel,C_scoreboardContent;
 var C_toolboxMessage;
 //Constants
@@ -22,6 +22,7 @@ var C_LOCATION_TIMES = [
 		totaltime: 1152000,
 		length: [288000, 288000, 288000, 288000],
 		state: ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'],
+		weapontype: ['Physical','Tactical','Shadow','Hydro'],
 		shortstate: ['SPR','SUM','FALL','WIN'],
 		color: ['LightGreen', 'Yellow', 'Orange', 'LightBlue']
 	},
@@ -59,6 +60,16 @@ var C_LOCATION_TIMES = [
 		//color: ['#CD853F', '#8B4513', 'Skyblue', 'Blue', 'Green', 'Silver', '#B22222']
 	//}
 ];
+var C_SG_FUN_TIME = {
+		name: 'Seasonal Garden',
+		base: 1283328000,
+		totaltime: 1152000,
+		length: [288000, 288000, 288000, 288000],
+		state: ['Spring', 'Summer', 'Autumn', 'Winter'],
+		statenum: [[2,3,3], [1,5,5], [5,1,1], [8,3,2]],
+		statename: ["general","sun","moon"],
+		weapontype: ['Physical','Tactical','Shadow','Hydro']
+	}
 var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
 var C_canvasMode = ["","/canvas"];
@@ -87,7 +98,7 @@ var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel, O_scoreboardStatus, O_scoreboardCounter;
-var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGcounter;
+var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGclockWeather;
 
 //Auto Variables
 var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
@@ -265,7 +276,7 @@ function runTimeCreateConstant() {
 				<span id="UOP_version"></span>\
 				<br>\
 				<div id="UOP_update_available"><div></div> New update available !</div>\
-				<div id="UOP_is_uptodate"><div></div> A.R.L.T.K.S. is up to date.</div>\
+				<div id="UOP_is_uptodate"><div></div> The car is up to date.</div>\
 				<div id="UOP_cannot_update"><div></div> Fail to check for new update</div>\
 			</div>\
 		</div>\
@@ -541,7 +552,7 @@ function runTimeCreateConstant() {
 	C_toolboxMessage = "\
 	var popup = new jsDialog();\
 	popup.addToken('{*content*}','\
-	<h2 style=" + '"font-weight:bold;"' + ">These features are very dangerous, please think twice before advancing any further.</h2>\
+	<h2 style=" + '"font-weight:bold;"' + ">These features are not safe, please think twice before advancing any further.</h2>\
 	<ul style=" + '"list-style-type: disc;margin: 5px 0 0 25px;"' + ">\
 		<li><a onclick=" + '"app.views.HeadsUpDisplayView.hud.zugzwangsLibraryQuestShopPopup();"' + ">Get Library Assignment</a></li>\
 	</ul>\
@@ -3361,6 +3372,11 @@ function addClock() {
 	css.href = chrome.extension.getURL("resources/luxCountdown/luxCountdown.css");
 	document.head.appendChild(css);
 	
+	css = document.createElement('link');
+	css.rel = 'stylesheet';
+	css.href = chrome.extension.getURL("resources/jbclock/jbclock.css");
+	document.head.appendChild(css);
+	
 	addFGClock();
 	addBCClock();
 	addSGClock();
@@ -3462,41 +3478,90 @@ function addSGClock() {
 	O_SGclock.id = "UOP_SGclock";
 	O_clockDiv.appendChild(O_SGclock);
 	
-	O_SGcounter = new luxCountdown({title:"Seasonal Garden",callbackFunc:updateSGClock,text:"LOADING",startText:"Loading...",endText:"Loading..."});
-	document.getElementById("UOP_SGclock").appendChild(O_SGcounter.getCountdown());
-	
+	O_SGclock.innerHTML ='\
+<div class="UOP_jbclock_clock">\
+	<div class="UOP_jbclock_clock_hours">\
+		<div class="UOP_jbclock_bgLayer">\
+			<div class="UOP_jbclock_topLayer"></div>\
+			<canvas id="UOP_jbclock_canvas_hours" width="94" height="94">\
+			</canvas>\
+			<div class="UOP_jbclock_text">\
+				<p class="UOP_jbclock_val">0</p>\
+				<p class="UOP_jbclock_type_hours">Hours</p>\
+			</div>\
+		</div>\
+	</div>\
+	<div class="UOP_jbclock_clock_minutes">\
+		<div class="UOP_jbclock_bgLayer">\
+			<div class="UOP_jbclock_topLayer"></div>\
+			<canvas id="UOP_jbclock_canvas_minutes" width="94" height="94">\
+			</canvas>\
+			<div class="UOP_jbclock_text">\
+				<p class="UOP_jbclock_val">0</p>\
+				<p class="UOP_jbclock_type_minutes">Minutes</p>\
+			</div>\
+		</div>\
+	</div>\
+</div>\
+<div class="UOP_jbclock_detail">\
+	<div class="title">S.Garden</div>\
+	<div class="currentState"></div>\
+	<div class="currentPowerType"></div>\
+	<div class="weather"><img id="UOP_SGclockWeather"></img></div>\
+</div>\
+';
+	O_SGclockWeather = document.getElementById("UOP_SGclockWeather");
 	updateSGClock();
 }
 function updateSGClock() {
 	var currentDate = new Date();
 	var currentTime = Math.floor(currentDate.getTime() / 1000);
 	
-	var timetmp = (currentTime - C_LOCATION_TIMES[0].base) % C_LOCATION_TIMES[0].totaltime;
+	var timetmp = (currentTime - C_SG_FUN_TIME.base) % C_SG_FUN_TIME.totaltime;
 	
 	var j,nextj;
-	for (j = 0;j < C_LOCATION_TIMES[0].length.length;++j)
+	for (j = 0;j < C_SG_FUN_TIME.length.length;++j)
 	{
-		timetmp -= C_LOCATION_TIMES[0].length[j];
+		timetmp -= C_SG_FUN_TIME.length[j];
 		if (timetmp < 0) break;
 		else if (timetmp == 0)
 		{
-			j = (j + 1) % C_LOCATION_TIMES[0].length.length;
-			timetmp = -C_LOCATION_TIMES[0].length[j];
+			j = (j + 1) % C_SG_FUN_TIME.length.length;
+			timetmp = -C_SG_FUN_TIME.length[j];
 			break;
 		}
 	}
-	nextj = (j + 1) % C_LOCATION_TIMES[0].length.length;
+	nextj = (j + 1) % C_SG_FUN_TIME.length.length;
 	timetmp = -timetmp; //secleft
-	var end = new Date((currentTime + timetmp) * 1000);
-	var start = new Date((currentTime + timetmp - C_LOCATION_TIMES[0].length[j]) * 1000);
+	var end = currentTime + timetmp;
+	var start = currentTime + timetmp - C_SG_FUN_TIME.length[j];
 	
-	if (j == 1) O_SGclock.className = "UOP_SGclosed"; else O_SGclock.className = "";
-	O_SGcounter._start = start;
-	O_SGcounter._end = end;
-	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-text")[0].textContent = C_LOCATION_TIMES[0].state[j];
-	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-start")[0].textContent = C_LOCATION_TIMES[0].state[j][0] + C_LOCATION_TIMES[0].state[j].slice(1).toLowerCase();
-	O_SGcounter._theTimer.getElementsByClassName("lux-countdown-end")[0].textContent = C_LOCATION_TIMES[0].state[nextj][0] + C_LOCATION_TIMES[0].state[nextj].slice(1).toLowerCase();
-	O_SGcounter._startTimer();
+	O_SGclock.className = "UOP_SG" + C_SG_FUN_TIME.state[j].toLowerCase();
+	O_SGclock.getElementsByClassName("currentState")[0].textContent = C_SG_FUN_TIME.state[j];
+	O_SGclock.getElementsByClassName("currentPowerType")[0].textContent = C_SG_FUN_TIME.weapontype[j];
+	
+	var stateSunMoon = currentDate.getHours();
+	stateSunMoon = ((stateSunMoon > 5) && (stateSunMoon < 18)) ? 1 : 2;
+	var numGeneralWeather = C_SG_FUN_TIME.statenum[j][0];
+	var numSunMoonWeather = C_SG_FUN_TIME.statenum[j][stateSunMoon];
+	var numWeather = numGeneralWeather + numSunMoonWeather;
+	var idWeather = Math.floor(Math.random()*numWeather);
+	if (idWeather >= numWeather) idWeather--;
+	if (idWeather < numGeneralWeather) stateSunMoon = 0; else idWeather = idWeather - numGeneralWeather;
+	var url = "/resources/jbclock/img/weather/" + C_SG_FUN_TIME.state[j].toLowerCase() + C_SG_FUN_TIME.statename[stateSunMoon] + idWeather + ".png";
+	O_SGclockWeather.src = chrome.extension.getURL(url);
+	
+	JBCountDown({
+		secondsColor : "#ffdc50",secondsGlow  : "none",
+		minutesColor : "#9cdb7d",minutesGlow  : "none",
+		hoursColor   : "#378cff",hoursGlow    : "none",
+
+		startDate   : start,
+		endDate     : end,
+		now         : currentTime,
+		
+		callbackFunc: updateSGClock
+	});
 }
 function addScoreboard() {
 	manageCSSJSAdder(8);
@@ -4197,7 +4262,9 @@ function submitPuzzleErrorHandle() {
 function puzzleCoreReaction() {
 	switch (A_solveStage)
 	{
-		case 2:KRSolverCache();break;
+		case 4:KRSolverCache();break;
+		case 3:
+		case 2:
 		case 1:KRSolverOCR();break;
 		default:alarm();document.getElementById('puzzle_answer').focus();
 	}

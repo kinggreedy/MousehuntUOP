@@ -1,0 +1,120 @@
+.UOP_jbclock_clock_hours {
+    float:left;
+	margin-left: 12px;
+}
+.UOP_jbclock_clock_minutes {
+    float:left;
+	margin-left: 12px;
+	margin-right: 12px;
+}
+.UOP_jbclock_clock_seconds {
+    float:left;
+}
+.UOP_jbclock_bgLayer {
+	background-size: 100%;
+    background-image:url(img/bg.png); 
+    background-repeat:no-repeat;
+    position:relative; 
+}
+.UOP_jbclock_topLayer {
+    position:absolute; 
+	background-size: 100%;
+    background-image:url(img/top.png); 
+	background-repeat:no-repeat;
+    width:94px;
+    height:94px;
+}
+.UOP_jbclock_text {
+	position:absolute;
+	top:23px;
+	left:21px;
+	width:50px;
+	height:50px;
+}
+.UOP_jbclock_val {
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    font-size:33px;
+    font-weight:bold;
+    color:#FFF;
+    text-align:center;
+	margin: 0;
+    margin-top:8px;
+    width:50px;
+}
+.UOP_jbclock_type_hours {
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    color:#378cff;
+    width:50px;
+    text-align:center;
+    font-size:11px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+.UOP_jbclock_type_minutes {
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    color:#9cdb7d;
+    width:50px;
+    text-align:center;
+    font-size:11px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+.UOP_jbclock_type_seconds {
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    color:#ffdc50;
+    width:50px;
+    text-align:center;
+    font-size:6px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+.UOP_jbclock_clock {
+	position: relative;
+	z-index: 1;
+}
+.UOP_jbclock_detail {
+	position: relative;
+	top: 20px;
+	height: 125px;
+	width: 224px;
+	background-size: 100%;
+    background-image:url(img/background.png); 
+	background-repeat:no-repeat;
+}
+.UOP_jbclock_detail .title {
+	position: relative;
+	top: -20px;
+	left: 10px;
+	font-weight: bold;
+	font-size: 13px;
+	color: white;
+}
+.UOP_jbclock_detail .currentState {
+	position: relative;
+	top: -13px;
+	left: 7px;
+	font-size: 16px;
+	font-weight: bold;
+	color: white;
+}
+.UOP_jbclock_detail .currentPowerType {
+	position: relative;
+	top: -27px;
+	right: 10px;
+	text-align: right;
+	font-size: 12px;
+	color: white;
+}
+.UOP_jbclock_detail .weather {
+	position: relative;
+	top: -80px;
+	text-align: center;
+}
+.UOP_jbclock_detail .weather img {
+	width: 163px;
+}
+#UOP_SGclock {height: 180px;}
+#UOP_SGclock.UOP_SGspring .currentState, #UOP_SGclock.UOP_SGspring .currentPowerType {color:LightGreen;}
+#UOP_SGclock.UOP_SGsummer .currentState, #UOP_SGclock.UOP_SGsummer .currentPowerType {color:Yellow;}
+#UOP_SGclock.UOP_SGautumn .currentState, #UOP_SGclock.UOP_SGautumn .currentPowerType {color:Orange;}
+#UOP_SGclock.UOP_SGwinter .currentState, #UOP_SGclock.UOP_SGwinter .currentPowerType {color:LightBlue;}
