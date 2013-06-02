@@ -9,7 +9,6 @@ function JBCountDown(settings) {
     glob.seconds = 60 - Math.floor((glob.endDate - glob.now) % 60);
     
     if (glob.now >= glob.endDate) {return;}
-    
     var clock = {
         set: {
             hours: function(){
@@ -69,13 +68,8 @@ function JBCountDown(settings) {
         start: function(){
             /* Seconds */
             var cdown = setInterval(function(){
-				glob.now = Math.floor(new Date().getTime() / 1000);
-				glob.hours   = Math.floor((glob.endDate - glob.now) / 3600);
-				glob.minutes = 60 - Math.floor(((glob.endDate - glob.now) % 3600) / 60) ;
-				glob.seconds = 60 - Math.floor((glob.endDate - glob.now) % 60);
-				
                 if ( glob.seconds > 59 ) {
-                    if (60 - glob.minutes == 0 && 24 - glob.hours == 0) {
+                    if (60 - glob.minutes == 0 && glob.hours == 0) {
                         clearInterval(cdown);
                         
 						/* Countdown is complete */
@@ -98,7 +92,12 @@ function JBCountDown(settings) {
                 } else {
                     glob.seconds++;
                 }
-                //clock.set.seconds();
+				//clock.set.seconds();
+
+				glob.now = Math.floor(new Date().getTime() / 1000);
+				glob.hours   = Math.floor((glob.endDate - glob.now) / 3600);
+				glob.minutes = 60 - Math.floor(((glob.endDate - glob.now) % 3600) / 60) ;
+				glob.seconds = 60 - Math.floor((glob.endDate - glob.now) % 60);
             },1000);
         }
     }
