@@ -290,6 +290,10 @@
 #UOP_serverUrl {width:128px;}
 #UOP_cacheKRstr {width:56px;}
 #UOP_alarmSrc {width:108px;}
+#UOP_scriptCustomDiv label {margin-right: 5px;}
+#UOP_scriptCustomDiv label:after {content: ":"}
+#UOP_scriptCustomDiv input[type="text"] {width:108px;}
+#UOP_scriptCustomDiv select {width:108px;}
 #UOP_update_available, #UOP_is_uptodate, #UOP_cannot_update {display:none;}
 #UOP_update_available div, #UOP_is_uptodate div, #UOP_cannot_update div {
 	display:inline-block;
