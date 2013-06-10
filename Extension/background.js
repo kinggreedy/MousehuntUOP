@@ -22,7 +22,16 @@ chrome.webRequest.onBeforeRequest.addListener(
 	{urls: ["http://apps.facebook.com/mousehunt/*"],types: ["main_frame"]},
 	["blocking"]
 );
-
+/*********************APP SIMULATION****************************/
+chrome.runtime.onConnect.addListener(function(port) {
+	if (port.name == "APPVersion")
+	port.onMessage.addListener(function(msg) {
+		if (msg.send == "Get")
+		{
+			port.postMessage({received: "OK", version: chrome.app.getDetails().version, update_url: chrome.app.getDetails().update_url});
+		}
+	});
+});
 /*********************APP SIMULATION****************************/
 var appHeader = "";
 chrome.runtime.onConnect.addListener(function(port) {

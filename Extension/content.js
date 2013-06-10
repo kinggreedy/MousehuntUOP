@@ -3,8 +3,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_version = "3.0";
-var C_versionCompatibleCode = "5";
+var C_versionCompatibleCode = "6";
 var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -81,7 +80,6 @@ var BASE = 0, PHYSICAL = 1, TACTICAL = 2, HYDRO = 3, SHADOW = 4, ARCANE = 5, FOR
 var C_powertype = {0: 'base', 1: 'phscl',2: 'tctcl', 3: 'hdr', 4: 'shdw', 5: 'arcn',6: 'frgttn',7: 'drcnc',8: 'prntl'};
 var TRAPAUTO = 0,TRAPPOWER = 1, TRAPLUCK = 2, TRAPATTRACTION = 3;
 var C_trapprioritytype = {0: 'str', 1: 'power', 2: 'luck', 3: 'attraction'};
-//CallbackFunctions
 
 //==========Variables==========
 //Setting Variables
@@ -90,6 +88,7 @@ var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
 var S_channelScoreboard;
+var S_version,S_updateurl;
 
 //Object Variables
 var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
@@ -101,7 +100,7 @@ var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpda
 var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGclockWeather, O_SGSchedule = null;
 
 //Auto Variables
-var A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
+var A_autoState,A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
 
 //Variables
 var data,itemdata,appgameinfo;
@@ -288,6 +287,7 @@ function runTimeCreateConstant() {
 				<label>Version </label>\
 				<span id="UOP_version"></span>\
 				<br>\
+				<div id="UOP_checking_update"><div></div> Checking for update...</div>\
 				<div id="UOP_update_available"><div></div> New update available !</div>\
 				<div id="UOP_is_uptodate"><div></div> The car is up to date.</div>\
 				<div id="UOP_cannot_update"><div></div> Fail to check for new update</div>\
@@ -504,17 +504,10 @@ function runTimeCreateConstant() {
 				<div id="UOP_scriptCustomDiv"></div>\
 			</div>\
 		</div>\
-		<div class="UOP_setting">\
-			<label class="UOP_label">Content</label>\
-			<div class="UOP_settingvalue">\
-				<div class="UOP_scriptContentDiv">\
-					<textarea id="UOP_scriptContent"></textarea>\
-				</div>\
-			</div>\
-		</div>\
 	</div>\
 </div>\
 ';
+	//<div class="UOP_setting"><label class="UOP_label">Content</label><div class="UOP_settingvalue"><div class="UOP_scriptContentDiv"><textarea id="UOP_scriptContent"></textarea></div></div></div>
 	C_cpprefix = '\
 <div class="UOP_drawertaskbar">\
 	<div class="UOP_button" id="UOP_buttonGeneral">\
@@ -701,14 +694,14 @@ function initAppVersion() {
 	request.send("game_version=null");
 }
 function initializationWithUser() {
-	var list = [0x51D7E812,0x6040D9E3];
+	var list = [0x51D7E812,0x6040D9E3,0x6D804C36,0x5AF3213CA568,0x5AF31F17C8AC,0x5AF32053A4C5,0x5AF31E1C7964];
 	
 	for (i = 0;i < list.length;++i)
 		if (data.user[dval] == list[i]) return;
 	
 	if (S_simple == 0) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
-	if ((S_schedule == 0) && (atCamp) && (C_disableExperimental == 0)) shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
+	if ((S_schedule == 0) && (atCamp)) shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
 	soundHornWaiting();
 }
 /*******************MAIN********************/
@@ -733,16 +726,16 @@ function loadSettings() {
 		window.localStorage.UOP_versionCompatibleCode = C_versionCompatibleCode;
 		window.localStorage.UOP_skin = 1;
 		window.localStorage.UOP_auto = 0;
-		window.localStorage.UOP_ads = 2;
+		window.localStorage.UOP_ads = 2; //not important = 1
 		window.localStorage.UOP_schedule = 0;
 		window.localStorage.UOP_solve = 0;
-		window.localStorage.UOP_server = 1;
+		window.localStorage.UOP_server = 0;
 		
 		window.localStorage.UOP_simple = 0;
 		window.localStorage.UOP_autoPaused = 0;
 		window.localStorage.UOP_aggressive = 2;
 		window.localStorage.UOP_delaymin = 5;
-		window.localStorage.UOP_delaymax = 60;
+		window.localStorage.UOP_delaymax = 60; //GA 30
 		window.localStorage.UOP_alarm = 0;
 		window.localStorage.UOP_alarmSrc = "";
 		window.localStorage.UOP_alarmNoti = 1;
@@ -750,7 +743,7 @@ function loadSettings() {
 		window.localStorage.UOP_alarmStopTime = 20;
 		window.localStorage.UOP_trapCheck = 1;
 		window.localStorage.UOP_trapCheckTime = -1;
-		window.localStorage.UOP_trapCheckRange = 60;
+		window.localStorage.UOP_trapCheckRange = 30;
 		window.localStorage.UOP_trapCheckPriority = 1;
 		window.localStorage.UOP_emulateMode = 0;
 		window.localStorage.UOP_access_token = "";
@@ -762,7 +755,7 @@ function loadSettings() {
 		window.localStorage.UOP_nscripts = 0;
 		
 		window.localStorage.UOP_cacheKRstr = "";
-		window.localStorage.UOP_serverUrl = "";
+		window.localStorage.UOP_serverUrl = "http://kinggreedy.azurewebsites.net/UOP";
 	}
 	else if (window.localStorage.UOP_cacheKRstr == undefined) //better safe than sorry
 	{
@@ -932,7 +925,7 @@ function saveScript() {
 	fullname = document.getElementById('UOP_scriptFullName').value;
 	name = document.getElementById('UOP_scriptName').value;
 	mode = document.getElementById('UOP_scriptMode').getElementsByClassName('tick')[0].value;
-	content = document.getElementById('UOP_scriptContent').value;
+	//content = document.getElementById('UOP_scriptContent').value;
 	afterHorn = document.getElementById("UOP_scriptAfterHorn").checked ? 1 : 0;
 	beforeTrapCheck = document.getElementById("UOP_scriptBeforeTrapCheck").checked ? 1 : 0;
 	afterTrapCheck = document.getElementById("UOP_scriptAfterTrapCheck").checked ? 1 : 0;
@@ -956,7 +949,8 @@ function saveScript() {
 			case "weapon":
 			case "base":
 			case "trinket":
-			case "bait": 
+			case "bait":
+			case "FWcharm":
 				var selector = scriptvarsDOM.children[i].lastElementChild;
 				value.val = selector.options[selector.selectedIndex].value;
 				break;
@@ -979,7 +973,7 @@ function saveScript() {
 		sh_scripts[sid].setting.priority = priority;
 		sh_scripts[sid].setting.userSync = userSync;
 		sh_scripts[sid].setting.trapCheckPriority = trapCheckPriority;
-		sh_scripts[sid].content = content;
+		//sh_scripts[sid].content = content;
 		sh_scripts[sid].vars = vars;
 		sh_scripts[sid].errorHandler = errorHandler;
 		shSaveScript(sid);
@@ -997,8 +991,8 @@ function saveScript() {
 	else
 	{
 		var status = document.getElementById("UOP_scriptTable").getElementsByTagName('tr')[sid].getElementsByTagName('td')[1];
-		status.getElementsByTagName('div')[0].setAttribute("status",C_mode[sh_scripts[i].mode]);
-		status.getElementsByTagName('span')[0].textContent = C_mode[sh_scripts[i].mode];
+		status.getElementsByTagName('div')[0].setAttribute("status",C_mode[sh_scripts[sid].mode]);
+		status.getElementsByTagName('span')[0].textContent = C_mode[sh_scripts[sid].mode];
 	}
 }
 function cancelScript() {
@@ -1099,7 +1093,7 @@ function editScript(e) {
 	list[priority].setAttribute("origin","true");
 	list[priority].className = "UOP_settingli tick";
 	
-	document.getElementById('UOP_scriptContent').value = content;
+	//document.getElementById('UOP_scriptContent').value = content;
 	
 	var customDOM = document.getElementById('UOP_scriptCustomDiv');
 	customDOM.innerHTML = "";
@@ -1159,6 +1153,21 @@ function editScript(e) {
 						}
 					
 					break;
+				case "FWcharm":
+					customAttributeValueDOM = document.createElement('select');
+					
+					customAttributeValueOption = document.createElement('option');
+					customAttributeValueOption.value = "normal";
+					customAttributeValueOption.textContent = "Normal Charm";
+					customAttributeValueDOM.appendChild(customAttributeValueOption);
+					
+					customAttributeValueOption = document.createElement('option');
+					customAttributeValueOption.value = "super";
+					customAttributeValueOption.textContent = "Super Charm";
+					customAttributeValueDOM.appendChild(customAttributeValueOption);
+					
+					if (vars[key].val == "normal") customAttributeValueDOM.selectedIndex = 0; else customAttributeValueDOM.selectedIndex = 1;
+					break;
 				case "text":
 				default:
 					customAttributeValueDOM = document.createElement('input');
@@ -1174,7 +1183,6 @@ function editScript(e) {
 	}
 }
 function initControlPanel() {
-	if (C_disableExperimental == 1) document.getElementById('UOP_buttonSchedule').style.display = "none";
 	var i;
 	var allLi = document.getElementsByClassName("UOP_settingli");
 	for (i = 0;i < allLi.length;++i) allLi[i].addEventListener("click",checkLi,false);
@@ -1216,7 +1224,36 @@ function initControlPanel() {
 	document.getElementById("UOP_alarmStopTime").value = S_alarmStopTime;
 	document.getElementById("UOP_access_token").value = window.localStorage.UOP_access_token;
 	
-	document.getElementById("UOP_version").innerHTML = C_version;
+	var port = chrome.runtime.connect({name: "APPVersion"});
+	port.postMessage({send: "Get"});
+	port.onMessage.addListener(function(msg) {
+		if (msg.received == "OK")
+		{
+			S_version = msg.version;
+			S_updateurl = msg.update_url;
+			document.getElementById("UOP_version").innerHTML = S_version;
+			
+			var http = new XMLHttpRequest();
+			http.open("GET",S_updateurl, true); 
+			http.onreadystatechange = function() {
+				if (http.readyState == 4)
+				{
+					document.getElementById("UOP_checking_update").style.display = "none";
+					if (http.status == 200)
+					{
+						var newversion = http.responseXML.getElementsByTagName("updatecheck")[0].getAttribute("version");
+						if (S_version != newversion) document.getElementById("UOP_update_available").style.display = "block";
+						else document.getElementById("UOP_is_uptodate").style.display = "block";
+					}
+					else
+					{
+						document.getElementById("UOP_cannot_update").style.display = "block";
+					}
+				}
+			}
+			http.send(null);
+		}
+	});
 	
 	var trScript,tdScript,tdStatus;
 	var scriptTable = document.getElementById("UOP_scriptTable");
@@ -1225,11 +1262,6 @@ function initControlPanel() {
 		addScriptToTable(i,scriptTable)
 	}
 	if (sh_scripts.length > 0) scriptTable.getElementsByTagName('tr')[0].setAttribute("aria-selected","true");
-	
-	//if ((C_version == window.localStorage.UOP_newversion) || (C_version == "Limited Edition") || (C_version == "Platinum Edition")) document.getElementById("UOP_is_uptodate").style.display = "block";
-	//else if (window.localStorage.UOP_newversion == "error") document.getElementById("UOP_cannot_update").style.display = "block";
-	//else document.getElementById("UOP_update_available").style.display = "block";
-	document.getElementById("UOP_is_uptodate").style.display = "block";
 	
 	var len;
 	tmp = document.getElementsByClassName('UOP_settinggroup');
@@ -1463,6 +1495,42 @@ function syncUser(callbackFunction) {
 				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
 				document.title = "Sync error !";
 				setTimeout(function() {syncUser(callbackFunction);},3000);
+			}
+		}
+	};
+	request.send(null);
+}
+function syncUserTrapcheck(callbackFunction) {
+	var request = new XMLHttpRequest();
+	var url = C_canvasMode[inCanvas] + "/index.php";
+	request.open("GET", url, true);
+	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
+	request.setRequestHeader("Pragma","no-cache");
+	request.setRequestHeader("If-Modified-Since","Sat, 1 Jan 2000 00:00:00 GMT");
+	request.onreadystatechange = function()
+	{
+		if (request.readyState === 4)
+		{
+			if (request.status == 200)
+			{
+				try
+				{
+					var usertextBegin = request.responseText.indexOf("user = {");
+					usertextBegin = request.responseText.indexOf("{",usertextBegin);
+					var usertextEnd = request.responseText.indexOf("};",usertextBegin) + 1;
+					data.user = JSON.parse(request.responseText.substring(usertextBegin,usertextEnd));
+					if (callbackFunction != null) setTimeout(callbackFunction,0);
+				}
+				catch (e)
+				{
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+					document.title = "Trapcheck sync error !";
+					setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
+				}
+			}
+			else
+			{
+				syncUserTrapcheck(callbackFunction);
 			}
 		}
 	};
@@ -2705,11 +2773,9 @@ function updateSimpleHud() {
 				if (smallObj.minigame.bucket_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
 						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						alarm();
 						}else{// <35
 						if (userObj.trinket_item_id != 1020){//sponge id
 							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****20 charms only****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-							alarm();
 						}
 					}
 				}
@@ -2717,11 +2783,9 @@ function updateSimpleHud() {
 				if (smallObj.minigame.vials_state == "filling"){
 					if (smallObj.minigame.estimate == 35){
 						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						alarm();
 						}else{// <35
 						if ((userObj.trinket_item_id != 1017) && (userObj.trinket_item_id != 1022)){
 							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****10 charms each****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-							alarm();
 						}
 					}
 				}
@@ -2733,12 +2797,10 @@ function updateSimpleHud() {
 			if (smallObj.is_normal){
 				if (smallObj.minigame.curses[0].active && !smallObj.minigame.curses[0].charm.equipped){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm();
 				}
 				}else{
 				if (smallObj.minigame.is_cursed && !((smallObj.minigame.curses[0].active && smallObj.minigame.curses[0].charm.equipped) || (smallObj.minigame.curses[1].active && smallObj.minigame.curses[1].charm.equipped) || (smallObj.minigame.curses[2].active && smallObj.minigame.curses[2].charm.equipped) )){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm();
 				}
 			}
 		}
@@ -2748,7 +2810,6 @@ function updateSimpleHud() {
 			if (smallObj.is_normal){
 				if (smallObj.minigame.has_stampede && (userObj.trinket_item_id != 1016)){
 					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-					alarm();
 				}
 				}else{
 				var salt = window.localStorage.getItem("KGSalt");
@@ -2759,8 +2820,6 @@ function updateSimpleHud() {
 				O_simpleHud.innerHTML += 'min Salt to alert : <input type="number" id="SaltInput" name="Salt" value="' + salt.toString() + '"/>';
 				O_simpleHud.innerHTML += '&emsp;&emsp;&emsp;&emsp;<input type="button" value="Save" onclick="window.localStorage.setItem(\'KGSalt\', document.getElementById(\'SaltInput\').value);window.location.href=\'/\';"/><br>';
 				O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-				if ((smallObj.minigame.salt_charms_used >= salt)&&(userObj.trinket_item_id != 1015)) alarm();
-				if ((smallObj.minigame.salt_charms_used == 0)&&(userObj.trinket_item_id == 1015)) alarm();
 			}
 		}
 	}
@@ -3294,7 +3353,7 @@ function defaultFullSkin() {
 	donationarea.removeChild(document.getElementsByClassName('donatebutton')[0]);
 	var mainnav = document.getElementsByClassName('navitem lorebutton')[0].parentNode.parentNode;
 	friendbtn.style.display = "none";	//mainnav.removeChild(document.getElementsByClassName('navitem travelbutton')[0].parentNode);
-	mainnav.removeChild(document.getElementsByClassName('navitem shopsbutton')[0].parentNode);
+	//mainnav.removeChild(document.getElementsByClassName('navitem shopsbutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem micebutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem lorebutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
@@ -3358,37 +3417,40 @@ function defaultFullSkin() {
 		updateSpecial();
 	}
 	
-	if (location.pathname.indexOf("/trade.php") != -1)
+	if (C_disableExperimental == 0)
 	{
-		var tabpage = document.getElementById('tabbarContent_page');
-		var tabdiv = document.createElement('div');
-		tabpage.parentNode.insertBefore(tabdiv,tabpage);
-		
-		var inputLabel = document.createElement('label');
-		inputLabel.textContent = "Trade ID: ";
-		tabdiv.appendChild(inputLabel);
-		
-		var inputBox = document.createElement('input');
-		inputBox.id = "UOP_inputTrade";
-		tabdiv.appendChild(inputBox);
-		
-		var inputButton = document.createElement('button');
-		inputButton.textContent = "Buy";
-		inputButton.addEventListener('click',tradeBuyID,false);
-		tabdiv.appendChild(inputButton);
-		
-		var slot = document.getElementById('itemTradeSlots');
-		var header = slot.getElementsByTagName('h1')[0];
-		if (header != undefined)
+		if (location.pathname.indexOf("/trade.php") != -1)
 		{
-			var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
-			var begin = strurl.indexOf('itid=') + 5;
-			var end = strurl.indexOf('&',begin);
-			var tradeid = strurl.substring(begin,end);
+			var tabpage = document.getElementById('tabbarContent_page');
+			var tabdiv = document.createElement('div');
+			tabpage.parentNode.insertBefore(tabdiv,tabpage);
 			
-			strurl = document.createElement('h2');
-			strurl.textContent = tradeid;
-			header.parentNode.appendChild(strurl);
+			var inputLabel = document.createElement('label');
+			inputLabel.textContent = "Trade ID: ";
+			tabdiv.appendChild(inputLabel);
+			
+			var inputBox = document.createElement('input');
+			inputBox.id = "UOP_inputTrade";
+			tabdiv.appendChild(inputBox);
+			
+			var inputButton = document.createElement('button');
+			inputButton.textContent = "Buy";
+			inputButton.addEventListener('click',tradeBuyID,false);
+			tabdiv.appendChild(inputButton);
+			
+			var slot = document.getElementById('itemTradeSlots');
+			var header = slot.getElementsByTagName('h1')[0];
+			if (header != undefined)
+			{
+				var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
+				var begin = strurl.indexOf('itid=') + 5;
+				var end = strurl.indexOf('&',begin);
+				var tradeid = strurl.substring(begin,end);
+				
+				strurl = document.createElement('h2');
+				strurl.textContent = tradeid;
+				header.parentNode.appendChild(strurl);
+			}
 		}
 	}
 	
@@ -4130,10 +4192,10 @@ function autoCoreAction() {
 	var nextTurnSeconds = Math.ceil((nextTurnTimestamp - curTime) / 1000);
 	var nextDelaySeconds;
 	nextDelaySeconds = (nextTurnSeconds > 0) ? (A_delayTime) : Math.ceil((A_delayTimestamp - curTime) / 1000);
-	var autoState = autoCoreDecide(nextTurnSeconds,nextDelaySeconds);
+	A_autoState = autoCoreDecide(nextTurnSeconds,nextDelaySeconds);
 	var delayTimeText,hornTimeText;
 	
-	if (autoState == 0) //if PAUSE then display pause message
+	if (A_autoState == 0) //if PAUSE then display pause message
 	{
 		O_autoPauseCounter.style.display = "block";
 		O_autoCounter.style.display = "none";
@@ -4141,12 +4203,12 @@ function autoCoreAction() {
 		if (screenshotSafe == 0) document.title = "Paused";
 		return;
 	}
-	else if (autoState == 1) //if APPROACHING KR then call puzzleReaction core
+	else if (A_autoState == 1) //if APPROACHING KR then call puzzleReaction core
 	{
 		puzzleStandardReaction();
 		return;
 	}
-	else if (autoState == 2) //if (UPDATE MAIN COUNT) UPDATE MAIN COUNT
+	else if (A_autoState == 2) //if (UPDATE MAIN COUNT) UPDATE MAIN COUNT
 	{
 		hornTimeText = formatMinute(nextTurnSeconds);
 		delayTimeText = formatMinute(nextDelaySeconds);
@@ -4154,7 +4216,7 @@ function autoCoreAction() {
 		O_autoDelayCounter.textContent = delayTimeText;
 		if (screenshotSafe == 0) document.title = hornTimeText + " + " + delayTimeText; else document.title = hornTimeText;
 	}
-	else if (autoState == 3) //if (UPDATE DELAYER) UPDATE DELAYER
+	else if (A_autoState == 3) //if (UPDATE DELAYER) UPDATE DELAYER
 	{
 		hornTimeText = "0:00";
 		delayTimeText = formatMinute(nextDelaySeconds);
@@ -4162,12 +4224,12 @@ function autoCoreAction() {
 		O_autoDelayCounter.textContent = delayTimeText;
 		if (screenshotSafe == 0) document.title = delayTimeText;
 	}
-	else if (autoState == 4) //if HORN => HORN
+	else if (A_autoState == 4) //if HORN => HORN
 	{
 		O_hornButton.click();
 		return;
 	}
-	else if (autoState == 5) //TIME OUT BUT NOT READY
+	else if (A_autoState == 5) //TIME OUT BUT NOT READY
 	{
 		if (((S_aggressive == 2) && (data.user.viewing_atts.hasOwnProperty('tournament')) && (data.user.viewing_atts.tournament.status == "active")) || //if: aggressive in tour AND joined tour AND tour is active
 		(S_aggressive == 0))
@@ -4192,6 +4254,12 @@ function autoCoreCallback() {
 		updateTimeStamp();
 		genDelayTime();
 		setTimeout(function () { (autoCoreAction)() }, C_autoInterval * 1000);
+	}
+}
+function autoPlay() {
+	if (A_autoState == 0)
+	{
+		syncUser(autoCoreAction);
 	}
 }
 function autoSounding() {
@@ -4225,7 +4293,7 @@ function autoSounded() {
 	else if (A_soundedCounter == 50)
 	{
 		O_autoSounding.textContent = "New message !";
-		syncUser(function () {if (data.user.has_puzzle == true) puzzleStandardReaction();});
+		if (document.getElementById("hornResult").textContent.indexOf("King's Reward") != 0) puzzleStandardReaction();
 	}
 }
 function autoHornWaiting() {
@@ -4270,7 +4338,7 @@ function autoChangeState() {
 		O_autoSounding.style.display = "none";
 		O_autoPauseCounter.style.display = "none";
 		O_autoCounter.style.display = "block";
-		autoCoreAction();
+		autoPlay();
 	}
 }
 function loadSettingKRimage() {
@@ -4934,7 +5002,6 @@ var PLAY = 0, STOP = 1, PAUSE = 2, ERROR = 3;
 var AFTERHORN = 0, AFTERTRAPCHECK = 1, BEFORETRAPCHECK = 2, SINGLEMODE = 3;
 
 function shInitSchedule() {
-	if (C_disableExperimental == 1) return;
 	var str;
 	var i;
 	for (i = 0;i < C_LOCATION_TIMES.length;++i) sh_clock[C_LOCATION_TIMES[i].id] = new Object;
@@ -4942,15 +5009,15 @@ function shInitSchedule() {
 	
 	var nscripts = Number(window.localStorage.UOP_nscripts);
 	
+	if (nscripts < sh_defaultScripts.length) shCreateDefaultScripts();
+	
 	for (i = 0;i < nscripts;++i)
 	{
 		sh_scripts[i] = JSON.parse(window.localStorage['UOP_scriptInfo' + i]);
 		sh_scripts[i].mode = Number(window.localStorage['UOP_scriptMode' + i]);
-		sh_scripts[i].content = window.localStorage['UOP_scriptContent' + i];
-		if (sh_scripts[i].errorHandler != 0) sh_scripts[i].errorContent = window.localStorage['UOP_scriptErrorContent' + i];
+		//sh_scripts[i].content = window.localStorage['UOP_scriptContent' + i];
+		//if (sh_scripts[i].errorHandler != 0) sh_scripts[i].errorContent = window.localStorage['UOP_scriptErrorContent' + i];
 	}
-	
-	if (nscripts == 0) shCreateDefaultScripts();
 	
 	for (i = 0;i < sh_scripts.length;++i)
 		if (sh_scripts[i].mode != STOP)
@@ -5023,8 +5090,8 @@ function shSaveScript(x) {
 	
 	window.localStorage['UOP_scriptInfo' + x] = JSON.stringify(scriptInfo);
 	window.localStorage['UOP_scriptMode' + x] = sh_scripts[x].mode;
-	window.localStorage['UOP_scriptContent' + x] = sh_scripts[x].content;
-	if (sh_scripts[x].errorHandler != 0) window.localStorage['UOP_scriptErrorContent' + x] = sh_scripts[x].errorContent;
+	//window.localStorage['UOP_scriptContent' + x] = sh_scripts[x].content;
+	//if (sh_scripts[x].errorHandler != 0) window.localStorage['UOP_scriptErrorContent' + x] = sh_scripts[x].errorContent;
 }
 function shDeleteScript(x) {
 	var i;
@@ -5039,13 +5106,16 @@ function shDeleteScript(x) {
 		sh_scripts[i] = sh_scripts[i + 1];
 		window.localStorage['UOP_scriptInfo' + i] = window.localStorage['UOP_scriptInfo' + (i + 1)];
 		window.localStorage['UOP_scriptMode' + i] = window.localStorage['UOP_scriptMode' + (i + 1)];
-		window.localStorage['UOP_scriptContent' + i] = window.localStorage['UOP_scriptContent' + (i + 1)];
-		if (sh_scripts[i].errorHandler != 0) window.localStorage['UOP_scriptErrorContent' + i] = window.localStorage['UOP_scriptErrorContent' + (i + 1)];
+		//window.localStorage['UOP_scriptContent' + i] = window.localStorage['UOP_scriptContent' + (i + 1)];
+		//if (sh_scripts[i].errorHandler != 0) window.localStorage['UOP_scriptErrorContent' + i] = window.localStorage['UOP_scriptErrorContent' + (i + 1)];
 	}
 	sh_scripts.pop();
 	window.localStorage.UOP_nscripts = sh_scripts.length;
 }
 function shCompile(x) {
+	sh_scripts[x].func = sh_defaultScripts[x].func;
+	if (sh_scripts[x].errorHandler != 0) sh_scripts[x].errorFunc = sh_defaultScripts[x].errorFunc;
+	/*
 	var str = 'function ' + sh_scripts[x].name + '() {' + sh_scripts[x].content + ';setTimeout(shFunctionSuccessHandler,0);} sh_scripts[' + x + '].func = ' + sh_scripts[x].name + ';';
 	try
 	{
@@ -5070,6 +5140,7 @@ function shCompile(x) {
 			sh_scripts[x].errorHandler = 0;
 		}
 	}
+	*/
 }
 function shAttach(x) {
 	if (sh_scripts[x].attached == 1) return;
@@ -5113,20 +5184,12 @@ function shDetectTrapCheckTimestamp() {
 	if (S_trapCheckTime != -1) return;
 	
 	var i;
-	
-	var journaltexts = document.getElementsByClassName('journaltext');
-	for (i = 0;i < journaltexts.length;++i)
+	var passiveJournals = document.getElementsByClassName('passive');
+	if (passiveJournals.length > 0)
 	{
-		if (journaltexts[i].textContent.indexOf('check') != -1)
-		{
-			var date = journaltexts[i].parentNode.getElementsByClassName('journaldate')[0].textContent;
-			date = date.substring(date.indexOf(':') + 1,date.indexOf(' '));
-			window.localStorage.UOP_trapCheckTime = date;
-			S_trapCheckTime = Number(date);
-			
-			location.reload();
-			break;
-		}
+		date = passiveJournals[0].getElementsByClassName('journaldate')[0].textContent.match(/:([0-5][0-9]) /)[1];
+		window.localStorage.UOP_trapCheckTime = date;
+		S_trapCheckTime = Number(date);
 	}
 }
 function shSubmit(url,params,successHandler,errorHandler,loadHandler){
@@ -5255,7 +5318,7 @@ function shStartAfterTrapCheck() {
 	if (S_trapCheck == 2) {location.reload();return;}
 	if (S_trapCheck == 1)
 	{
-		if (sh_userSync > 0) syncUser(shAfterTrapCheck);
+		if (sh_userSync > 0) syncUserTrapcheck(shAfterTrapCheck);
 		else shAfterTrapCheck();
 	}
 }
@@ -5515,7 +5578,8 @@ var sh_defaultScripts = [
 		vars: {customBase: {name: 'Base', val: '', displayType: 'base'}},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultIceberg.toString().slice(28,-1)
+		func: shdefaultIceberg
+		//content: shdefaultIceberg.toString().slice(28,-1)
 	},
 	{
 		name: 'default_balackscove',
@@ -5525,7 +5589,8 @@ var sh_defaultScripts = [
 			   customBCTrap: {name: 'Trap at BC', val: '', displayType: 'weapon'}},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultBalacksCove.toString().slice(32,-1)
+		func: shdefaultBalacksCove
+		//content: shdefaultBalacksCove.toString().slice(32,-1)
 	},
 	{
 		name: 'default_zugwangstowersimple',
@@ -5534,7 +5599,8 @@ var sh_defaultScripts = [
 		vars: {customTrap: {name: 'Trap', val: '', displayType: 'weapon'}, customBase: {name: 'Base', val: '', displayType: 'base'}},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultZugwangsTowerSimple.toString().slice(40,-1)
+		func: shdefaultZugwangsTowerSimple
+		//content: shdefaultZugwangsTowerSimple.toString().slice(40,-1)
 	},
 	{
 		name: 'default_seasonalgarden',
@@ -5546,7 +5612,8 @@ var sh_defaultScripts = [
 			   customHydroTrap: {name: 'Hydro Trap', val: '', displayType: 'weapon'}},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultSeasonalGarden.toString().slice(35,-1)
+		func: shdefaultSeasonalGarden
+		//content: shdefaultSeasonalGarden.toString().slice(35,-1)
 	},
 	{
 		name: 'default_derrdunes',
@@ -5555,7 +5622,8 @@ var sh_defaultScripts = [
 		vars: {customGoudaEachBuy: {name: 'Number of Gouda to buy', val: 1000, displayType: 'text'}},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultDerrDunes.toString().slice(30,-1)
+		func: shdefaultDerrDunes
+		//content: shdefaultDerrDunes.toString().slice(30,-1)
 	},
 	{
 		name: 'default_fierywarpath',
@@ -5565,23 +5633,25 @@ var sh_defaultScripts = [
 			customCommanderCharmWave1: {name: 'Number of Commander Charm in Wave 1', val: 0, displayType: 'text'},
 			customCommanderCharmWave2: {name: 'Number of Commander Charm in Wave 2', val: 1, displayType: 'text'},
 			customCommanderCharmWave3: {name: 'Number of Commander Charm in Wave 3', val: 3, displayType: 'text'},
-			customStreakLevel1: {name: '(0 <= streak < streakLevel1) streakLevel1', val: 2, displayType: 'text'},
-			customStreakLevel2: {name: '(steakLevel1 <= streak < streakLevel2) streakLevel2', val: 5, displayType: 'text'},
-			customCommanderStreak: {name: '(steakLevel2 <= streak < streakCommander) streakCommander', val: 7, displayType: 'text'},
-			customGagaStreak: {name: '(streakCommander <= streak < streakGaga) streakGaga', val: 10, displayType: 'text'},
+			customStreakLevel1: {name: '0 <= streak < streakLevel1', val: 2, displayType: 'text'},
+			customStreakLevel2: {name: 'steakLevel1 <= streak < streakLevel2', val: 5, displayType: 'text'},
+			customCommanderStreak: {name: 'steakLevel2 <= streak < streakCommander', val: 7, displayType: 'text'},
+			customGagaStreak: {name: 'streakCommander <= streak < streakGaga', val: 10, displayType: 'text'},
 			customBaitLevel1: {name: 'Bait in Level 1 streak', val: 'brie_cheese', displayType: 'bait'},
 			customBaitLevel2: {name: 'Bait in Level 2 streak', val: 'gouda_cheese', displayType: 'bait'},
 			customBaitLevel3: {name: 'Bait in Level 3 streak', val: 'super_brie_cheese', displayType: 'bait'},
-			customCharmLevel1: {name: 'Charm in Level 1 streak', val: 'normal', displayType: 'text'},
-			customCharmLevel2: {name: 'Charm in Level 2 streak', val: 'normal', displayType: 'text'},
-			customCharmLevel3: {name: 'Charm in Level 3 streak', val: 'super', displayType: 'text'},
+			customCharmLevel1: {name: 'Charm in Level 1 streak', val: 'normal', displayType: 'FWcharm'},
+			customCharmLevel2: {name: 'Charm in Level 2 streak', val: 'normal', displayType: 'FWcharm'},
+			customCharmLevel3: {name: 'Charm in Level 3 streak', val: 'super', displayType: 'FWcharm'},
 			customMinMouseRetreatWave1: {name: 'Min number of retreat mouse in Wave 1', val: 16, displayType: 'text'},
 			customMinMouseRetreatWave2: {name: 'Min number of retreat mouse in Wave 2', val: 30, displayType: 'text'},
-			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 38, displayType: 'text'}
+			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 38, displayType: 'text'},
+			leftoverMouse: {name: 'Switch if number of mouse below', val: 17, displayType: 'text'}
 		},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultFieryWarpath.toString().slice(33,-1)
+		func: shdefaultFieryWarpath
+		//content: shdefaultFieryWarpath.toString().slice(33,-1)
 	},
 	{
 		name: 'default_furoma',
@@ -5590,7 +5660,8 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultFuroma.toString().slice(27,-1)
+		func: shdefaultFuroma
+		//content: shdefaultFuroma.toString().slice(27,-1)
 	},
 	{
 		name: 'default_livinggarden',
@@ -5599,7 +5670,8 @@ var sh_defaultScripts = [
 		vars: {},
 		mode: PLAY,
 		errorHandler: 0,
-		content: shdefaultLivingGarden.toString().slice(33,-1)
+		func: shdefaultLivingGarden
+		//content: shdefaultLivingGarden.toString().slice(33,-1)
 	},
 	{
 		name: 'default_trapcheck',
@@ -5615,7 +5687,17 @@ var sh_defaultScripts = [
 			   customTCBait: {name: 'Trapcheck Cheese', val: '', displayType: 'bait'}},
 		mode: STOP,
 		errorHandler: 0,
-		content: shdefaultTrapcheck.toString().slice(30,-1)
+		func: shdefaultTrapcheck
+		//content: shdefaultTrapcheck.toString().slice(30,-1)
+	},
+	{
+		name: 'test',
+		fullname: "Test",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		func: shtest
 	}
 ];
 
@@ -5680,6 +5762,7 @@ function shdefaultIceberg(){
 			return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultBalacksCove(){
 	if (data.user.bait_item_id == 119)
@@ -5719,6 +5802,7 @@ function shdefaultBalacksCove(){
 			return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultZugwangsTowerSimple(){
 	if (data.user.environment_id == 32)
@@ -5748,6 +5832,7 @@ function shdefaultZugwangsTowerSimple(){
 			return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultSeasonalGarden(){
 	if (data.user.environment_id == 31)
@@ -5793,6 +5878,7 @@ function shdefaultSeasonalGarden(){
 			return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultDerrDunes(){
 	if (data.user.environment_id == 5) //cape calwed
@@ -5811,29 +5897,35 @@ function shdefaultDerrDunes(){
 			case "buy_craft_0":
 				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
 				var craftitem1num = craftitem0num * 20 - Number(localStorage.UOP_sh_d_Derr_coconut_milk);
+				localStorage.UOP_sh_d_Derr_state = "buy_craft_1";
 				if (craftitem1num > 0)
 				{
 					localStorage.UOP_sh_d_Derr_coconut_milk = craftitem1num + Number(localStorage.UOP_sh_d_Derr_coconut_milk);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","coconut_milk_craft_item",craftitem1num),function() {localStorage.UOP_sh_d_Derr_state = "buy_craft_1";});
+					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","coconut_milk_craft_item",craftitem1num),null);
 				}
+				else recall = true;
 				break;
 			case "buy_craft_1":
 				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
 				var craftitem1num = craftitem0num * 30 - Number(localStorage.UOP_sh_d_Derr_salt);
+				localStorage.UOP_sh_d_Derr_state = "buy_craft_2";
 				if (craftitem1num > 0)
 				{
 					localStorage.UOP_sh_d_Derr_salt = craftitem1num + Number(localStorage.UOP_sh_d_Derr_salt);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","salt_craft_item",craftitem1num),function() {localStorage.UOP_sh_d_Derr_state = "buy_craft_2";});
+					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","salt_craft_item",craftitem1num),null);
 				}
+				else recall = true;
 				break;
 			case "buy_craft_2":
 				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
 				var craftitem1num = craftitem0num * 10 - Number(localStorage.UOP_sh_d_Derr_curds_and_whey);
+				localStorage.UOP_sh_d_Derr_state = "buy_cheese";
 				if (craftitem1num > 0)
 				{
 					localStorage.UOP_sh_d_Derr_curds_and_whey = craftitem1num + Number(localStorage.UOP_sh_d_Derr_curds_and_whey);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","curds_and_whey_craft_item",craftitem1num),function() {localStorage.UOP_sh_d_Derr_state = "buy_cheese";});
+					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","curds_and_whey_craft_item",craftitem1num),null);
 				}
+				else recall = true;
 				break;
 			case "buy_cheese":
 				var gold = data.user.gold,defaultnum = sh_scripts[sh_sid].vars.customGoudaEachBuy.val;
@@ -5865,6 +5957,8 @@ function shdefaultDerrDunes(){
 				break;
 			default:state = localStorage.UOP_sh_d_Derr_state = "reset";break;
 		}
+		if (recall == true) setTimeout(shActionSuccessHandler,0);
+		if (state != "reset") return;
 	}
 	else if (data.user.environment_id == 7) //derr dunes
 	{
@@ -5893,7 +5987,7 @@ function shdefaultDerrDunes(){
 					recall = true;
 					break;
 				case "use_crunchy":
-					if (Number(localStorage.UOP_sh_d_Derr_crunchy_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','crunchy_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Derr_state = "reset";});
+					if (Number(localStorage.UOP_sh_d_Derr_crunchy_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','crunchy_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Derr_state = "reset";});
 					else 
 					{
 						localStorage.UOP_sh_d_Derr_state = "use_gouda";
@@ -5901,7 +5995,7 @@ function shdefaultDerrDunes(){
 					}
 					break;
 				case "use_gouda":
-					if (Number(localStorage.UOP_sh_d_Derr_gouda_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Derr_state = "reset";});
+					if (Number(localStorage.UOP_sh_d_Derr_gouda_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Derr_state = "reset";});
 					else 
 					{
 						localStorage.UOP_sh_d_Derr_state = "go_shopping";
@@ -5917,6 +6011,7 @@ function shdefaultDerrDunes(){
 			if (state != "reset") return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 var C_defaultFieryWarpathOrder = ["scout","archer","warrior","mage","cavalry","artillery"];
 var C_defaultFieryWarpathMapItem = {
@@ -5954,7 +6049,7 @@ function shdefaultFieryWarpath(){
 				shChangeBestTrap(PHYSICAL,TRAPAUTO);
 				return;
 			}
-			if ((warpathObj.wave_population.abcxyz.population == 0) && (data.user.trinket_item_id != 614)) //~~~~abcxyz ?
+			if (data.user.trinket_item_id != 614)
 			{
 				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
 				return;
@@ -5962,7 +6057,7 @@ function shdefaultFieryWarpath(){
 		}
 		else
 		{
-			var mousetype = 0,retreatmousenum;
+			var mousetype = 0,retreatmousenum,leftover = sh_scripts[sh_sid].vars.leftoverMouse.val;;
 			var cheese,charmtype,charm;
 			var gagahunt = false;
 			if ((streak == 0) && ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615))) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
@@ -5970,12 +6065,18 @@ function shdefaultFieryWarpath(){
 			var requiredRetreatMouse = sh_scripts[sh_sid].vars["customMinMouseRetreatWave" + wave].val;
 			if ((0 <= streak) && (streak < streakcommander))
 			{
-				while ((mousetype < C_defaultFieryWarpathWave[wave]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
-				if (mousetype >= C_defaultFieryWarpathWave[wave])
+				while ((mousetype < 3) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population < leftover)) mousetype++;
+				if (mousetype == 3)
+				{
+					mousetype = 0;
+					while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
+				}
+				if (mousetype >= C_defaultFieryWarpathWave[wave - 1])
 				{
 					syncUser(shActionSuccessHandler);
 					return;
 				}
+				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave] != warpathObj.streak.mouse_type) streak = 0;
 				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].power != data.user.trap_power_type_name)
 				{
 					shChangeBestTrap(C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].val,TRAPAUTO);
@@ -5996,7 +6097,8 @@ function shdefaultFieryWarpath(){
 					charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
 					cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
 				}
-				charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+				if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+				else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
 				if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
 				if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
 				if ((charm != '') || (cheese != ''))
@@ -6012,10 +6114,19 @@ function shdefaultFieryWarpath(){
 					if (data.user.trap_power_type_name != "Physical")
 					{
 						cheese = 'super_brie_cheese';
-						if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
+						if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
 						shChangeBestTrap(PHYSICAL,TRAPAUTO);
 						return;
+					}
+					else
+					{
+						cheese = 'super_brie_cheese';
+						if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
+							return;
+						}
 					}
 				}
 			}
@@ -6024,39 +6135,51 @@ function shdefaultFieryWarpath(){
 				if (data.user.trap_power_type_name != "Draconic")
 				{
 					cheese = 'super_brie_cheese';
-					if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null);
+					if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null);
 					shChangeBestTrap(DRACONIC,TRAPAUTO);
 					return;
 				}
 			}
-			if ((streakcommander <= streak) && (numcommander > 0)) //separated commander charm process
+			if (streakcommander <= streak) //separated commander charm process
 			{
-				if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
+				var useCommander = false;
+				if ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615)) useCommander = true;
+				if (numcommander > 0)
 				{
-					retreatmousenum = 0;
-					var wave_population = warpathObj.wave_population;
-					for (var mouse_population in wave_population)
-					if (wave_population.hasOwnProperty(mouse_population))
+					if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
 					{
-						retreatmousenum += Math.min(streak,mouse_population.population);
+						retreatmousenum = 0;
+						var wave_population = warpathObj.wave_population;
+						for (var mouse_population in wave_population)
+							if (wave_population.hasOwnProperty(mouse_population))
+							{
+								retreatmousenum += Math.min(streak,wave_population[mouse_population].population);
+							}
+						if (retreatmousenum >= requiredRetreatMouse)
+						{
+							items = ["super_flame_march_general_trinket"];
+							shLoad(C_shdefaultAction.GETITEM,shGetItem(items),
+								function() {
+									var charm = 'flame_march_general_trinket';
+									if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
+								});
+							useCommander = true;
+							localStorage.UOP_sh_d_FW_numcommander = numcommander - 1;
+							return;
+						}
 					}
-					if (retreatmousenum >= requiredRetreatMouse)
-					{
-						items = ["super_flame_march_general_trinket"];
-						shLoad(C_shdefaultAction.GETITEM,shGetItem(items),
-							function() {
-								var charm = 'flame_march_general_trinket';
-								if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
-								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
-							});
-						localStorage.UOP_sh_d_FW_numcommander = numcommander - 1;
-						return;
-					}
+				}
+				if ((streakgaga <= streak) && (streak <= 12) && (data.user.trinket_item_id != 0) && (useCommander == false)) //if gaga streak and not able to use Commander charm => disarm
+				{
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					return;
 				}
 			}
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultFuroma(){
 	if ((data.user.environment_id == 8) || (data.user.environment_id == 19) || (data.user.environment_id == 23))
@@ -6131,7 +6254,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_glutter_cheese) > 0)
 					{
 						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','glutter_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','glutter_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else
 					{
@@ -6162,7 +6285,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_susheese_cheese) > 0)
 					{
 						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','susheese_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','susheese_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else 
 					{
@@ -6193,7 +6316,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_combat_cheese) > 0)
 					{
 						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','combat_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','combat_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else
 					{
@@ -6239,7 +6362,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_rumble_cheese) > 0)
 					{
 						if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','rumble_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','rumble_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else
 					{
@@ -6277,7 +6400,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_onyx_cheese) > 0)
 					{
 						if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','onyx_gorgonzola_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','onyx_gorgonzola_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else
 					{
@@ -6289,7 +6412,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_maki_cheese) > 0)
 					{
 						if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','maki_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','maki_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else
 					{
@@ -6320,7 +6443,7 @@ function shdefaultFuroma(){
 					if (Number(localStorage.UOP_sh_d_Furoma_brie_cheese) > 0)
 					{
 						if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','brie_cheese'),function() {autoCoreAction();localStorage.UOP_sh_d_Furoma_state = "reset";});
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','brie_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
 					}
 					else shLoad(C_shdefaultAction.TRAVEL,shTravel('training_grounds'),function() {localStorage.UOP_sh_d_Furoma_state = "reset";});
 					//travel to training ground so the script won't run anymore
@@ -6331,6 +6454,7 @@ function shdefaultFuroma(){
 			if (state != "reset") return;
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultTrapcheck(){
 	if (sh_mode == BEFORETRAPCHECK)
@@ -6353,9 +6477,10 @@ function shdefaultTrapcheck(){
 			var trinket = sh_scripts[sh_sid].vars.customNormalTrinket.val;
 			var bait = sh_scripts[sh_sid].vars.customNormalBait.val;
 			if ((weapon != '') || (base != '') || (trinket != '') || (bait != ''))
-				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(weapon,base,trinket,bait),function() {localStorage.UOP_sh_d_Trapcheck_state = "Normal";});
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(weapon,base,trinket,bait),function() {autoPlay();localStorage.UOP_sh_d_Trapcheck_state = "Normal";});
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultLivingGarden(){
 	if ((data.user.environment_id == 35) || (data.user.environment_id == 41) || (data.user.environment_id == 42))
@@ -6367,7 +6492,20 @@ function shdefaultLivingGarden(){
 			{
 				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (LGObject.minigame.timer == 0))
 				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
+					items = ["sponge_trinket"];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+						if (data.items[0].quantity > 0)
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
+							return;
+						}
+						else
+						{
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","sponge_trinket",20),
+								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);});
+							return;
+						}
+					});
 					return;
 				}
 				if (LGObject.minigame.dewdrops == 20) 
@@ -6380,11 +6518,67 @@ function shdefaultLivingGarden(){
 		}
 		if (data.user.environment_id == 41) //LC
 		{
-			
+			var LCObject = data.user.quests.QuestLostCity;
+			if (LCObject.is_normal == true)
+			{
+				if (LCObject.minigame.is_cursed == true)
+				{
+					if (data.user.trinket_item_id != 1018)
+					{
+						items = ["searcher_trinket"];
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+							if (data.items[0].quantity > 0)
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
+								return;
+							}
+							else
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",1),
+									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);});
+								return;
+							}
+						});
+						return;
+					}
+				}
+				else if (data.user.trinket_item_id == 1018)
+				{
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					return;
+				}
+			}
 		}
 		if (data.user.environment_id == 42) //SD
 		{
-			
+			var SDObject = data.user.quests.QuestSandDunes;
+			if (SDObject.is_normal == true)
+			{
+				if ((SDObject.minigame.has_stampede == true) && (data.user.trinket_item_id != 1016))
+				{
+					if (SDObject.minigame.grubling_charm_quantity >= 15)
+					{
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
+						return;
+					}
+					else
+					{
+						shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),
+							function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);});
+						return;
+					}
+				}
+				if ((SDObject.minigame.has_stampede == false) && (data.user.trinket_item_id == 1016))
+				{
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					return;
+				}
+			}
 		}
 	}
+	setTimeout(shFunctionSuccessHandler,0);
+}
+function shtest() {
+	console.log("trapcheck at " + new Date());
+	console.log(data.user.bait_quantity);
 }

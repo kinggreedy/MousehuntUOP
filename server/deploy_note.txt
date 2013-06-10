@@ -1,0 +1,5 @@
+Things to change:
++ config.php
++ updates.xml = updatecheck
++ manifest.json = update_url
++ background.js = UOP_serverUrl

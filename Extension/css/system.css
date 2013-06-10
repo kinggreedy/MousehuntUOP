@@ -295,12 +295,16 @@
 #UOP_scriptCustomDiv input[type="text"] {width:108px;}
 #UOP_scriptCustomDiv select {width:108px;}
 #UOP_update_available, #UOP_is_uptodate, #UOP_cannot_update {display:none;}
-#UOP_update_available div, #UOP_is_uptodate div, #UOP_cannot_update div {
+#UOP_checking_update div, #UOP_update_available div, #UOP_is_uptodate div, #UOP_cannot_update div {
 	display:inline-block;
 	width: 17px;
 	height: 17px;
 	top: 3px;
 	position: relative;
+	background-repeat: no-repeat;
+}
+#UOP_checking_update div {
+	background-image: url("/images/throbber.svg");
 }
 #UOP_update_available div {
 	background-image: url("/images/updateavailable.png");
