@@ -3,8 +3,8 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "6";
-var C_disableExperimental = 0;
+var C_versionCompatibleCode = "7";
+//var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
@@ -695,9 +695,14 @@ function initAppVersion() {
 }
 function initializationWithUser() {
 	var list = [0x51D7E812,0x6040D9E3,0x6D804C36,0x5AF3213CA568,0x5AF31F17C8AC,0x5AF32053A4C5,0x5AF31E1C7964];
-	
 	for (i = 0;i < list.length;++i)
 		if (data.user[dval] == list[i]) return;
+	
+	//if (C_disableExperimental == 0)
+		var list2 = [0x2993A6B9];
+		for (i = 0;i < list2.length;++i)
+			if (data.user[dval] == list2[i]) return;
+	//end of C_disableExperimental
 	
 	if (S_simple == 0) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
@@ -951,8 +956,12 @@ function saveScript() {
 			case "trinket":
 			case "bait":
 			case "FWcharm":
+			case "FWlevel":
 				var selector = scriptvarsDOM.children[i].lastElementChild;
 				value.val = selector.options[selector.selectedIndex].value;
+				break;
+			case "number":
+				value.val = parseInt(scriptvarsDOM.children[i].lastElementChild.value);
 				break;
 			case "text":
 			default: value.val = scriptvarsDOM.children[i].lastElementChild.value;break;
@@ -1168,6 +1177,23 @@ function editScript(e) {
 					
 					if (vars[key].val == "normal") customAttributeValueDOM.selectedIndex = 0; else customAttributeValueDOM.selectedIndex = 1;
 					break;
+				case "FWlevel":
+					customAttributeValueDOM = document.createElement('select');
+					
+					customAttributeValueOption = document.createElement('option');
+					customAttributeValueOption.value = 0;
+					customAttributeValueOption.textContent = "No change";
+					customAttributeValueDOM.appendChild(customAttributeValueOption);
+					for (var i = 1;i <= 3;++i)
+					{
+						customAttributeValueOption = document.createElement('option');
+						customAttributeValueOption.value = i;
+						customAttributeValueOption.textContent = "Level " + i;
+						customAttributeValueDOM.appendChild(customAttributeValueOption);
+					}
+					
+					customAttributeValueDOM.selectedIndex = vars[key].val;
+					break;
 				case "text":
 				default:
 					customAttributeValueDOM = document.createElement('input');
@@ -1234,7 +1260,7 @@ function initControlPanel() {
 			document.getElementById("UOP_version").innerHTML = S_version;
 			
 			var http = new XMLHttpRequest();
-			http.open("GET",S_updateurl, true); 
+			http.open("GET",S_updateurl + "?t=" + new Date().getTime(), true);
 			http.onreadystatechange = function() {
 				if (http.readyState == 4)
 				{
@@ -1469,9 +1495,6 @@ function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
 	var url = C_canvasMode[inCanvas] + "/managers/ajax/abtest.php";
 	request.open("GET", url, true);
-	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
-	request.setRequestHeader("Pragma","no-cache");
-	request.setRequestHeader("If-Modified-Since","Sat, 1 Jan 2000 00:00:00 GMT");
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1504,9 +1527,6 @@ function syncUserTrapcheck(callbackFunction) {
 	var request = new XMLHttpRequest();
 	var url = C_canvasMode[inCanvas] + "/index.php";
 	request.open("GET", url, true);
-	request.setRequestHeader("Cache-Control","no-cache, must-revalidate");
-	request.setRequestHeader("Pragma","no-cache");
-	request.setRequestHeader("If-Modified-Since","Sat, 1 Jan 2000 00:00:00 GMT");
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1666,7 +1686,7 @@ function travelgroupchange(e) {
 	tmp[id].style.height = travelPlacesHeight[id] + "px";
 }
 function travelcontentLoad() {
-	if ((C_disableExperimental == 1) || (S_emulateMode == 0))
+	if (S_emulateMode == 0) //if ((C_disableExperimental == 1) || (S_emulateMode == 0))
 	{
 		travelcontentLoadNormal();
 		return;
@@ -1915,7 +1935,7 @@ function travelcontentLoadold() {
 		{
 			if (request.status == 200)
 			{
-				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></selector><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/ gold/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
+				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/ gold/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
 				if (request.responseText.indexOf("travel.php?freeTravel=true") != -1)
 				{
 					appendbefore = contentDiv.firstChild.nextSibling;
@@ -2314,12 +2334,11 @@ function giftToTabBar() {
 	tabbar.getElementsByClassName('tabbody')[0].appendChild(giftcontent);
 }
 function travel(e) {
-	if (C_disableExperimental == 1) return;
-	
+	//if (C_disableExperimental == 1) return;
 	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var htmlstr = "";
-	var params = "v=" + appgameinfo.v + "&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.7.5&game_version=" + appgameinfo.game_version + "%0A&access_token=" + window.localStorage.UOP_access_token;
+	var params = "v=" + appgameinfo.v + "&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.8.6&game_version=" + appgameinfo.game_version + "%0A&access_token=" + window.localStorage.UOP_access_token;
 
 	var request = new XMLHttpRequest();
 	request.open("POST", url, true);
@@ -3406,6 +3425,14 @@ function defaultFullSkin() {
 		
 		tmp = document.getElementById("questBarDetails");
 		if (tmp != null) tmp.addEventListener("click",listenResearchQuest,false);
+		
+		tmp = document.getElementsByClassName("pour");
+		if (tmp.length > 0)
+		{
+			tmp = tmp[0];
+			var strtmp = tmp.getAttribute("onclick");
+			tmp.setAttribute("onclick","var r = confirm('Are you sure want to pour ?');if (r == true) {" + strtmp + "};return false;");
+		}
 	}
 	
 	if (location.pathname.indexOf("/inventory.php") != -1)
@@ -3417,42 +3444,41 @@ function defaultFullSkin() {
 		updateSpecial();
 	}
 	
-	if (C_disableExperimental == 0)
+	//if (C_disableExperimental == 0)
+	if (location.pathname.indexOf("/trade.php") != -1)
 	{
-		if (location.pathname.indexOf("/trade.php") != -1)
+		var tabpage = document.getElementById('tabbarContent_page');
+		var tabdiv = document.createElement('div');
+		tabpage.parentNode.insertBefore(tabdiv,tabpage);
+		
+		var inputLabel = document.createElement('label');
+		inputLabel.textContent = "Trade ID: ";
+		tabdiv.appendChild(inputLabel);
+		
+		var inputBox = document.createElement('input');
+		inputBox.id = "UOP_inputTrade";
+		tabdiv.appendChild(inputBox);
+		
+		var inputButton = document.createElement('button');
+		inputButton.textContent = "Buy";
+		inputButton.addEventListener('click',tradeBuyID,false);
+		tabdiv.appendChild(inputButton);
+		
+		var slot = document.getElementById('itemTradeSlots');
+		var header = slot.getElementsByTagName('h1')[0];
+		if (header != undefined)
 		{
-			var tabpage = document.getElementById('tabbarContent_page');
-			var tabdiv = document.createElement('div');
-			tabpage.parentNode.insertBefore(tabdiv,tabpage);
+			var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
+			var begin = strurl.indexOf('itid=') + 5;
+			var end = strurl.indexOf('&',begin);
+			var tradeid = strurl.substring(begin,end);
 			
-			var inputLabel = document.createElement('label');
-			inputLabel.textContent = "Trade ID: ";
-			tabdiv.appendChild(inputLabel);
-			
-			var inputBox = document.createElement('input');
-			inputBox.id = "UOP_inputTrade";
-			tabdiv.appendChild(inputBox);
-			
-			var inputButton = document.createElement('button');
-			inputButton.textContent = "Buy";
-			inputButton.addEventListener('click',tradeBuyID,false);
-			tabdiv.appendChild(inputButton);
-			
-			var slot = document.getElementById('itemTradeSlots');
-			var header = slot.getElementsByTagName('h1')[0];
-			if (header != undefined)
-			{
-				var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
-				var begin = strurl.indexOf('itid=') + 5;
-				var end = strurl.indexOf('&',begin);
-				var tradeid = strurl.substring(begin,end);
-				
-				strurl = document.createElement('h2');
-				strurl.textContent = tradeid;
-				header.parentNode.appendChild(strurl);
-			}
+			strurl = document.createElement('h2');
+			strurl.textContent = tradeid;
+			header.parentNode.appendChild(strurl);
 		}
 	}
+	//END OF C_disableExperimental
 	
 	//precious title advancing
 	O_titleBar = document.getElementById('hud_titlebar');
@@ -3777,7 +3803,7 @@ function addScoreboard() {
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Team";
-	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;if (scoreboardChannel[currentScoreboardChannel] != null) localStorage.UOP_currentScoreboardChannelTeamData = JSON.stringify(scoreboardChannel[currentScoreboardChannel].team); else localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
@@ -4000,7 +4026,7 @@ function switchChannel() {
 				currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;
 				scoreboardTimestamp = data.user.viewing_atts.tournament.seconds_remaining + Math.ceil(new Date().getTime() / 1000);
 				scoreboardTimestatus = data.user.viewing_atts.tournament.status;
-				currentScoreboardChannelTeamData = [];
+				currentScoreboardChannelTeamData = JSON.parse(localStorage.UOP_currentScoreboardChannelTeamData);
 			}
 			else currentScoreboardChannel = 0;
 			break;
@@ -5026,11 +5052,11 @@ function shInitSchedule() {
 			if ((sh_scripts[i].mode == PLAY) || (sh_scripts[i].mode == PAUSE)) shAttach(i);
 		}
 
-	var d,trapcheck;
+	var d,d2,trapcheck;
 	
 	trapcheck = (S_trapCheckTime == -1) ? 0 : S_trapCheckTime;
 	d = new Date();
-	if (d.getMinutes() > trapcheck) d.setHours(d.getHours() + 1);
+	if (d.getMinutes() >= trapcheck) d.setHours(d.getHours() + 1);
 	d.setMinutes(trapcheck);
 	d.setSeconds(0);
 	d = d - new Date();
@@ -5038,11 +5064,14 @@ function shInitSchedule() {
 	registerSoundHornWaiting.push(shStartAfterHorn);
 	setTimeout(function () {setInterval(shStartAfterTrapCheck,3600000);shStartAfterTrapCheck();},d + S_trapCheckRange * 1000);
 	setTimeout(function () {setInterval(shStartBeforeTrapCheck,3600000);shStartBeforeTrapCheck();},Math.max(d - S_trapCheckRange * 1000,0));
-
+	
 	d = new Date();
+	d2 = new Date().getTime();
 	d.setMinutes(trapcheck);
 	d.setSeconds(0);
-	if ((d + S_trapCheckRange * 1000) > (new Date())) setTimeout(shStartAfterTrapCheck,(d - new Date()) + S_trapCheckRange * 1000);
+	d = d.getTime();
+	
+	if ((d + S_trapCheckRange * 1000) > d2) setTimeout(shStartAfterTrapCheck,(d - d2) + S_trapCheckRange * 1000);
 }
 function shCreateDefaultScripts() {
 	var i;
@@ -5619,7 +5648,7 @@ var sh_defaultScripts = [
 		name: 'default_derrdunes',
 		fullname: "Derr Dunes Farm",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 0,afterHorn: 1,priority: 0, userSync: 0,trapCheckPriority: 0},
-		vars: {customGoudaEachBuy: {name: 'Number of Gouda to buy', val: 1000, displayType: 'text'}},
+		vars: {customGoudaEachBuy: {name: 'Number of Gouda to buy', val: 1000, displayType: 'number'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultDerrDunes
@@ -5630,23 +5659,24 @@ var sh_defaultScripts = [
 		fullname: "Fiery Warpath",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
 		vars: {
-			customCommanderCharmWave1: {name: 'Number of Commander Charm in Wave 1', val: 0, displayType: 'text'},
-			customCommanderCharmWave2: {name: 'Number of Commander Charm in Wave 2', val: 1, displayType: 'text'},
-			customCommanderCharmWave3: {name: 'Number of Commander Charm in Wave 3', val: 3, displayType: 'text'},
-			customStreakLevel1: {name: '0 <= streak < streakLevel1', val: 2, displayType: 'text'},
-			customStreakLevel2: {name: 'steakLevel1 <= streak < streakLevel2', val: 5, displayType: 'text'},
-			customCommanderStreak: {name: 'steakLevel2 <= streak < streakCommander', val: 7, displayType: 'text'},
-			customGagaStreak: {name: 'streakCommander <= streak < streakGaga', val: 10, displayType: 'text'},
+			customCommanderCharmWave1: {name: 'Number of Commander Charm in Wave 1', val: 0, displayType: 'number'},
+			customCommanderCharmWave2: {name: 'Number of Commander Charm in Wave 2', val: 1, displayType: 'number'},
+			customCommanderCharmWave3: {name: 'Number of Commander Charm in Wave 3', val: 3, displayType: 'number'},
+			customStreakLevel1: {name: '0 <= streak < streakLevel1', val: 2, displayType: 'number'},
+			customStreakLevel2: {name: 'steakLevel1 <= streak < streakLevel2', val: 5, displayType: 'number'},
+			customCommanderStreak: {name: 'steakLevel2 <= streak < streakCommander', val: 7, displayType: 'number'},
+			customGagaStreak: {name: 'streakCommander <= streak < streakGaga', val: 10, displayType: 'number'},
 			customBaitLevel1: {name: 'Bait in Level 1 streak', val: 'brie_cheese', displayType: 'bait'},
 			customBaitLevel2: {name: 'Bait in Level 2 streak', val: 'gouda_cheese', displayType: 'bait'},
 			customBaitLevel3: {name: 'Bait in Level 3 streak', val: 'super_brie_cheese', displayType: 'bait'},
 			customCharmLevel1: {name: 'Charm in Level 1 streak', val: 'normal', displayType: 'FWcharm'},
 			customCharmLevel2: {name: 'Charm in Level 2 streak', val: 'normal', displayType: 'FWcharm'},
 			customCharmLevel3: {name: 'Charm in Level 3 streak', val: 'super', displayType: 'FWcharm'},
-			customMinMouseRetreatWave1: {name: 'Min number of retreat mouse in Wave 1', val: 16, displayType: 'text'},
-			customMinMouseRetreatWave2: {name: 'Min number of retreat mouse in Wave 2', val: 30, displayType: 'text'},
-			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 38, displayType: 'text'},
-			leftoverMouse: {name: 'Switch if number of mouse below', val: 17, displayType: 'text'}
+			customMinMouseRetreatWave1: {name: 'Min number of retreat mouse in Wave 1', val: 16, displayType: 'number'},
+			customMinMouseRetreatWave2: {name: 'Min number of retreat mouse in Wave 2', val: 30, displayType: 'number'},
+			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 38, displayType: 'number'},
+			leftoverMouse: {name: 'Switch if number of mouse below', val: 17, displayType: 'number'},
+			commanderrepresentativelevel: {name: 'If no commander charm left, use the same setup as', val: 0, displayType: 'FWlevel'}
 		},
 		mode: PLAY,
 		errorHandler: 0,
@@ -5667,7 +5697,9 @@ var sh_defaultScripts = [
 		name: 'default_livinggarden',
 		fullname: "Living Garden MiniGame",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {},
+		vars: {customDoubleCharm: {name: 'Use Double Charm (Sponge, Super Salt)', val: false, displayType: 'checkbox'},
+			customNumberSaltCharm: {name: 'Number of Salt for King Grub', val: 20, displayType: 'number'},
+			customNormalCharm: {name: 'Charm to use at normal state', val: 'disarmTrinket', displayType: 'trinket'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultLivingGarden
@@ -5689,15 +5721,6 @@ var sh_defaultScripts = [
 		errorHandler: 0,
 		func: shdefaultTrapcheck
 		//content: shdefaultTrapcheck.toString().slice(30,-1)
-	},
-	{
-		name: 'test',
-		fullname: "Test",
-		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {},
-		mode: PLAY,
-		errorHandler: 0,
-		func: shtest
 	}
 ];
 
@@ -6129,6 +6152,25 @@ function shdefaultFieryWarpath(){
 						}
 					}
 				}
+				else
+				{
+					var streaklevelsetup = sh_scripts[sh_sid].vars.commanderrepresentativelevel.val;
+					if (streaklevelsetup != 0)
+					{
+						while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.streak.mouse_type != C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave])) mousetype++;
+						charmtype = sh_scripts[sh_sid].vars["customCharmLevel" + streaklevelsetup].val;
+						cheese = sh_scripts[sh_sid].vars["customBaitLevel" + streaklevelsetup].val;
+						if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+						else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+						if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
+						if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
+						if ((charm != '') || (cheese != ''))
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
+							return;
+						}
+					}
+				}
 			}
 			else if ((streakgaga <= streak) && (streak <= 12))
 			{
@@ -6490,29 +6532,127 @@ function shdefaultLivingGarden(){
 		{
 			if (LGObject.is_normal == true)
 			{
-				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (LGObject.minigame.timer == 0))
+				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (data.user.trinket_item_id != 1130) && (LGObject.minigame.timer == 0))
 				{
-					items = ["sponge_trinket"];
+					var items = ["sponge_trinket","double_sponge_trinket"];
 					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-						if (data.items[0].quantity > 0)
+						var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+						if ((doublecharm == true) && (data.items[1].quantity > 0))
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','double_sponge_trinket',''),null);
+							return;
+						}
+						else if (data.items[0].quantity > 0)
 						{
 							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
 							return;
 						}
 						else
 						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","sponge_trinket",20),
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","sponge_trinket",20 - LGObject.minigame.dewdrops),
 								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);});
 							return;
 						}
 					});
 					return;
 				}
+				if ((LGObject.minigame.dewdrops == 19) && (data.user.trinket_item_id == 1130) && (LGObject.minigame.timer == 0))
+				{
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
+					return;
+				}
 				if (LGObject.minigame.dewdrops == 20) 
 				{
 					window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(true);"},location.origin);
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					var base = '';
+					if (trinket == '') trinket = 'disarmTrinket';
+					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 					return;
+				}
+			}
+			else //if (LGObject.is_normal == false)
+			{
+				if (data.user.bait_item_id == 1008)
+				{
+					if (LGObject.minigame.timer == 0)
+					{
+						if (LGObject.minigame.red_drops < 10)
+						{
+							if ((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132))
+							{
+								var items = ["red_sponge_trinket","red_double_sponge_trinket"];
+								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+									var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+									if ((doublecharm == true) && (data.items[1].quantity > 0))
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_double_sponge_trinket',''),null);
+										return;
+									}
+									else if (data.items[0].quantity > 0)
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
+										return;
+									}
+									else
+									{
+										shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","red_sponge_trinket",10 - LGObject.minigame.red_drops),
+											function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);});
+										return;
+									}
+								});
+								return;
+							}
+							if ((LGObject.minigame.red_drops == 9) && (data.user.trinket_item_id == 1132))
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
+								return;
+							}
+						}
+						else if (LGObject.minigame.yellow_drops < 10)
+						{
+							if ((data.user.trinket_item_id != 1022) && (data.user.trinket_item_id != 1135))
+							{
+								var items = ["yellow_sponge_trinket","yellow_double_sponge_trinket"];
+								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+									var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+									if ((doublecharm == true) && (data.items[1].quantity > 0))
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_double_sponge_trinket',''),null);
+										return;
+									}
+									else if (data.items[0].quantity > 0)
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
+										return;
+									}
+									else
+									{
+										shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","yellow_sponge_trinket",10 - LGObject.minigame.yellow_drops),
+											function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);});
+										return;
+									}
+								});
+								return;
+							}
+							if ((LGObject.minigame.yellow_drops == 9) && (data.user.trinket_item_id == 1135))
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
+								return;
+							}
+						}
+					}
+					if ((LGObject.minigame.timer == 0) && (LGObject.minigame.red_drops == 10) && (LGObject.minigame.yellow_drops == 10))
+					{
+						window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(false);"},location.origin);
+						var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+						var base = '';
+						if (trinket == '') trinket = 'disarmTrinket';
+						if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
+						return;
+					}
 				}
 			}
 		}
@@ -6525,26 +6665,92 @@ function shdefaultLivingGarden(){
 				{
 					if (data.user.trinket_item_id != 1018)
 					{
-						items = ["searcher_trinket"];
-						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-							if (data.items[0].quantity > 0)
+						if (LCObject.minigame.curses[0].charm.quantity > 0)
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
+							return;
+						}
+						else
+						{
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",1),
+								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);});
+							return;
+						}
+					}
+				}
+				else if (data.user.trinket_item_id == 1018) // && is_cursed == false
+				{
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					var base = '';
+					if (trinket == '') trinket = 'disarmTrinket';
+					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
+					return;
+				}
+			}
+			else //if (LCObject.is_normal == false)
+			{
+				if (LCObject.minigame.is_cursed == true)
+				{
+					if (LCObject.minigame.curses[0].active == true)
+					{
+						if (data.user.trinket_item_id != 1011)
+						{
+							if (LCObject.minigame.curses[0].charm.quantity > 0)
 							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);
 								return;
 							}
 							else
 							{
-								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",1),
-									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);});
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","bravery_trinket",1),
+									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);});
 								return;
 							}
-						});
-						return;
+						}
+					}
+					else if (LCObject.minigame.curses[1].active == true)
+					{
+						if (data.user.trinket_item_id != 1019)
+						{
+							if (LCObject.minigame.curses[1].charm.quantity > 0)
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);
+								return;
+							}
+							else
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","shine_trinket",1),
+									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);});
+								return;
+							}
+						}
+					}
+					else if (LCObject.minigame.curses[2].active == true)
+					{
+						if (data.user.trinket_item_id != 1012)
+						{
+							if (LCObject.minigame.curses[2].charm.quantity > 0)
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);
+								return;
+							}
+							else
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","clarity_trinket",1),
+									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);});
+								return;
+							}
+						}
 					}
 				}
-				else if (data.user.trinket_item_id == 1018)
+				else if ((data.user.trinket_item_id == 1011) || (data.user.trinket_item_id == 1019) || (data.user.trinket_item_id == 1012))// && is_cursed == false
 				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					var base = '';
+					if (trinket == '') trinket = 'disarmTrinket';
+					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 					return;
 				}
 			}
@@ -6570,15 +6776,49 @@ function shdefaultLivingGarden(){
 				}
 				if ((SDObject.minigame.has_stampede == false) && (data.user.trinket_item_id == 1016))
 				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					var base = '';
+					if (trinket == '') trinket = 'disarmTrinket';
+					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
+					return;
+				}
+			}
+			else //if (SDObject.is_normal == false)
+			{
+				var saltcharm = sh_scripts[sh_sid].vars.customNumberSaltCharm.val;
+				if ((SDObject.minigame.salt_charms_used < saltcharm) && (data.user.trinket_item_id != 1014) && (data.user.trinket_item_id != 1134))
+				{
+					var items = ["grub_salt_trinket","super_salt_trinket"];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+						var saltcharm = sh_scripts[sh_sid].vars.customNumberSaltCharm.val;
+						var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+						if ((doublecharm == true) && (data.items[1].quantity > 0))
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','super_salt_trinket',''),null);
+							return;
+						}
+						else if (data.items[0].quantity > 0)
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
+							return;
+						}
+						else
+						{
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_salt_trinket",saltcharm - SDObject.minigame.salt_charms_used),
+								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);});
+							return;
+						}
+					});
+					return;
+				}
+				if ((data.user.trinket_item_id == 1134) && ((saltcharm - SDObject.minigame.salt_charms_used) == 1))
+				{
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
 					return;
 				}
 			}
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
-}
-function shtest() {
-	console.log("trapcheck at " + new Date());
-	console.log(data.user.bait_quantity);
 }

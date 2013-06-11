@@ -22,7 +22,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 	{urls: ["http://apps.facebook.com/mousehunt/*"],types: ["main_frame"]},
 	["blocking"]
 );
-/*********************APP SIMULATION****************************/
+/*********************APP VERSION****************************/
 chrome.runtime.onConnect.addListener(function(port) {
 	if (port.name == "APPVersion")
 	port.onMessage.addListener(function(msg) {
