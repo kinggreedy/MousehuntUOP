@@ -30,7 +30,7 @@
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"] td {color: #fff;background-color: #99ea6a;}
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"] td:first-child {background-color: #74cc3a;}
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="ally"]:hover td:first-child:hover {background-color: #84d171;}
-#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"] td {color: #fff;background-color: #fae29A;}
+#UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"] td {color: #5C00FF;background-color: #fae29A;}
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"] td:first-child {background-color: #eac500;}
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="my"]:hover td:first-child:hover {background-color: #ffd700;}
 #UOP_scoreboardDiv .UOP_table tbody tr[teamtype="transit"] td:first-child {background-color: #bdbdbd;}

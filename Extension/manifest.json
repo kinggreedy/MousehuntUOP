@@ -1,7 +1,7 @@
 ﻿{
 	"name": "Đây là xe hơm thắng",
 	"description": "Hơm có thắng hơm phải vì xe hơm có thắng....Hơm có thắng là để tới King's Stockade nhanh hơn :yaoming:",
-	"version": "3.1.5",
+	"version": "3.1.8",
 	"update_url": "http://kinggreedy.azurewebsites.net/UOP/updatesVIP.xml",
 	"manifest_version": 2,
 	"icons": { "128": "icon.jpg"},

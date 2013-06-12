@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
   <app appid='pnpjiopgobniomdminilcookbmafdioe'>
-    <updatecheck codebase='http://www.students.oamk.fi/~t2ngch00/UOP/VIP.crx' version='3.1.5' />
+    <updatecheck codebase='http://www.students.oamk.fi/~t2ngch00/UOP/VIP.crx' version='3.1.8' />
   </app>
 </gupdate>

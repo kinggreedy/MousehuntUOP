@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "7";
+var C_versionCompatibleCode = "8";
 //var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -697,12 +697,6 @@ function initializationWithUser() {
 	var list = [0x51D7E812,0x6040D9E3,0x6D804C36,0x5AF3213CA568,0x5AF31F17C8AC,0x5AF32053A4C5,0x5AF31E1C7964];
 	for (i = 0;i < list.length;++i)
 		if (data.user[dval] == list[i]) return;
-	
-	//if (C_disableExperimental == 0)
-		var list2 = [0x2993A6B9];
-		for (i = 0;i < list2.length;++i)
-			if (data.user[dval] == list2[i]) return;
-	//end of C_disableExperimental
 	
 	if (S_simple == 0) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
@@ -3803,7 +3797,7 @@ function addScoreboard() {
 	button = document.createElement("button");
 	button.className = "UOP_buttonSB";
 	button.textContent = "Team";
-	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id;if (scoreboardChannel[currentScoreboardChannel] != null) localStorage.UOP_currentScoreboardChannelTeamData = JSON.stringify(scoreboardChannel[currentScoreboardChannel].team); else localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
+	button.addEventListener('click',function () {O_scoredboardControl.style.height = "0px";localStorage.UOP_channelScoreboard = S_channelScoreboard = 1;if (data.user.viewing_atts.tournament != null) currentScoreboardChannel = data.user.viewing_atts.tournament.tournament_id; else currentScoreboardChannel = 0;if (scoreboardChannel[currentScoreboardChannel] != null) localStorage.UOP_currentScoreboardChannelTeamData = JSON.stringify(scoreboardChannel[currentScoreboardChannel].team); else localStorage.UOP_currentScoreboardChannelTeamData = "[]";switchChannel();},false);
 	scoreboardController.push(button);
 	scoreboardControl.appendChild(button);
 	button = document.createElement("button");
@@ -3939,7 +3933,7 @@ function showChannel() {
 				O_scoreboardChannel.appendChild(button);
 			}
 		}
-		O_scoredboardControl.style.height = (28 + Math.ceil(counter / 4) * 20) + "px";
+		O_scoredboardControl.style.height = (28 + Math.ceil(counter / 6) * 24) + "px";
 	});
 }
 function getChannel(e) {
@@ -4109,7 +4103,8 @@ function updateScoreboard() {
 				else if (scoreboardTimestatus == 'auto') O_scoreboardStatus.textContent = "Active";
 				if (status != 2)
 				{
-					var scoreboardTableIndex = HTMLstr.indexOf('<table class="scoreboard-tournaments">');
+					var scoreboardTableIndex = HTMLstr.indexOf('<div class="tournamentTabRow tournamentTabRow-white"><table class="scoreboard-tournaments">');
+					scoreboardTableIndex = HTMLstr.indexOf('<table class="scoreboard-tournaments">',scoreboardTableIndex);
 					HTMLstr = HTMLstr.substring(scoreboardTableIndex,HTMLstr.indexOf('</table>',scoreboardTableIndex) + 8);
 					O_scoreboardFetch.innerHTML = HTMLstr;
 					var rawSBTeamName = O_scoreboardFetch.firstChild.lastElementChild.getElementsByClassName('tournament-scoreboard-teamName');
@@ -5604,7 +5599,7 @@ var sh_defaultScripts = [
 		name: 'default_iceberg',
 		fullname: 'Iceberg (Base)',
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {customBase: {name: 'Base', val: '', displayType: 'base'}},
+		vars: {customBase: {name: 'Base for Commander Stage (No change = Auto)', val: '', displayType: 'base'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultIceberg
@@ -5614,8 +5609,8 @@ var sh_defaultScripts = [
 		name: 'default_balackscove',
 		fullname: "Balack's Cove (Cheese,Location)",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {customShadowTrap: {name: 'Shadow Trap at JoD', val: '', displayType: 'weapon'},
-			   customBCTrap: {name: 'Trap at BC', val: '', displayType: 'weapon'}},
+		vars: {customShadowTrap: {name: 'Shadow Trap at JoD (No change = Auto)', val: '', displayType: 'weapon'},
+			   customBCTrap: {name: 'Trap at BC (No change = Auto: GAT/Trex/ACRONYM/ABT)', val: '', displayType: 'weapon'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultBalacksCove
@@ -5625,7 +5620,7 @@ var sh_defaultScripts = [
 		name: 'default_zugwangstowersimple',
 		fullname: "Zugwang's Tower (Pawn,disarm CMC)",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {customTrap: {name: 'Trap', val: '', displayType: 'weapon'}, customBase: {name: 'Base', val: '', displayType: 'base'}},
+		vars: {customTrap: {name: 'Trap after pawn  (No change = Auto)', val: '', displayType: 'weapon'}, customBase: {name: 'Base after pawn (No change = Auto)', val: '', displayType: 'base'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultZugwangsTowerSimple
@@ -5635,10 +5630,10 @@ var sh_defaultScripts = [
 		name: 'default_seasonalgarden',
 		fullname: "Seasonal Garden (Trap)",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 0,afterHorn: 1,priority: 0, userSync: 0,trapCheckPriority: 0},
-		vars: {customPhysicalTrap: {name: 'Physical Trap', val: '', displayType: 'weapon'},
-			   customTacticalTrap: {name: 'Tactical Trap', val: '', displayType: 'weapon'},
-			   customShadowTrap: {name: 'Shadow Trap', val: '', displayType: 'weapon'},
-			   customHydroTrap: {name: 'Hydro Trap', val: '', displayType: 'weapon'}},
+		vars: {customPhysicalTrap: {name: 'Physical Trap (No change = Auto)', val: '', displayType: 'weapon'},
+			   customTacticalTrap: {name: 'Tactical Trap (No change = Auto)', val: '', displayType: 'weapon'},
+			   customShadowTrap: {name: 'Shadow Trap (No change = Auto)', val: '', displayType: 'weapon'},
+			   customHydroTrap: {name: 'Hydro Trap (No change = Auto)', val: '', displayType: 'weapon'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultSeasonalGarden
@@ -5699,7 +5694,7 @@ var sh_defaultScripts = [
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
 		vars: {customDoubleCharm: {name: 'Use Double Charm (Sponge, Super Salt)', val: false, displayType: 'checkbox'},
 			customNumberSaltCharm: {name: 'Number of Salt for King Grub', val: 20, displayType: 'number'},
-			customNormalCharm: {name: 'Charm to use at normal state', val: 'disarmTrinket', displayType: 'trinket'}},
+			customNormalCharm: {name: 'Charm to use at normal state (No change = Disarm)', val: 'disarmTrinket', displayType: 'trinket'}},
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultLivingGarden
@@ -6074,8 +6069,11 @@ function shdefaultFieryWarpath(){
 			}
 			if (data.user.trinket_item_id != 614)
 			{
-				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
-				return;
+				items = ["monger_trinket"];
+				shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+				function() {
+					if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
+				});
 			}
 		}
 		else
@@ -6201,11 +6199,11 @@ function shdefaultFieryWarpath(){
 						if (retreatmousenum >= requiredRetreatMouse)
 						{
 							items = ["super_flame_march_general_trinket"];
-							shLoad(C_shdefaultAction.GETITEM,shGetItem(items),
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
 								function() {
 									var charm = 'flame_march_general_trinket';
 									if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
-									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
+									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
 								});
 							useCommander = true;
 							localStorage.UOP_sh_d_FW_numcommander = numcommander - 1;
@@ -6527,9 +6525,10 @@ function shdefaultTrapcheck(){
 function shdefaultLivingGarden(){
 	if ((data.user.environment_id == 35) || (data.user.environment_id == 41) || (data.user.environment_id == 42))
 	{
-		var LGObject = data.user.quests.QuestLivingGarden;
 		if (data.user.environment_id == 35) //LG
 		{
+			var LGObject = data.user.quests.QuestLivingGarden;
+			if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 			if (LGObject.is_normal == true)
 			{
 				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (data.user.trinket_item_id != 1130) && (LGObject.minigame.timer == 0))
@@ -6663,6 +6662,7 @@ function shdefaultLivingGarden(){
 			{
 				if (LCObject.minigame.is_cursed == true)
 				{
+					if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 					if (data.user.trinket_item_id != 1018)
 					{
 						if (LCObject.minigame.curses[0].charm.quantity > 0)
@@ -6692,6 +6692,7 @@ function shdefaultLivingGarden(){
 			{
 				if (LCObject.minigame.is_cursed == true)
 				{
+					if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 					if (LCObject.minigame.curses[0].active == true)
 					{
 						if (data.user.trinket_item_id != 1011)
@@ -6758,6 +6759,7 @@ function shdefaultLivingGarden(){
 		if (data.user.environment_id == 42) //SD
 		{
 			var SDObject = data.user.quests.QuestSandDunes;
+			if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 			if (SDObject.is_normal == true)
 			{
 				if ((SDObject.minigame.has_stampede == true) && (data.user.trinket_item_id != 1016))
@@ -6815,6 +6817,25 @@ function shdefaultLivingGarden(){
 				if ((data.user.trinket_item_id == 1134) && ((saltcharm - SDObject.minigame.salt_charms_used) == 1))
 				{
 					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
+					return;
+				}
+				if ((SDObject.minigame.salt_charms_used >= saltcharm) && (data.user.trinket_item_id != 1015))
+				{
+					var items;
+					items = ["grub_scent_trinket"];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+						if (data.items[0].quantity > 0)
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
+							return;
+						}
+						else
+						{
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",1),
+								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);});
+							return;
+						}
+					});
 					return;
 				}
 			}

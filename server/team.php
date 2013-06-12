@@ -35,7 +35,7 @@ else if ($_SERVER['REQUEST_METHOD'] == 'GET')
 	$count = $conn->prepare($sql);
 	
 	foreach ($res as $row) {
-		if ($row['timeleft'] < (time() + 30 * 60))
+		if ($row['timeleft'] < (time() - 60 * 60))
 		{
 			$count->execute(array($row['ID']));
 		}
