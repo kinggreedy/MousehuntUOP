@@ -3,13 +3,14 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "8";
+var C_versionCompatibleCode = "9";
 //var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
 var C_autoInterval = 1;
 var C_solveStage = 4; //try 3 times OCR + 1 pre-cache
 var C_cpcontent,C_cpprefix,C_cpsuffix,C_cpstyle,C_cpmessage,C_tabNum,C_groupNum,C_autopanel,C_scoreboardContent;
+var C_ftcontent,C_ftprefix,C_ftsuffix,C_ftmessage;
 var C_toolboxMessage;
 //Constants
 var C_LOCATION_TIMES = [
@@ -302,6 +303,7 @@ function runTimeCreateConstant() {
 				<ul id="UOP_auto" role="radiogroup" aria-labelledby="">\
 					<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">ON</li>\
 					<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">OFF</li>\
+					<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">WATCH</li>\
 				</ul>\
 			</div>\
 		</div>\
@@ -383,7 +385,7 @@ function runTimeCreateConstant() {
 	<div id="UOP_settting_shedule" class="UOP_settingtab" style="display:none;">\
 		<div class="UOP_section"><h2>Schedule Settings</h2></div>\
 		<div class="UOP_setting">\
-			<label class="UOP_label">Schedules</label>\
+			<label class="UOP_label">Miniscript</label>\
 			<div class="UOP_settingvalue">\
 				<ul id="UOP_schedule" role="radiogroup" aria-labelledby="">\
 					<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">ON</li>\
@@ -520,7 +522,7 @@ function runTimeCreateConstant() {
 	</div>\
  	<div class="UOP_button" id="UOP_buttonSchedule">\
 		<div class="UOP_buttonicon"></div>\
-		<div class="UOP_buttontext">Schedule</div>\
+		<div class="UOP_buttontext">Miniscript</div>\
 	</div>\
 </div>\
 ';
@@ -558,6 +560,107 @@ function runTimeCreateConstant() {
 	popup.addToken('{*prefix*}','"+ C_cpstyle.toString() + C_cpprefix.toString() + "');\
 	popup.addToken('{*content*}','" + C_cpcontent.toString() + "');\
 	popup.addToken('{*suffix*}','" + C_cpsuffix.toString() + "');\
+	popup.show();\
+	delete popup;";
+	
+	C_ftcontent = '\
+	<div id="UOP_cpdiv">\
+		<div id="UOP_settting_firsttime" class="UOP_settingtab">\
+			<div class="UOP_section"><h2>Welcome abroad</h2></div>\
+			<div class="UOP_setting">\
+				<label class="UOP_label">Profile</label>\
+				<div class="UOP_settingvalue">\
+					<div class="UOP_settingvalue">\
+						<ul id="UOP_profile" role="radiogroup" aria-labelledby="">\
+							<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">FULL</li>\
+							<li class="UOP_settingli" value="1" tabindex="0" aria-checked="false">SMALL DELAY</li>\
+							<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">CLONE</li>\
+							<li class="UOP_settingli" value="3" tabindex="-1" aria-checked="false">SUPER RICH</li>\
+						</ul>\
+					</div>\
+					<div>\
+						<label class="UOP_profile_label" style="display:none;">Aggressive = OFF, delay time = 5 &rArr; 10 s</label>\
+						<label class="UOP_profile_label" style="display:none;">Server = OFF, Aggressive = OFF, Advertisement = REMOVE</label>\
+						<label class="UOP_profile_label" style="display:none;">Fiery Warpath miniscript:<br>\
+							+ streak 0 1 2: GOUDA / NORMAL charm<br>\
+							+ streak 3 4 5: SB+ / SUPER charm<br>\
+							+ streak 6+: Commander charm<br>\
+							+ Number of Commander Charm INCREASED from 0 - 1 - 3 to 0 - 2 - 3</label>\
+						<br><span style="color:red">*REMINDER*: Tourney Ghost Point is <b>DANGEROUS !!!</b></span>\
+					</div>\
+				</div>\
+			</div>\
+			<div class="UOP_setting">\
+				<label class="UOP_label">Aggressive Mode</label>\
+				<div class="UOP_settingvalue">\
+					<div class="UOP_settingvalue">\
+						<ul id="UOP_aggressive" role="radiogroup" aria-labelledby="">\
+							<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">DEFAULT</li>\
+							<li class="UOP_settingli" value="1" tabindex="0" aria-checked="false">ON</li>\
+							<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">OFF</li>\
+							<li class="UOP_settingli" value="3" tabindex="-1" aria-checked="false">TOUR</li>\
+						</ul>\
+					</div>\
+					<div>\
+						<label>Delay </label>\
+						<input id="UOP_delaymin" type="text">\
+						<label style="font-weight: bold;"> &rArr; </label>\
+						<input id="UOP_delaymax" type="text">\
+						<label> seconds</label>\
+					</div>\
+				</div>\
+			</div>\
+			<div class="UOP_setting">\
+				<label class="UOP_label">App Emulation</label>\
+				<div class="UOP_settingvalue">\
+					<div class="UOP_settingvalue">\
+						<ul id="UOP_emulateMode" role="radiogroup" aria-labelledby="">\
+							<li class="UOP_settingli" value="0" tabindex="-1" aria-checked="false">OFF</li>\
+							<li class="UOP_settingli" value="1" tabindex="-1" aria-checked="false">ANDROID</li>\
+							<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">IPHONE</li>\
+						</ul>\
+					</div>\
+					<div>\
+						<label>Access token: </label>\
+						<input id="UOP_access_token" type="text">\
+						<button id="UOP_buttonAccessToken">Go to App</button>\
+					</div>\
+				</div>\
+			</div>\
+			<div class="UOP_setting">\
+				<label class="UOP_label">Server</label>\
+				<div class="UOP_settingvalue">\
+					<div class="UOP_settingvalue">\
+						<ul id="UOP_server" role="radiogroup" aria-labelledby="">\
+							<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">DEFAULT</li>\
+							<li class="UOP_settingli" value="1" tabindex="0" aria-checked="false">ON</li>\
+							<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">OFF</li>\
+						</ul>\
+					</div>\
+					<div>\
+						<label>Server url: </label>\
+						<input id="UOP_serverUrl" type="text">\
+					</div>\
+				</div>\
+			</div>\
+		</div>\
+	</div>';
+	
+	C_ftprefix = "";
+	C_ftsuffix = '\
+	<div class="UOP_drawertaskbar">\
+		<div class="UOP_button" id="UOP_buttonSave">\
+			<div class="UOP_buttonicon"></div>\
+			<div class="UOP_buttontext">Save</div>\
+		</div>\
+	</div>';
+	
+	C_ftmessage = "\
+	var popup = new jsDialog();\
+	popup.setTemplate('ajax');\
+	popup.addToken('{*prefix*}','"+ C_cpstyle.toString() + C_ftprefix.toString() + "');\
+	popup.addToken('{*content*}','" + C_ftcontent.toString() + "');\
+	popup.addToken('{*suffix*}','" + C_ftsuffix.toString() + "');\
 	popup.show();\
 	delete popup;";
 	
@@ -713,8 +816,8 @@ function main() {
 	
 	if ((S_ads == 0) && (S_simple == 1)) S_ads = 1;
 	if ((S_ads == 1) || (S_ads == 2)) removeAds();
-	if (S_auto == 0) initAuto();
-	if ((S_auto == 0) && (S_schedule == 0) && (atCamp)) shInitSchedule();
+	if (S_auto != 1) initAuto();
+	if ((S_auto != 1) && (S_schedule == 0) && (atCamp)) shInitSchedule();
 	
 	syncUser(initializationWithUser);
 }
@@ -755,8 +858,10 @@ function loadSettings() {
 		
 		window.localStorage.UOP_cacheKRstr = "";
 		window.localStorage.UOP_serverUrl = "http://kinggreedy.azurewebsites.net/UOP";
+		
+		setTimeout(firstTimeSetup,5000);
 	}
-	else if (window.localStorage.UOP_cacheKRstr == undefined) //better safe than sorry
+	if (window.localStorage.UOP_cacheKRstr == undefined) //better safe than sorry
 	{
 		window.localStorage.UOP_cacheKRstr = "";
 	}
@@ -789,6 +894,99 @@ function loadSettings() {
 	S_serverUrl = window.localStorage.UOP_serverUrl;
 
 	if (S_trapCheckTime == -1) registerSoundHornWaiting.push(shDetectTrapCheckTimestamp);
+}
+function firstTimeSetup() {
+	window.postMessage({name: "UOP_eval", data: C_ftmessage},location.origin);
+	eval_callback = initfirstTimeSetupTable;
+}
+function initfirstTimeSetupTable() {
+	var i,tmp;
+	var allLi = document.getElementsByClassName("UOP_settingli");
+	for (i = 0;i < allLi.length;++i) allLi[i].addEventListener("click",checkLi,false);
+	
+	allLi = document.getElementById("UOP_profile").getElementsByClassName("UOP_settingli");
+	for (i = 0;i < allLi.length;++i) allLi[i].addEventListener("click",customProfileDisplayFirstTimeSetupTable,false);
+	
+	document.getElementById('UOP_buttonSave').addEventListener('click',saveFirstTimeSettings,false);
+	document.getElementById('UOP_buttonAccessToken').addEventListener('click',buttonGetAccessToken,false);
+	
+	tmp = document.getElementById("UOP_profile").getElementsByTagName('li')[0];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
+	tmp = document.getElementById("UOP_aggressive").getElementsByTagName('li')[0];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
+	tmp = document.getElementById("UOP_emulateMode").getElementsByTagName('li')[0];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
+	tmp = document.getElementById("UOP_server").getElementsByTagName('li')[0];tmp.setAttribute("aria-checked","true");tmp.setAttribute("origin","true");tmp.className="tick";
+	
+	document.getElementById("UOP_delaymin").value = S_delaymin;
+	document.getElementById("UOP_delaymax").value = S_delaymax;
+	document.getElementById("UOP_serverUrl").value = S_serverUrl;
+}
+function customProfileDisplayFirstTimeSetupTable(e) {
+	var num = Number(e.target.value);
+	var list = document.getElementsByClassName("UOP_profile_label");
+	for (var i = 0;i < list.length;++i) list[i].style.display = "none";
+	if (num != 0) list[num - 1].style.display = "block";
+}
+function saveFirstTimeSettings() {
+	var profile = document.getElementById("UOP_profile").getElementsByClassName("tick")[0].value;
+	
+	switch (profile)
+	{
+		case 1:
+			localStorage.UOP_aggressive = S_aggressive = 1;
+			localStorage.UOP_delaymin = S_delaymin = 5;
+			localStorage.UOP_delaymax = S_delaymax = 10;
+			break;
+		case 2:
+			localStorage.UOP_aggressive = S_aggressive = 1;
+			localStorage.UOP_server = S_server = 1;
+			localStorage.UOP_ads = S_ads = 1;
+			break;
+		case 3:
+			for (var i = 0;i < sh_scripts.length;++i)
+			{
+				if (sh_scripts[i].name == "default_fierywarpath")
+				{
+					sh_scripts[i].vars.customBaitLevel1.val = "gouda_cheese";
+					sh_scripts[i].vars.customBaitLevel2.val = "gouda_cheese";
+					sh_scripts[i].vars.customBaitLevel3.val = "super_brie_cheese";
+					sh_scripts[i].vars.customCharmLevel1.val = "normal";
+					sh_scripts[i].vars.customCharmLevel2.val = "normal";
+					sh_scripts[i].vars.customCharmLevel3.val = "super";
+					sh_scripts[i].vars.customCommanderCharmWave1.val = 0;
+					sh_scripts[i].vars.customCommanderCharmWave2.val = 2;
+					sh_scripts[i].vars.customCommanderCharmWave3.val = 3;
+					sh_scripts[i].vars.customStreakLevel1.val = 2;
+					sh_scripts[i].vars.customStreakLevel2.val = 3;
+					sh_scripts[i].vars.customCommanderStreak.val = 6;
+					sh_scripts[i].vars.customMinMouseRetreatWave1.val = 18;
+					sh_scripts[i].vars.customMinMouseRetreatWave2.val = 30;
+					sh_scripts[i].vars.customMinMouseRetreatWave3.val = 36;
+					
+					shSaveScript(i);
+					break;
+				}
+			}
+			break;
+		default: profile = 0;break
+	}
+	
+	var aggressive = document.getElementById("UOP_aggressive").getElementsByClassName("tick")[0].value;
+	if (aggressive != 0)
+	{
+		localStorage.UOP_aggressive = S_aggressive = aggressive - 1;
+		localStorage.UOP_delaymin = S_delaymin = document.getElementById("UOP_delaymin").value;
+		localStorage.UOP_delaymax = S_delaymax = document.getElementById("UOP_delaymax").value;
+	}
+	localStorage.UOP_emulateMode = S_emulateMode = document.getElementById("UOP_emulateMode").getElementsByClassName("tick")[0].value;
+	
+	var server = document.getElementById("UOP_server").getElementsByClassName("tick")[0].value;
+	if (server != 0)
+	{
+		localStorage.UOP_server = S_server = server - 1;
+		localStorage.UOP_serverUrl = S_serverUrl = document.getElementById("UOP_serverUrl").value;
+	}
+	
+	if ((profile != 0) || (aggressive != 0) || (server != 0) || (S_emulateMode != 0)) location.reload();
+	document.getElementById("jsDialogClose").click();
 }
 function addControlPanel() {
 	var controlpanel = template.hgMenu.cloneNode(true);
@@ -1203,7 +1401,7 @@ function editScript(e) {
 	}
 }
 function initControlPanel() {
-	var i;
+	var i,tmp;
 	var allLi = document.getElementsByClassName("UOP_settingli");
 	for (i = 0;i < allLi.length;++i) allLi[i].addEventListener("click",checkLi,false);
 	document.getElementById('UOP_auto').addEventListener('click',toggleGroup,false);
@@ -1487,7 +1685,7 @@ function receiveWindowMessage(event) {
 }
 function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
-	var url = C_canvasMode[inCanvas] + "/managers/ajax/abtest.php";
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/users/userInventory.php";
 	request.open("GET", url, true);
 	request.onreadystatechange = function()
 	{
@@ -1498,20 +1696,25 @@ function syncUser(callbackFunction) {
 				try
 				{
 					data = JSON.parse(request.responseText);
+					if (document.getElementById('pagemessage').textContent.indexOf("Error while sync") != -1)
+					{
+						document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: green;'>Sync ok !</label>";
+						setTimeout(function () {document.getElementById('pagemessage').innerHTML = "";},3000);
+					}
 					if (callbackFunction != null) setTimeout(callbackFunction,0);
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Retrying...</label>";
 					document.title = "Sync error !";
-					setTimeout(function() {syncUser(callbackFunction);},3000);
+					setTimeout(function() {syncUser(callbackFunction);},1000);
 				}
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Retrying...</label>";
 				document.title = "Sync error !";
-				setTimeout(function() {syncUser(callbackFunction);},3000);
+				setTimeout(function() {syncUser(callbackFunction);},1000);
 			}
 		}
 	};
@@ -4247,7 +4450,8 @@ function autoCoreAction() {
 	}
 	else if (A_autoState == 4) //if HORN => HORN
 	{
-		O_hornButton.click();
+		if (S_auto == 0) O_hornButton.click();
+		else if (S_auto == 2) location.reload();
 		return;
 	}
 	else if (A_autoState == 5) //TIME OUT BUT NOT READY
@@ -4341,7 +4545,10 @@ function genDelayTime() {
 		(S_aggressive == 0))
 		delaymin = delaymax = 0;
 	if (data.user.next_activeturn_seconds == 0)
-		delaymin = delaymax = 3;
+	{
+		if (S_auto == 0) delaymin = delaymax = 3;
+		else if (S_auto == 2) delaymin = delaymax = 60;
+	}
 	if (delaymax > delaymin) A_delayTime = Math.floor((Math.random()*(delaymax - delaymin))+delaymin);
 	else A_delayTime = delaymin;
 	A_delayTimestamp = nextTurnTimestamp + A_delayTime * 1000;
@@ -5731,7 +5938,7 @@ function shdefaultIceberg(){
 			switch (data.user.quests.QuestIceberg.current_phase)
 			{
 				case "General":
-					if (sh_scripts[sh_sid].vars.customBase.val != null) param = shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
+					if (sh_scripts[sh_sid].vars.customBase.val != '') param = shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
 					else
 					{
 						shChangeBestTrap(BASE,TRAPAUTO);
@@ -5747,7 +5954,7 @@ function shdefaultIceberg(){
 					if (user.quests.QuestIceberg.turns_taken < 250) param = shChangeTrap('','deep_freeze_base','','');
 					else
 					{
-						if (sh_scripts[sh_sid].vars.customBase.val != null) param = shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
+						if (sh_scripts[sh_sid].vars.customBase.val != '') param = shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
 						else
 						{
 							shChangeBestTrap(BASE,TRAPAUTO);
@@ -5775,7 +5982,7 @@ function shdefaultIceberg(){
 		}
 		if (data.user.base_item_id == 899)
 		{
-			if (sh_scripts[sh_sid].vars.customBase.val != null) shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
+			if (sh_scripts[sh_sid].vars.customBase.val != '') shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
 			else shChangeBestTrap(BASE,TRAPAUTO);
 			return;
 		}
@@ -5789,7 +5996,7 @@ function shdefaultBalacksCove(){
 			((sh_clock.UOP_locationTimerBalacksCove.stateID == 1) && (sh_clock.UOP_locationTimerBalacksCove.timeleft < 15 * 60)) ||
 			(data.user.bait_quantity == 0))
 			{
-				if (sh_scripts[sh_sid].vars.customBCTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customBCTrap.val,'','','vanilla_stilton_cheese'),null);
+				if (sh_scripts[sh_sid].vars.customBCTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customBCTrap.val,'','','vanilla_stilton_cheese'),null);
 				else shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {
 					var i;
 					var trap,besttrap = 5;
@@ -5815,7 +6022,7 @@ function shdefaultBalacksCove(){
 		if (data.user.bait_quantity == 0)
 		{
 			shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
-			if (sh_scripts[sh_sid].vars.customShadowTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
+			if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
 			else shChangeBestTrap(SHADOW,TRAPAUTO);
 			return;
 		}
@@ -5829,14 +6036,14 @@ function shdefaultZugwangsTowerSimple(){
 		if (((data.user.weapon_item_id == 356) && (data.user.viewing_atts.zzt_tech_progress >= 8)) ||
 		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
 			{
-				if (sh_scripts[sh_sid].vars.customTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTrap.val,'','',''),null);
+				if (sh_scripts[sh_sid].vars.customTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTrap.val,'','',''),null);
 				else shChangeBestTrap(TACTICAL,TRAPAUTO);
 				window.localStorage.UOP_ZTS_changeBestBase = 1;
 				return;
 			}
 		if (window.localStorage.UOP_ZTS_changeBestBase == 1)
 		{
-			if (sh_scripts[sh_sid].vars.customBase.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
+			if (sh_scripts[sh_sid].vars.customBase.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
 			else shChangeBestTrap(BASE,TRAPAUTO);
 			window.localStorage.UOP_ZTS_changeBestBase = 0;
 			return;
@@ -5876,19 +6083,19 @@ function shdefaultSeasonalGarden(){
 			switch (thisstate)
 			{
 				case 0:
-					if (sh_scripts[sh_sid].vars.customPhysicalTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customPhysicalTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customPhysicalTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customPhysicalTrap.val,'','',''),null);
 					else shChangeBestTrap(PHYSICAL,TRAPAUTO);
 					break;
 				case 1:
-					if (sh_scripts[sh_sid].vars.customTacticalTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTacticalTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customTacticalTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTacticalTrap.val,'','',''),null);
 					else shChangeBestTrap(TACTICAL,TRAPAUTO);
 					break;
 				case 2:
-					if (sh_scripts[sh_sid].vars.customShadowTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
 					else shChangeBestTrap(SHADOW,TRAPAUTO);
 					break;
 				case 3:
-					if (sh_scripts[sh_sid].vars.customHydroTrap.val != null) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customHydroTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customHydroTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customHydroTrap.val,'','',''),null);
 					else shChangeBestTrap(HYDRO,TRAPAUTO);
 					break;
 			}
@@ -6525,10 +6732,10 @@ function shdefaultTrapcheck(){
 function shdefaultLivingGarden(){
 	if ((data.user.environment_id == 35) || (data.user.environment_id == 41) || (data.user.environment_id == 42))
 	{
+		if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 		if (data.user.environment_id == 35) //LG
 		{
 			var LGObject = data.user.quests.QuestLivingGarden;
-			if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 			if (LGObject.is_normal == true)
 			{
 				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (data.user.trinket_item_id != 1130) && (LGObject.minigame.timer == 0))
@@ -6560,7 +6767,7 @@ function shdefaultLivingGarden(){
 					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
 					return;
 				}
-				if (LGObject.minigame.dewdrops == 20) 
+				if ((LGObject.minigame.timer == 0) && (LGObject.minigame.dewdrops == 20))
 				{
 					window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(true);"},location.origin);
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
@@ -6573,85 +6780,89 @@ function shdefaultLivingGarden(){
 			}
 			else //if (LGObject.is_normal == false)
 			{
-				if (data.user.bait_item_id == 1008)
+				if (LGObject.minigame.timer == 0)
 				{
-					if (LGObject.minigame.timer == 0)
+					if (data.user.bait_item_id == 1010)
 					{
-						if (LGObject.minigame.red_drops < 10)
-						{
-							if ((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132))
-							{
-								var items = ["red_sponge_trinket","red_double_sponge_trinket"];
-								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-									var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-									if ((doublecharm == true) && (data.items[1].quantity > 0))
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_double_sponge_trinket',''),null);
-										return;
-									}
-									else if (data.items[0].quantity > 0)
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
-										return;
-									}
-									else
-									{
-										shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","red_sponge_trinket",10 - LGObject.minigame.red_drops),
-											function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);});
-										return;
-									}
-								});
-								return;
-							}
-							if ((LGObject.minigame.red_drops == 9) && (data.user.trinket_item_id == 1132))
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
-								return;
-							}
-						}
-						else if (LGObject.minigame.yellow_drops < 10)
-						{
-							if ((data.user.trinket_item_id != 1022) && (data.user.trinket_item_id != 1135))
-							{
-								var items = ["yellow_sponge_trinket","yellow_double_sponge_trinket"];
-								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-									var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-									if ((doublecharm == true) && (data.items[1].quantity > 0))
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_double_sponge_trinket',''),null);
-										return;
-									}
-									else if (data.items[0].quantity > 0)
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
-										return;
-									}
-									else
-									{
-										shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","yellow_sponge_trinket",10 - LGObject.minigame.yellow_drops),
-											function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);});
-										return;
-									}
-								});
-								return;
-							}
-							if ((LGObject.minigame.yellow_drops == 9) && (data.user.trinket_item_id == 1135))
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
-								return;
-							}
-						}
-					}
-					if ((LGObject.minigame.timer == 0) && (LGObject.minigame.red_drops == 10) && (LGObject.minigame.yellow_drops == 10))
-					{
-						window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(false);"},location.origin);
-						var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
-						var base = '';
-						if (trinket == '') trinket = 'disarmTrinket';
-						if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','duskshade_camembert_cheese',''),null);
 						return;
 					}
+					if (LGObject.minigame.red_drops < 10)
+					{
+						if ((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132))
+						{
+							var items = ["red_sponge_trinket","red_double_sponge_trinket"];
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+								var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+								if ((doublecharm == true) && (data.items[1].quantity > 0))
+								{
+									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_double_sponge_trinket',''),null);
+									return;
+								}
+								else if (data.items[0].quantity > 0)
+								{
+									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
+									return;
+								}
+								else
+								{
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","red_sponge_trinket",10 - LGObject.minigame.red_drops),
+										function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);});
+									return;
+								}
+							});
+							return;
+						}
+						if ((LGObject.minigame.red_drops == 9) && (data.user.trinket_item_id == 1132))
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
+							return;
+						}
+					}
+					else if (LGObject.minigame.yellow_drops < 10)
+					{
+						if ((data.user.trinket_item_id != 1022) && (data.user.trinket_item_id != 1135))
+						{
+							var items = ["yellow_sponge_trinket","yellow_double_sponge_trinket"];
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+								var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+								if ((doublecharm == true) && (data.items[1].quantity > 0))
+								{
+									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_double_sponge_trinket',''),null);
+									return;
+								}
+								else if (data.items[0].quantity > 0)
+								{
+									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
+									return;
+								}
+								else
+								{
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","yellow_sponge_trinket",10 - LGObject.minigame.yellow_drops),
+										function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);});
+									return;
+								}
+							});
+							return;
+						}
+						if ((LGObject.minigame.yellow_drops == 9) && (data.user.trinket_item_id == 1135))
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
+							return;
+						}
+					}
+				}
+				if ((LGObject.minigame.timer == 0) && (LGObject.minigame.red_drops == 10) && (LGObject.minigame.yellow_drops == 10))
+				{
+					window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(false);"},location.origin);
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					var base = '';
+					var bait = '';
+					if (trinket == '') trinket = 'disarmTrinket';
+					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
+					if ((trinket == 'shattering_trinket') && (data.user.bait_item_id != 1010)) bait = 'lunaria_camembert_cheese';
+					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,bait),null);
+					return;
 				}
 			}
 		}
@@ -6660,9 +6871,10 @@ function shdefaultLivingGarden(){
 			var LCObject = data.user.quests.QuestLostCity;
 			if (LCObject.is_normal == true)
 			{
+				if (localStorage.UOP_sh_d_LGLC_cursedStatus == null) localStorage.UOP_sh_d_LGLC_cursedStatus = "cursed";
 				if (LCObject.minigame.is_cursed == true)
 				{
-					if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
+					localStorage.UOP_sh_d_LGLC_cursedStatus = "cursed";
 					if (data.user.trinket_item_id != 1018)
 					{
 						if (LCObject.minigame.curses[0].charm.quantity > 0)
@@ -6678,8 +6890,9 @@ function shdefaultLivingGarden(){
 						}
 					}
 				}
-				else if (data.user.trinket_item_id == 1018) // && is_cursed == false
+				else if ((localStorage.UOP_sh_d_LGLC_cursedStatus == "cursed") || (data.user.trinket_item_id == 1018)) // && is_cursed == false
 				{
+					localStorage.UOP_sh_d_LGLC_cursedStatus = "normal";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
 					if (trinket == '') trinket = 'disarmTrinket';
@@ -6690,9 +6903,10 @@ function shdefaultLivingGarden(){
 			}
 			else //if (LCObject.is_normal == false)
 			{
+				if (localStorage.UOP_sh_d_LGCC_cursedStatus == null) localStorage.UOP_sh_d_LGCC_cursedStatus = "cursed";
 				if (LCObject.minigame.is_cursed == true)
 				{
-					if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
+					localStorage.UOP_sh_d_LGCC_cursedStatus = "cursed";
 					if (LCObject.minigame.curses[0].active == true)
 					{
 						if (data.user.trinket_item_id != 1011)
@@ -6745,8 +6959,9 @@ function shdefaultLivingGarden(){
 						}
 					}
 				}
-				else if ((data.user.trinket_item_id == 1011) || (data.user.trinket_item_id == 1019) || (data.user.trinket_item_id == 1012))// && is_cursed == false
+				else if ((localStorage.UOP_sh_d_LGCC_cursedStatus == "cursed") || (data.user.trinket_item_id == 1011) || (data.user.trinket_item_id == 1019) || (data.user.trinket_item_id == 1012))// && is_cursed == false
 				{
+					localStorage.UOP_sh_d_LGCC_cursedStatus = "normal";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
 					if (trinket == '') trinket = 'disarmTrinket';
@@ -6759,25 +6974,30 @@ function shdefaultLivingGarden(){
 		if (data.user.environment_id == 42) //SD
 		{
 			var SDObject = data.user.quests.QuestSandDunes;
-			if (data.user.trinket_quantity == 0) data.user.trinket_item_id = 0;
 			if (SDObject.is_normal == true)
 			{
-				if ((SDObject.minigame.has_stampede == true) && (data.user.trinket_item_id != 1016))
+				if (localStorage.UOP_sh_d_LGSD_stampedeStatus == null) localStorage.UOP_sh_d_LGSD_stampedeStatus = "running";
+				if (SDObject.minigame.has_stampede == true)
 				{
-					if (SDObject.minigame.grubling_charm_quantity >= 15)
+					localStorage.UOP_sh_d_LGSD_stampedeStatus = "running";
+					if (data.user.trinket_item_id != 1016)
 					{
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
-						return;
-					}
-					else
-					{
-						shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),
-							function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);});
-						return;
+						if (SDObject.minigame.grubling_charm_quantity >= 15)
+						{
+							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
+							return;
+						}
+						else
+						{
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),
+								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);});
+							return;
+						}
 					}
 				}
-				if ((SDObject.minigame.has_stampede == false) && (data.user.trinket_item_id == 1016))
+				if ((SDObject.minigame.has_stampede == false) && ((data.user.trinket_item_id == 1016) || (localStorage.UOP_sh_d_LGSD_stampedeStatus == "running")))
 				{
+					localStorage.UOP_sh_d_LGSD_stampedeStatus = "ended";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
 					if (trinket == '') trinket = 'disarmTrinket';
@@ -6819,24 +7039,46 @@ function shdefaultLivingGarden(){
 					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
 					return;
 				}
-				if ((SDObject.minigame.salt_charms_used >= saltcharm) && (data.user.trinket_item_id != 1015))
+				if ((SDObject.minigame.salt_charms_used >= saltcharm) && (data.user.trinket_item_id != 1015) && (data.user.trinket_item_id != 1074))
 				{
 					var items;
-					items = ["grub_scent_trinket"];
-					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-						if (data.items[0].quantity > 0)
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
-							return;
-						}
-						else
-						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",1),
-								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);});
-							return;
-						}
-					});
-					return;
+					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
+					if (trinket == "shattering_trinket")
+					{
+						items = ["shattering_trinket"];
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+							if (data.items[0].quantity > 0)
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shattering_trinket',''),null);
+								return;
+							}
+							else
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+								sh_scripts[sh_sid].vars.customNormalCharm.val = 'disarmTrinket';
+								return;
+							}
+						});
+						return;
+					}
+					else
+					{
+						items = ["grub_scent_trinket"];
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
+							if (data.items[0].quantity > 0)
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
+								return;
+							}
+							else
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",1),
+									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);});
+								return;
+							}
+						});
+						return;
+					}
 				}
 			}
 		}
