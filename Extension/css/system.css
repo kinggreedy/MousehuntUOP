@@ -1,29 +1,28 @@
-.UOP_hgMenu {padding: 0px 8px 0px 0px!important;
+.UOP_menuItem {padding: 0px 8px 0px 0px!important;
 	cursor: pointer;
 	height: 35px;
 }
-.UOP_hgMenu .userPic {
+.UOP_menuItem .userPic {
 	float: left;
-	width :40px;
 	position: relative;
 }
-.UOP_hgMenu .picture {
-	width: 29px;
-	height: 29px;
+.UOP_menuItem .picture {
+	width: 20px;
+	height: 20px;
 	position: relative;
 	top: 3px;
 	left: 0px;
 	margin-left: 5px;
+	background-size: 100%;
 }
-.UOP_hgMenu .userText {
+.UOP_menuItem .userText {
 	float: right;
-	padding-top: 10px;
-	font-size: 12px;
+	padding-left: 5px;
 	color: #64696D;
 	font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
 	font-weight: bold;
 }
-.UOP_hgMenu a {
+.UOP_menuItem a {
 	text-decoration: none;
 }
 #UOP_appControlPanel {
@@ -31,7 +30,7 @@
 	padding-right: 4px;
 }
 #UOP_appControlPanel .picture {
-	background: url("/images/controlpanelbutton.png");
+	background-image: url("/images/controlpanelbutton.png");
 }
 #UOP_toScriptMessage, #UOP_toWindowMessage {
 	display:none;

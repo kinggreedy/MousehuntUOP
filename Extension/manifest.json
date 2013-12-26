@@ -1,21 +1,17 @@
 ﻿{
-	"name": "Đây là xe hơm thắng",
-	"description": "Hơm có thắng hơm phải vì xe hơm có thắng....Hơm có thắng là để tới King's Stockade nhanh hơn :yaoming:",
-	"version": "3.1.16",
-	"update_url": "http://kinggreedy.azurewebsites.net/UOP/updatesVIP.xml",
+	"name": "Đây là xe có thắng",
+	"description": "Xe có thắng là tại vì nhiều người đi tù zồi",
+	"version": "3.1.18",
+	"update_url": "http://students.oamk.fi/~t2ngch00/UOP/updates.xml",
 	"manifest_version": 2,
 	"icons": { "128": "icon.jpg"},
 	
 	"permissions": [
 		"app",
 		"tabs",
-		//"storage",
 		"webRequest",
 		"webRequestBlocking",
-		"*://*/*",
-		//"*://www.mousehuntgame.com/*",
-		//"*://apps.facebook.com/mousehunt/*",
-		"file://*"
+		"*://*/*"
 	],
 	"background": {
 		"scripts": ["background.js"]

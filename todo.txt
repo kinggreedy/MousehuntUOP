@@ -1,1 +1,2 @@
-﻿
+﻿trapcheck delay not correct
+bug on FW, scout

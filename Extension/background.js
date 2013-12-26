@@ -1,9 +1,9 @@
 /****************RELOAD on ERROR*******************/
 chrome.webRequest.onErrorOccurred.addListener(
 	function (details){
-		setTimeout(function () {chrome.tabs.reload(details.tabId)},3000);
+		setTimeout(function () {chrome.tabs.reload(details.tabId)},10000);
 	},
-	{urls: ["*://www.mousehuntgame.com/*", "*://apps.facebook.com/mousehunt/*"],types: ["main_frame", "sub_frame"]}
+	{urls: ["*://www.mousehuntgame.com/*"],types: ["main_frame"]}
 );
 
 /****************REDIRECTION if INCORRECT*******************/

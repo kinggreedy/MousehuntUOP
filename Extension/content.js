@@ -47,18 +47,7 @@ var C_LOCATION_TIMES = [
 		state: ['OPEN', 'CLOSED'],
 		shortstate: ['OPEN','CLOSED'],
 		color: ['LightGreen', 'Red']
-	}//,
-	//{
-		//name: 'Relic Hunter',
-		//shortname: "RH",
-		//id: 'UOP_locationTimerRelicHunter',
-		//base: 1346284800,
-		//totaltime: 604800,
-		//length: [86400, 86400, 86400, 86400, 86400, 86400, 86400],
-		//state: ['Mountain', 'Town of Digby', 'Laboratory', 'S. S. Huntington III', 'Seasonal Garden', 'Slushy Shoreline', 'Muridae Market'],
-		//shortstate: ['Mt.', 'ToD', 'Lab', 'SSH', 'SG', 'SS', 'MM'],
-		//color: ['#CD853F', '#8B4513', 'Skyblue', 'Blue', 'Green', 'Silver', '#B22222']
-	//}
+	}
 ];
 var C_SG_FUN_TIME = {
 		name: 'Seasonal Garden',
@@ -69,11 +58,12 @@ var C_SG_FUN_TIME = {
 		statenum: [[2,3,3], [1,5,5], [5,1,1], [8,3,2]],
 		statename: ["general","sun","moon"],
 		weapontype: ['Physical','Tactical','Shadow','Hydro']
-	}
+}
 var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
 var C_canvasMode = ["","/canvas"];
 var C_displayState = ["block","none"];
+var C_clientMobileVer = "0.14.4";
 var C_mobile = [{},
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
@@ -92,7 +82,7 @@ var S_channelScoreboard;
 var S_version,S_updateurl;
 
 //Object Variables
-var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer;
+var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser;
 var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
@@ -134,14 +124,13 @@ function initialization() {
 	createTemplate();
 	initVariables();
 	addControlPanel();
-	addScreenShotSafe();
 	
 	//==========CALL THE MAIN FUNCTION==========
 	main();
 }
 function initVariables() {
 	O_hornHeader = document.getElementById('header');
-	O_hgRow = document.getElementById('hgRow');
+	O_hgRow = document.getElementsByClassName('mousehuntHeaderView-gameTabs')[0];
 	O_gamelogo = document.getElementsByClassName('gamelogo')[0];
 	O_hornButton = document.getElementsByClassName('hornbutton')[0].firstChild;
 	O_hornButton.addEventListener('click',soundHorn,false);
@@ -725,22 +714,11 @@ function checkBrowser() {
 }
 function createTemplate() {
 	var tmp;
-	tmp = document.getElementById('userGreeting').cloneNode(true);
-	tmp.className = "hgMenu UOP_hgMenu";
-	tmp.firstChild.firstChild.removeAttribute('href');
-	tmp.firstChild.firstChild.removeAttribute('onclick');
-	tmp.firstChild.firstChild.removeChild(tmp.firstChild.firstChild.firstChild);
-	tmp.firstChild.firstChild.firstChild.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-	tmp.firstChild.firstChild.removeChild(tmp.firstChild.firstChild.lastChild);
+	
+	tmp = document.createElement('div');
+	tmp.className = "menuItem UOP_menuItem";
+	tmp.innerHTML = "<div class='userPic'><img class='picture' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'></div><span class='userText'></span>";
 	template.hgMenu = tmp;
-	
-	tmp = document.createElement('div');
-	tmp.className = "hgSeparator left";
-	template.hgLeft = tmp;
-	
-	tmp = document.createElement('div');
-	tmp.className = "hgSeparator right";
-	template.hgRight = tmp;
 	
 	tmp = document.createElement('div');
 	tmp.className = "objective clear-block";
@@ -819,6 +797,7 @@ function main() {
 	if (S_auto != 1) initAuto();
 	if ((S_auto != 1) && (S_schedule == 0) && (atCamp)) shInitSchedule();
 	
+	//setTimeout(function(){syncUser(initializationWithUser);},3000);
 	syncUser(initializationWithUser);
 }
 /*******************CONTROL PANEL & SETTINGS*****************/
@@ -991,12 +970,12 @@ function saveFirstTimeSettings() {
 function addControlPanel() {
 	var controlpanel = template.hgMenu.cloneNode(true);
 	controlpanel.id = "UOP_appControlPanel";
+	controlpanel.className += " dropdown";
 	controlpanel.addEventListener('click',loadControlPanel,false);
 	controlpanel.removeChild(controlpanel.lastChild);
 
-	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
-	O_hgRow.appendChild(controlpanel);
-	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
+	var rowright = O_hgRow.getElementsByClassName('floatr')[0];
+	rowright.insertBefore(controlpanel,rowright.firstChild);
 }
 function clearSettings() {
 	delete window.localStorage.UOP_versionCompatibleCode;
@@ -1685,7 +1664,7 @@ function receiveWindowMessage(event) {
 }
 function syncUser(callbackFunction) {
 	var request = new XMLHttpRequest();
-	var url = C_canvasMode[inCanvas] + "/managers/ajax/users/userInventory.php";
+	var url = C_canvasMode[inCanvas] + "/managers/ajax/abtest.php";
 	request.open("GET", url, true);
 	request.onreadystatechange = function()
 	{
@@ -1705,16 +1684,18 @@ function syncUser(callbackFunction) {
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Retrying...</label>";
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 					document.title = "Sync error !";
-					setTimeout(function() {syncUser(callbackFunction);},1000);
+					//setTimeout(function() {syncUser(callbackFunction);},1000);
+					location.reload();
 				}
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Retrying...</label>";
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 				document.title = "Sync error !";
-				setTimeout(function() {syncUser(callbackFunction);},1000);
+				//setTimeout(function() {syncUser(callbackFunction);},1000);
+				setTimeout(function() {location.reload();},5000);
 			}
 		}
 	};
@@ -1742,12 +1723,14 @@ function syncUserTrapcheck(callbackFunction) {
 				{
 					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
 					document.title = "Trapcheck sync error !";
-					setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
+					location.reload();
+					//setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
 				}
 			}
 			else
 			{
-				syncUserTrapcheck(callbackFunction);
+				//syncUserTrapcheck(callbackFunction);
+				location.reload();
 			}
 		}
 	};
@@ -1833,20 +1816,6 @@ function windowScript() {
 }
 /*******************SKIN AREA********************/
 //TOOLS
-function addScreenShotSafe() {
-	var target = document.getElementsByClassName('gamelogo')[0];
-	target.addEventListener('click',toggleScreenShotSafe,false);
-	target.firstChild.setAttribute('onclick','return false;');
-}
-function toggleScreenShotSafe() {
-	screenshotSafe = 1 - screenshotSafe;
-	var target = document.getElementById('UOP_appAutoPanel');
-	if (target != null)
-	{
-		target.style.display = C_displayState[screenshotSafe];
-		target.previousSibling.style.display = C_displayState[screenshotSafe];
-	}
-}
 function skinSecondTimer() {
 	//update sound timer
 	var nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
@@ -1890,7 +1859,7 @@ function travelcontentLoad() {
 	}
 	var request = new XMLHttpRequest();
 	var contentDiv = O_travelContent;
-	request.open("GET", C_canvasMode[inCanvas] + "/travel.php", true);
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?r", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1990,7 +1959,7 @@ function travelcontentLoad() {
 function travelcontentLoadNormal() {
 	var request = new XMLHttpRequest();
 	var contentDiv = O_travelContent;
-	request.open("GET", C_canvasMode[inCanvas] + "/travel.php", true);
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?r", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -2135,7 +2104,7 @@ function travelcontentLoadold() {
 				contentDiv.innerHTML = request.responseText.substring(request.responseText.indexOf("<h2 style='margin-bottom:12px;'>Select a location to travel to</h2>"),request.responseText.indexOf("</div></div><div class='inactive' id='tabbarContent_page_1'>")).replace(/&amp;quick=1/g,'').replace(/ gold/g,'').replace(/travel.php\?env=/g,'managers/ajax/users/changeenvironment.php?destination=');
 				if (request.responseText.indexOf("travel.php?freeTravel=true") != -1)
 				{
-					appendbefore = contentDiv.firstChild.nextSibling;
+					var appendbefore = contentDiv.firstChild.nextSibling;
 					freeTravel = appendbefore.cloneNode(true);
 					freeTravel.textContent = "Free Travel";
 					freeTravelMeadow = appendbefore.nextSibling.cloneNode(true);
@@ -2397,7 +2366,6 @@ function shopToTabBar() {
 
 	var addbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 	addbar.className = "inactive";
-	addbar.style.display = "inline-block";
 	var addbarChild = addbar.firstChild.firstChild;
 	
 	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
@@ -2424,7 +2392,6 @@ function potToTabBar() {
 
 	var potbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 	potbar.className = "inactive";
-	potbar.style.display = "inline-block";
 	var potbarChild = potbar.firstChild.firstChild;
 	
 	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
@@ -2452,7 +2419,6 @@ function craftToTabBar() {
 	
 	var craftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 	craftbar.className = "inactive";
-	craftbar.style.display = "inline-block";
 	var craftbarChild = craftbar.firstChild.firstChild;
 	
 	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
@@ -2480,7 +2446,6 @@ function supplyToTabBar() {
 	
 	var supplybar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 	supplybar.className = "inactive";
-	supplybar.style.display = "inline-block";
 	var supplybarChild = supplybar.firstChild.firstChild;
 	
 	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
@@ -2508,7 +2473,6 @@ function giftToTabBar() {
 	
 	var giftbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
 	giftbar.className = "inactive";
-	giftbar.style.display = "inline-block";
 	var giftbarChild = giftbar.firstChild.firstChild;
 	
 	var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
@@ -2535,7 +2499,7 @@ function travel(e) {
 	var url = "https://www.mousehuntgame.com/api/action/travel/" + e.target.getAttribute("value");
 	O_travelTab.innerHTML = "Travelling...<img src='/images/ui/loaders/round_bar_green.gif'><div>";
 	var htmlstr = "";
-	var params = "v=" + appgameinfo.v + "&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=0.8.6&game_version=" + appgameinfo.game_version + "%0A&access_token=" + window.localStorage.UOP_access_token;
+	var params = "v=" + appgameinfo.v + "&client_id=Cordova%3A" + C_mobile[S_emulateMode].Cordova + "&client_version=" + C_clientMobileVer + "&game_version=" + appgameinfo.game_version + "%0A&access_token=" + window.localStorage.UOP_access_token;
 
 	var request = new XMLHttpRequest();
 	request.open("POST", url, true);
@@ -2721,7 +2685,6 @@ function defaultSimpleSkin() {
 	simpleSkinButton.removeAttribute('onclick');
 	simpleSkinButton.addEventListener('click',toggleSkin,false);
 	O_hgRow.appendChild(simpleSkinButton);
-	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
 	
 	var inbox = document.getElementById('communityMenu').cloneNode(true);
 	var oldinbox = document.getElementById('appInboxTab');
@@ -2854,10 +2817,6 @@ function defaultSimpleSkin() {
 	document.getElementById('huntTimer').style.margin = "auto";
 	
 	//cleanup hgRow
-	var rightbanner = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
-	rightbanner.innerHTML = "";
-	rightbanner.setAttribute('class','rightEdge');
-	
 	O_hgRow.removeChild(document.getElementById('appLogo'));
 	O_hgRow.removeChild(document.getElementById('communityMenu')); 
 	O_hgRow.removeChild(document.getElementById('supportMenu'));
@@ -3081,21 +3040,6 @@ function updateJournalBox() {
 		}
 		else break;
 	}
-	
-	var journaltext = document.getElementsByClassName('journaltext');
-	var alist,j,attText;
-	for (i = 0;i < journaltext.length;++i)
-	{
-		alist = journaltext[i].getElementsByTagName('a');
-		if ((alist.length > 0) && (alist[0].getAttribute('UOP_updatedJB') != null)) break;
-		for (j = 0;j < alist.length;++j)
-		{
-			attText = alist[j].getAttribute('onclick');
-			if ((attText != null) && (attText.indexOf('hg.views.ItemView.show') != -1))
-				alist[j].addEventListener('click',updateCampSpecial,false);
-			alist[j].setAttribute('UOP_updatedJB','updated')
-		}
-	}
 }
 function updateMinuteTimer() {
 	//update location timer
@@ -3158,96 +3102,6 @@ function updateMinuteTimer() {
 function updateHud() {
 	O_titlePercentage.textContent = data.user.title_percentage.toString();
 	O_baitNum.textContent = data.user.bait_quantity;
-}
-function updateCampSpecial(e) {
-	if (e != null)
-	{
-		itemtype = e.target.getAttribute('onclick');
-		itemtype = itemtype.substring(itemtype.indexOf('(') + 2,itemtype.indexOf(')') - 1);
-	}
-	if (document.getElementsByClassName('lexiconItemContainer').length > 0)
-	{
-		var convertible = document.getElementsByClassName('convertible');
-		if (convertible.length > 0)
-		{
-			var newbutton;
-			var newinput;
-			var scriptstr;
-			convertible = convertible[0];
-			
-			convertible.appendChild(document.createElement('br'));
-			
-			newbutton = document.createElement('input');
-			newbutton.type = "submit";
-			newbutton.value = "Custom";
-			newbutton.className = "button";
-			newbutton.setAttribute("onclick","this.className += ' busy';var num = document.getElementById('UOP_useCampConvertibleNum').value;hg.utils.UserInventory.useConvertible('" + itemtype + "',num);");
-			
-			newinput = document.createElement('input');
-			newinput.id = "UOP_useCampConvertibleNum";
-			newinput.type = "text";
-			
-			convertible.appendChild(newbutton);
-			convertible.appendChild(newinput);
-		}
-		return;
-	}
-	setTimeout(updateCampSpecial,300);
-}
-function updateSpecial() {
-	var convertible = document.getElementsByClassName('UOP_convertible');
-	if (convertible.length == 0)
-	{
-		var convertible = document.getElementsByClassName('convertible');
-		if (convertible.length > 0)
-		{
-			var newbutton;
-			var newinput;
-			var holder;
-			var scriptstr;
-			for (var i = 0;i < convertible.length;++i)
-			{
-				convertible[i].classList.add("UOP_convertible");
-				holder = convertible[i].getElementsByClassName('convertibledetails')[0];
-				newbutton = holder.getElementsByTagName('input');
-				for (var j = 0;j < newbutton.length;++j)
-				{
-					newbutton[j].addEventListener('click',updateSpecial,false);
-				}
-				
-				newbutton = holder.getElementsByTagName('input')[0].cloneNode(true);
-				newbutton.className = "button";
-				newbutton.type = "submit";
-				newbutton.value = "Custom";
-				newbutton.removeAttribute("data-item-quantity");
-				newbutton.setAttribute("onclick","UOP_useCustomConvertible(this);");
-				newbutton.addEventListener('click',updateSpecial,false);
-				
-				newinput = document.createElement('input');
-				newinput.type = "text";
-				newinput.className = "num";
-				
-				holder.appendChild(document.createElement('br'));
-				holder.appendChild(newbutton);
-				holder.appendChild(newinput);
-			}
-			return;
-		}
-	}
-	setTimeout(updateSpecial,300);
-}
-function UOP_useCustomConvertible(obj) {
-	var tbox = obj.parentNode.getElementsByClassName("num")[0];
-	var num = Number(tbox.value);
-	var itemtype = obj.getAttribute('data-item-type');
-	var i;
-
-	hg.utils.UserInventory.useConvertible(itemtype,num);
-	eventRegistry.addEventListener('js_dialog_show',function() {
-		activejsDialog.positionCounter = 0
-		activejsDialog.centerInFrame(true);
-	}
-	,null,true);
 }
 function tradeBuyID() {
 	var itemTradeID = document.getElementById('UOP_inputTrade').value;
@@ -3352,133 +3206,95 @@ function showResearchFullTask() {
 	}
 	http.send(params);
 }
+function toggleSimplifiedTrapSelector() {
+	O_trapSelectorBrowser.classList.toggle("simplified");
+}
 function defaultFullSkin() {
 	if (location.pathname.indexOf('/forum/') != -1) return;
 	manageCSSJSAdder(4);
+	var tmp,tmp2;
 	//===========Change the top row of mousehunt=================
-	var tmp = O_hgRow.getElementsByClassName('rightBanners')[0];//remove rightbanner (levylight....) and change it to rightedge
-	tmp.innerHTML = "";
-	tmp.setAttribute('class','rightEdge');
-	O_hgRow.insertBefore(template.hgRight.cloneNode(true),document.getElementById('supportMenu'));//end of remove rightbanner
-	O_hgRow.removeChild(document.getElementById('appLogo')); //remove leftbanner (mousehunt)
+	//add SB+
+	tmp = document.getElementsByClassName("menuItem superBrie");
+	if (tmp.length != 0) tmp = tmp[0];
+	tmp.firstElementChild.classList.add("getMore");
 	
-	//add SB+ and Inbox and mobile
-	var sbplus = template.hgMenu.cloneNode(true);
-	sbplus.id = "UOP_appTabSuperBrie";
-	sbplus.setAttribute('onclick','showCheckout("donatebutton"); return false;');
-	sbplus.lastChild.firstChild.removeAttribute('href');
-	sbplus.lastChild.firstChild.textContent = document.getElementById('appTabSuperBrie').getElementsByClassName('appTabMiddle')[0].childNodes[1].textContent;		
+	//support: REMOVE: all support from support;ADD support (general),chatroom, news,livedevchat 
+	//community: REMOVE: Store; ADD: 2 guides, wiki 
+	var community = document.getElementsByClassName('menuItem community')[0].getElementsByClassName('dropdownContent')[0];
+	var support = document.getElementsByClassName('menuItem support')[0].getElementsByClassName('dropdownContent')[0];
 	
-	var inbox = document.getElementById('communityMenu').cloneNode(true);
-	var oldinbox = document.getElementById('appInboxTab');
-	var inboxnotification = document.getElementById('appInboxTab').getElementsByClassName('alerts')[0].cloneNode(true);
-	oldinbox.id = "appoldInbox";
-	inbox.id = "appInboxTab";
-	inbox.removeChild(inbox.lastChild);
-	inbox.appendChild(inboxnotification);
-	inbox.setAttribute('onclick',oldinbox.firstChild.getAttribute('onclick'));
-	inbox.firstChild.textContent = "INBOX";
+	var arr = support.children,i = 0;
+	arr[i].href = "/support.php";
+	arr[i].target = "_blank";
+	arr[i].className = "tech";
+	arr[i].firstChild.textContent = "Support";
+	arr[i].lastChild.textContent = "Support from devs for FREE !";
+	++i;
 	
-	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
-	simpleSkinButton.id = "UOP_simpleSkin";
-	simpleSkinButton.className = "hgMenu UOP_hgMenu";
-	simpleSkinButton.removeAttribute('onclick');
-	simpleSkinButton.addEventListener('click',toggleSkin,false);
+	arr[i].href = "/chat.php";
+	arr[i].target = "_blank";
+	arr[i].className = "forum";
+	arr[i].firstChild.textContent = "Chat room";
+	arr[i].lastChild.textContent = "Join the Mousehunt Chat room";
+	++i;
 	
-	var appendbefore = document.getElementById('communityMenu').nextSibling.nextSibling;
-	O_hgRow.insertBefore(inbox,appendbefore);
-	O_hgRow.insertBefore(template.hgRight.cloneNode(true),appendbefore);
-	O_hgRow.insertBefore(sbplus,appendbefore);
-	O_hgRow.insertBefore(template.hgRight.cloneNode(true),appendbefore);
-	O_hgRow.appendChild(simpleSkinButton);
-	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
-
-	//support: remove: all support from support;livedevchat,chatroom,forum,news => support; 
-	//community: remove: Store, add 2 guide, wiki
-	var community = document.getElementById('hgDropDownCommunity').getElementsByClassName('hgDropdownMiddle')[0];
-	var support = document.getElementById('hgDropDownSupport').getElementsByClassName('hgDropdownMiddle')[0];
+	arr[i].href = "/forum/index.php?hgref=hgbar";
+	arr[i].target = "_blank";
+	arr[i].className = "forum";
+	arr[i].firstChild.textContent = "Forum";
+	arr[i].lastChild.textContent = "Take part in discussions with your fellow players.";
+	++i;
 	
-	var arr = support.getElementsByClassName('hgDropDownItem');
-	arr[0].firstChild.href = "/chat.php";
-	arr[0].firstChild.target = "_blank";
-	arr[0].firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
-	arr[0].firstChild.firstChild.nextSibling.textContent = "Chat room";
-	arr[0].firstChild.lastChild.innerHTML = "Join the Mousehunt<br>Chat room";
-	
-	arr[1].firstChild.href = "/forum/index.php?hgref=hgbar";
-	arr[1].firstChild.target = "_blank";
-	arr[1].firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
-	arr[1].firstChild.firstChild.nextSibling.textContent = "Forum";
-	arr[1].firstChild.lastChild.innerHTML = "Take part in discussions<br>with your fellow players.";
-	
-	arr[2].firstChild.href = "/news.php";
-	arr[2].firstChild.target = "_blank";
-	arr[2].firstChild.firstChild.src = "/images/ui/hgbar/icon_offense_appeals.png"
-	arr[2].firstChild.firstChild.nextSibling.textContent = "News";
-	arr[2].firstChild.lastChild.innerHTML = "News and updates<br>from ALL the TIME !";
-	
-	arr[3].firstChild.href = "/support.php";
-	arr[3].firstChild.target = "_blank";
-	arr[3].firstChild.firstChild.src = "/images/ui/hgbar/icon_technical_support.png"
-	arr[3].firstChild.firstChild.nextSibling.textContent = "Support";
-	arr[3].firstChild.lastChild.innerHTML = "Support from devs<br>for FREE !";
+	arr[i].firstChild.href = "/news.php";
+	arr[i].firstChild.target = "_blank";
+	arr[i].className = "offense";
+	arr[i].firstChild.textContent = "News";
+	arr[i].lastChild.innerHTML = "News and updates from ALL the TIME !";
+	++i;
 	
 	hgdropdownitem = support.firstChild.cloneNode(true);
-	hgdropdownitem.className = "hgDropDownItem first";
-	hgdropdownitem.firstChild.href = "/livefeed.php";
-	hgdropdownitem.firstChild.target = "_blank";
-	hgdropdownitem.firstChild.firstChild.src = "/images/ui/hgbar/icon_forums.png"
-	hgdropdownitem.firstChild.firstChild.nextSibling.textContent = "Live Dev Chat";
-	hgdropdownitem.firstChild.lastChild.innerHTML = "Chat with the devs<br>on each friday.";
-	support.firstChild.className = "hgDropDownItem";
+	hgdropdownitem.href = "/livefeed.php";
+	hgdropdownitem.target = "_blank";
+	hgdropdownitem.className = "forum";
+	hgdropdownitem.firstChild.textContent = "Live Dev Chat";
+	hgdropdownitem.lastChild.textContent = "Chat with the devs on each friday.";
 	support.insertBefore(hgdropdownitem,support.firstChild);
 	
-	var arr = community.getElementsByClassName('hgDropDownItem');
-	arr[0].firstChild.href = "http://www.mousehuntguide.com/mh-index.php";
-	arr[0].firstChild.target = "_blank";
-	arr[0].firstChild.firstChild.src = "/images/ui/hgbar/icon_game_rules.png"
-	arr[0].firstChild.firstChild.nextSibling.textContent = "Spheniscine's Guide";
-	arr[0].firstChild.lastChild.innerHTML = "Spheniscine<br>MouseHunt Walkthrough";
+	var arr = community.children;i = 0;
+	arr[i].href = "http://www.mousehuntguide.com/mh-index.php";
+	arr[i].target = "_blank";
+	arr[i].className = "rules";
+	arr[i].firstChild.textContent = "Spheniscine";
+	arr[i].lastChild.innerHTML = "Spheniscine MouseHunt Walkthrough";
+	++i;
 	
-	arr[1].firstChild.href = "http://amhuguide.com/";
-	arr[1].firstChild.target = "_blank";
-	arr[1].firstChild.firstChild.src = "/images/ui/hgbar/icon_fan_page.png"
-	arr[1].firstChild.firstChild.nextSibling.textContent = "AsiaMHU's Guide";
-	arr[1].firstChild.lastChild.innerHTML = "AsiaMH Union<br>MouseHunt Guide";
+	arr[i].href = "http://amhuguide.com/";
+	arr[i].target = "_blank";
+	arr[i].className = "fanPage";
+	arr[i].firstChild.textContent = "AsiaMHU";
+	arr[i].lastChild.textContent = "AsiaMH Union MouseHunt Guide";
+	++i;
 	
-	arr[2].firstChild.href = "http://mhwiki.hitgrab.com/wiki/";
-	arr[2].firstChild.target = "_blank";
-	arr[2].firstChild.firstChild.src = "/images/ui/hgbar/icon_hitgrab_store.png"
-	arr[2].firstChild.firstChild.nextSibling.textContent = "Hunter's Wiki";
-	arr[2].firstChild.lastChild.innerHTML = "This is<br>Mousehuntpedia";
+	arr[i].href = "http://mhwiki.hitgrab.com/wiki/";
+	arr[i].target = "_blank";
+	arr[i].className = "merch";
+	arr[i].firstChild.textContent = "Hunter's Wiki";
+	arr[i].lastChild.textContent = "This is Mousehuntpedia";
+	++i;
 	
 	//move announcement to the Larry hunting tips
 	var huntingTips = document.getElementById('huntingTips');
-	var tickers = document.getElementsByClassName('ticker');
-	var tickerlist = document.createElement("ul");
-	if ((huntingTips != undefined) && tickers.length != 0) //if there are Larry around then he will announce it for us ^_^ or if there are something  to announce
+	if (huntingTips != undefined) //if there are Larry around then he will announce it for us ^_^ or if there are something  to announce
 	{
 		huntingTips = huntingTips.getElementsByClassName('content')[0];
 		var newHuntingNode = null;
 		newHuntingNode = document.createElement("p");
-		newHuntingNode.innerHTML = "_______________________________________________________<br>ANNOUNCEMENT:";
+		newHuntingNode.innerHTML = "_______________________________________________________<br>";
 		huntingTips.appendChild(newHuntingNode);
-		for (i = 0;i < tickers.length;++i)
-		{
-			newHuntingNode = document.createElement("li");
-			newHuntingNode.innerHTML = tickers[i].innerHTML;
-			tickerlist.appendChild(newHuntingNode);
-		}
-		tickerlist.style.listStyleType = "disc";
-		tickerlist.style.marginLeft = "20px";
-		huntingTips.appendChild(tickerlist);
+		huntingTips.appendChild(document.getElementsByClassName('mousehuntHeaderView-newsTicker')[0]);
 	}
-	
-	//remove some others elements
-	tmp = document.getElementById('hgbar');
-	tmp.removeChild(document.getElementById('appRow'));//remove the appRow (Inbox,play,Free gift...)
-	tmp.removeChild(document.getElementById('newsRowHolder'));//remove the News
-	
+		
 	//==========Change the container (main page) of mousehunt==============
 	var container = document.getElementsByClassName('container')[0];
 	var containerclear = container.getElementsByClassName('clear');
@@ -3581,19 +3397,17 @@ function defaultFullSkin() {
 	
 	//======HUD change======
 	var hud_base_parent = document.getElementById('hud_base').parentNode.parentNode.parentNode;
-	hud_base_parent.parentNode.removeChild(hud_base_parent);//remove the base. It does not necessary because the content showed that
+	hud_base_parent.style.display = "none";
 
 	var hud_bait = document.getElementById('hud_baitName').parentNode;
 	var hud_gold_list = hud_bait.parentNode;
-	//hud_gold_list.removeChild(hud_bait); //remove the bait
 	hud_bait.style.display = "none";
-	hud_bait.removeChild(hud_bait.lastChild);
 	
 	var hud_team = document.getElementById('hud_team');
 	if (hud_team != undefined)
 	{
 		hud_team = hud_team.parentNode;
-		hud_team.parentNode.removeChild(hud_team); //and remove the old team list
+		hud_team.style.display = "none";
 		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
 	}
 	
@@ -3623,22 +3437,13 @@ function defaultFullSkin() {
 		tmp = document.getElementById("questBarDetails");
 		if (tmp != null) tmp.addEventListener("click",listenResearchQuest,false);
 		
-		tmp = document.getElementsByClassName("pour");
-		if (tmp.length > 0)
-		{
-			tmp = tmp[0];
-			var strtmp = tmp.getAttribute("onclick");
-			tmp.setAttribute("onclick","var r = confirm('Are you sure want to pour ?');if (r == true) {" + strtmp + "};return false;");
-		}
-	}
-	
-	if (location.pathname.indexOf("/inventory.php") != -1)
-	{
-		var script = document.createElement('script');
-		script.setAttribute("type", "text/javascript");
-		script.innerHTML = UOP_useCustomConvertible.toString();
-		document.head.appendChild(script);
-		updateSpecial();
+		O_trapSelectorBrowser = document.getElementById('trapSelectorBrowser');
+		tmp = document.createElement('a');
+		tmp.textContent = "Short/Full Selector";
+		tmp.addEventListener("click",toggleSimplifiedTrapSelector,false);
+		tmp2 = document.getElementById('trapSelector');
+		tmp2.parentNode.insertBefore(tmp,tmp2.nextSibling);
+		toggleSimplifiedTrapSelector();
 	}
 	
 	//if (C_disableExperimental == 0)
@@ -3695,7 +3500,7 @@ function defaultFullSkin() {
 	var headsuparr = headsup.getElementsByClassName('hudstatlist');
 	var locationTimerParent = document.createElement('div');
 	locationTimerParent.className = 'hudstatlist';
-	headsup.insertBefore(locationTimerParent,headsuparr[1].nextSibling);
+	headsup.insertBefore(locationTimerParent,headsuparr[2].nextSibling);
 	locationTimerParent.appendChild(document.createElement('ul'));
 	locationTimerParent = locationTimerParent.firstChild;
 	locationTimerParent.id = "UOP_locationTimerParent";
@@ -3750,6 +3555,10 @@ function removeAds() {
 			rightCol.appendChild(O_funArea);
 			addThings();
 		}
+	}
+	else
+	{
+		if (S_ads == 2) S_ads = 0;
 	}
 }
 function addThings() {
@@ -4377,7 +4186,6 @@ function initAuto() {
 	O_autoDelayCounter = O_autoCounter.lastChild;
 
 	O_hgRow.appendChild(autopanel);
-	O_hgRow.appendChild(template.hgLeft.cloneNode(true));
 	
 	registerSoundHornSounding.push(autoSounding);
 	registerSoundHornSounded.push(autoSounded);
@@ -5378,9 +5186,9 @@ function shAttach(x) {
 	sh_scripts[x].attached = 1;
 	sh_trapCheckPriority += sh_scripts[x].setting.trapCheckPriority;
 	sh_userSync += sh_scripts[x].setting.userSync;
+	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(0,x,sh_registerBeforeTrapCheck);
 	if (sh_scripts[x].setting.priority == 1) {shRegister(0,x,sh_registerHighPriorityScript);return;}
 	if (sh_scripts[x].setting.priority == 2) {shRegister(0,x,sh_registerLowPriorityScript);return;}
-	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(0,x,sh_registerBeforeTrapCheck);
 	if (sh_scripts[x].setting.afterTrapCheck == 1) shRegister(0,x,sh_registerAfterTrapCheck);
 	if (sh_scripts[x].setting.afterHorn == 1) shRegister(0,x,sh_registerAfterHorn);
 }
@@ -5390,9 +5198,9 @@ function shDetach(x) {
 	
 	sh_trapCheckPriority -= sh_scripts[x].setting.trapCheckPriority;
 	sh_userSync -= sh_scripts[x].setting.userSync;
+	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(1,x,sh_registerBeforeTrapCheck);
 	if (sh_scripts[x].setting.priority == 1) {shRegister(1,x,sh_registerHighPriorityScript);return;}
 	if (sh_scripts[x].setting.priority == 2) {shRegister(1,x,sh_registerLowPriorityScript);return;}
-	if (sh_scripts[x].setting.beforeTrapCheck == 1) shRegister(1,x,sh_registerBeforeTrapCheck);
 	if (sh_scripts[x].setting.afterTrapCheck == 1) shRegister(1,x,sh_registerAfterTrapCheck);
 	if (sh_scripts[x].setting.afterHorn == 1) shRegister(1,x,sh_registerAfterHorn);
 }
@@ -5803,6 +5611,23 @@ function shChangeBestTrap(type,priority) {
 
 var sh_defaultScripts = [
 	{
+		name: 'default_trapcheck',
+		fullname: "Change Trap at Trapcheck",
+		setting: {beforeTrapCheck: 1,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {customNormalWeapon: {name: 'Normal Trap', val: '', displayType: 'weapon'},
+			   customNormalBase: {name: 'Normal Base', val: '', displayType: 'base'},
+			   customNormalTrinket: {name: 'Normal Charm', val: '', displayType: 'trinket'},
+			   customNormalBait: {name: 'Normal Cheese', val: '', displayType: 'bait'}, 
+			   customTCWeapon: {name: 'Trapcheck Trap', val: '', displayType: 'weapon'},
+			   customTCBase: {name: 'Trapcheck Base', val: '', displayType: 'base'},
+			   customTCTrinket: {name: 'Trapcheck Charm', val: '', displayType: 'trinket'},
+			   customTCBait: {name: 'Trapcheck Cheese', val: '', displayType: 'bait'}},
+		mode: STOP,
+		errorHandler: 0,
+		func: shdefaultTrapcheck
+		//content: shdefaultTrapcheck.toString().slice(30,-1)
+	},
+	{
 		name: 'default_iceberg',
 		fullname: 'Iceberg (Base)',
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
@@ -5906,23 +5731,6 @@ var sh_defaultScripts = [
 		errorHandler: 0,
 		func: shdefaultLivingGarden
 		//content: shdefaultLivingGarden.toString().slice(33,-1)
-	},
-	{
-		name: 'default_trapcheck',
-		fullname: "Change Trap at Trapcheck",
-		setting: {beforeTrapCheck: 1,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
-		vars: {customNormalWeapon: {name: 'Normal Trap', val: '', displayType: 'weapon'},
-			   customNormalBase: {name: 'Normal Base', val: '', displayType: 'base'},
-			   customNormalTrinket: {name: 'Normal Charm', val: '', displayType: 'trinket'},
-			   customNormalBait: {name: 'Normal Cheese', val: '', displayType: 'bait'}, 
-			   customTCWeapon: {name: 'Trapcheck Trap', val: '', displayType: 'weapon'},
-			   customTCBase: {name: 'Trapcheck Base', val: '', displayType: 'base'},
-			   customTCTrinket: {name: 'Trapcheck Charm', val: '', displayType: 'trinket'},
-			   customTCBait: {name: 'Trapcheck Cheese', val: '', displayType: 'bait'}},
-		mode: STOP,
-		errorHandler: 0,
-		func: shdefaultTrapcheck
-		//content: shdefaultTrapcheck.toString().slice(30,-1)
 	}
 ];
 
@@ -6324,6 +6132,11 @@ function shdefaultFieryWarpath(){
 				{
 					charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
 					cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
+				}
+				if ((mousetype >= 3) && (cheese == 'super_brie_cheese')) //No super for Mage, cavalry and artillery
+				{
+					charmtype = "normal";
+					cheese = 'gouda_cheese';
 				}
 				if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
 				else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
