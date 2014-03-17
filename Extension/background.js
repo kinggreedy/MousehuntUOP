@@ -28,7 +28,7 @@ chrome.runtime.onConnect.addListener(function(port) {
 	port.onMessage.addListener(function(msg) {
 		if (msg.send == "Get")
 		{
-			port.postMessage({received: "OK", version: chrome.app.getDetails().version, update_url: chrome.app.getDetails().update_url});
+			port.postMessage({received: "OK", version: chrome.app.getDetails().version, update_url: chrome.app.getDetails().update_url, appid: chrome.app.getDetails().id});
 		}
 	});
 });

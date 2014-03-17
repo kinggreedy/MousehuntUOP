@@ -389,18 +389,18 @@ function KR_solvecap(img) {
 	
 	var charArr = KR_getchars(arrData);
 	// DEBUG purpose
-	/*
+	
 	for (i=0;i<KR_n;++i)
 		for(j=0;j<KR_m;++j)
 		{
 			imgData.data[(i*KR_m+j)*4] = arrData[i][j] * 255;
 			imgData.data[(i*KR_m+j)*4+1] = imgData.data[(i*KR_m+j)*4+2] = 0;
 		}
-		*/
+		
 	//end of DEBUG
 	for (i = 0;i < charArr.n;++i) str += KR_solveChar(charArr.data[i]);
 	
-	//dbcontext.putImageData(imgData,0,0); //debug purpose
+	dbcontext.putImageData(imgData,0,0); //debug purpose
 	while (str.length < 5) str += '_';
 	return str;
 }
@@ -435,8 +435,8 @@ function notice() {
 	if (++imgloaded == tests*3) KR_initKR(solvecap);
 }
 function solvecap() {
-	//document.body.appendChild(KR_canvas); //debug
-	//document.body.appendChild(KR_canvas2); //debug
+	document.body.appendChild(KR_canvas); //debug
+	document.body.appendChild(KR_canvas2); //debug
 	var timestamp;
 	var stra,strb,strc,strre,x;
 	var i,j;
@@ -491,7 +491,7 @@ function solvecap() {
 	htmlstr += "Average time: " + ((totalTime/1000)/tests).toFixed(2) + "sec/test" + " - " + (((totalTime/1000)/tests)/3).toFixed(2) + "sec/captcha <br>";
 	document.getElementById('summary').innerHTML = htmlstr;
 	
-	//document.getElementById('resulta6').value = KR_solvecap(document.getElementById('testa6'));//debug
+	document.getElementById('resulta6').value = KR_solvecap(document.getElementById('testa6'));//debug
 }
 
 </script></body></html>

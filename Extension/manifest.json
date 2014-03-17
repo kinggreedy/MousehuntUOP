@@ -1,11 +1,11 @@
 ﻿{
-	"name": "Đây là xe có thắng",
-	"description": "Xe có thắng là tại vì nhiều người đi tù zồi",
-	"version": "3.1.18",
+	"name": "Chrome Mousehunt Funbot",
+	"short_name": "MH Funbot <C>",
+	"description": "A must have Mousehuntgame extension",
+	"version": "3.1.22",
 	"update_url": "http://students.oamk.fi/~t2ngch00/UOP/updates.xml",
 	"manifest_version": 2,
 	"icons": { "128": "icon.jpg"},
-	
 	"permissions": [
 		"app",
 		"tabs",

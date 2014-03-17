@@ -138,8 +138,8 @@
 .UOP_FGopen .lux-countdown-end {color: red;}
 .UOP_FGclosed .lux-countdown-start {color: #969696;}
 .UOP_FGclosed .lux-countdown-end {color: #B8B8B8;}
-.UOP_FGopen .lux-countdown{background-image:url(/images/FGopen.jpg);}
-.UOP_FGclosed .lux-countdown{background-image:url(/images/FGclosed.jpg);}
+.UOP_FGopen .lux-countdown{background-image:url(/images/FGOpen.jpg);}
+.UOP_FGclosed .lux-countdown{background-image:url(/images/FGClosed.jpg);}
 
 .UOP_BClow .lux-countdown-title, .UOP_BClow .lux-countdown-text {color: #4682B4;text-shadow:1px 0px 0 #fff, 0px 1px 0 #fff, -1px 0px 0 #fff, 0px -1px 0 #fff, 0 0 1px #90B4D2;}
 .UOP_BClow .lux-countdown-start {color: #4682B4;}

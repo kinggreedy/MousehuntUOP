@@ -63,7 +63,7 @@ var C_cssArr, C_jsArr, C_cssCustomArr, C_cssjsSetArr;
 var C_mode = ["Running","Stopped","Paused","Error"], C_priority = ["Normal","High priority","Low priority"];
 var C_canvasMode = ["","/canvas"];
 var C_displayState = ["block","none"];
-var C_clientMobileVer = "0.14.4";
+var C_clientMobileVer = "0.15.2";
 var C_mobile = [{},
 {Cordova:'Android',xrequestwith:'android',agent:'Mozilla/5.0 (Linux; U; Android 4.2.2; en-us; GT-I9500 Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'},
 {Cordova:'Iphone',xrequestwith:'iphone',agent:'Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_2 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10B146 Safari/8536.25'}];
@@ -79,17 +79,16 @@ var S_ads,S_emulateMode,S_aggressive,S_delaymin,S_delaymax,S_alarm,S_alarmSrc,S_
 var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
 var S_channelScoreboard;
-var S_version,S_updateurl;
+var S_version,S_updateurl,S_appid;
 
 //Object Variables
-var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser;
-var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto;
+var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser, O_specialPanel;
+var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto, O_personalNote, O_personalNoteTextarea;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel, O_scoreboardStatus, O_scoreboardCounter;
 var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGclockWeather, O_SGSchedule = null;
-
 //Auto Variables
 var A_autoState,A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
 
@@ -348,6 +347,7 @@ function runTimeCreateConstant() {
 					<div>\
 						<label>Data/URL: </label>\
 						<input id="UOP_alarmSrc" type="text">\
+						<input id="UOP_alarmFileSelect" type="file" accept="audio/*,video/*"/>\
 						<button id="UOP_buttonAlarmTest">Test</button>\
 						<br><input type="checkbox" id="UOP_alarmNoti"><label> Notification (Google Chrome only)</label>\
 					</div>\
@@ -564,17 +564,11 @@ function runTimeCreateConstant() {
 							<li class="UOP_settingli" value="0" tabindex="0" aria-checked="false">FULL</li>\
 							<li class="UOP_settingli" value="1" tabindex="0" aria-checked="false">SMALL DELAY</li>\
 							<li class="UOP_settingli" value="2" tabindex="-1" aria-checked="false">CLONE</li>\
-							<li class="UOP_settingli" value="3" tabindex="-1" aria-checked="false">SUPER RICH</li>\
 						</ul>\
 					</div>\
 					<div>\
 						<label class="UOP_profile_label" style="display:none;">Aggressive = OFF, delay time = 5 &rArr; 10 s</label>\
 						<label class="UOP_profile_label" style="display:none;">Server = OFF, Aggressive = OFF, Advertisement = REMOVE</label>\
-						<label class="UOP_profile_label" style="display:none;">Fiery Warpath miniscript:<br>\
-							+ streak 0 1 2: GOUDA / NORMAL charm<br>\
-							+ streak 3 4 5: SB+ / SUPER charm<br>\
-							+ streak 6+: Commander charm<br>\
-							+ Number of Commander Charm INCREASED from 0 - 1 - 3 to 0 - 2 - 3</label>\
 						<br><span style="color:red">*REMINDER*: Tourney Ghost Point is <b>DANGEROUS !!!</b></span>\
 					</div>\
 				</div>\
@@ -728,6 +722,10 @@ function createTemplate() {
 	tmp = document.createElement('div');
 	tmp.innerHTML = '<label></label>';
 	template.customAttributeDOM = tmp;
+	
+	tmp = document.createElement('div');
+	tmp.className = "UOP_toggleFavorite UOP_addFavorite";
+	template.favorite = tmp;
 }
 function initAppEmulation() {
 	if (S_emulateMode != 0)
@@ -779,7 +777,7 @@ function initializationWithUser() {
 	for (i = 0;i < list.length;++i)
 		if (data.user[dval] == list[i]) return;
 	
-	if (S_simple == 0) updateMinuteTimer();
+	if ((S_simple == 0) && (S_skin != 0)) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
 	if ((S_schedule == 0) && (atCamp)) shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
 	soundHornWaiting();
@@ -832,11 +830,13 @@ function loadSettings() {
 		window.localStorage.UOP_channelScoreboard = 1;
 		window.localStorage.UOP_tourID = 0;
 		window.localStorage.UOP_tourStatus = "pending";
+		window.localStorage.UOP_currentScoreboardChannelTeamData = "[]";
 		
 		window.localStorage.UOP_nscripts = 0;
 		
 		window.localStorage.UOP_cacheKRstr = "";
-		window.localStorage.UOP_serverUrl = "http://kinggreedy.azurewebsites.net/UOP";
+		//window.localStorage.UOP_serverUrl = "http://kinggreedy.azurewebsites.net/UOP";
+		window.localStorage.UOP_serverUrl = "";
 		
 		setTimeout(firstTimeSetup,5000);
 	}
@@ -918,32 +918,6 @@ function saveFirstTimeSettings() {
 			localStorage.UOP_aggressive = S_aggressive = 1;
 			localStorage.UOP_server = S_server = 1;
 			localStorage.UOP_ads = S_ads = 1;
-			break;
-		case 3:
-			for (var i = 0;i < sh_scripts.length;++i)
-			{
-				if (sh_scripts[i].name == "default_fierywarpath")
-				{
-					sh_scripts[i].vars.customBaitLevel1.val = "gouda_cheese";
-					sh_scripts[i].vars.customBaitLevel2.val = "gouda_cheese";
-					sh_scripts[i].vars.customBaitLevel3.val = "super_brie_cheese";
-					sh_scripts[i].vars.customCharmLevel1.val = "normal";
-					sh_scripts[i].vars.customCharmLevel2.val = "normal";
-					sh_scripts[i].vars.customCharmLevel3.val = "super";
-					sh_scripts[i].vars.customCommanderCharmWave1.val = 0;
-					sh_scripts[i].vars.customCommanderCharmWave2.val = 2;
-					sh_scripts[i].vars.customCommanderCharmWave3.val = 3;
-					sh_scripts[i].vars.customStreakLevel1.val = 2;
-					sh_scripts[i].vars.customStreakLevel2.val = 3;
-					sh_scripts[i].vars.customCommanderStreak.val = 6;
-					sh_scripts[i].vars.customMinMouseRetreatWave1.val = 18;
-					sh_scripts[i].vars.customMinMouseRetreatWave2.val = 30;
-					sh_scripts[i].vars.customMinMouseRetreatWave3.val = 36;
-					
-					shSaveScript(i);
-					break;
-				}
-			}
 			break;
 		default: profile = 0;break
 	}
@@ -1387,6 +1361,7 @@ function initControlPanel() {
 	document.getElementById('UOP_schedule').addEventListener('click',toggleGroup,false);
 	document.getElementById('UOP_buttonLoadKR').addEventListener('click',loadSettingKRimage,false);
 	document.getElementById('UOP_buttonAlarmTest').addEventListener('click',alarmTest,false);
+	document.getElementById('UOP_alarmFileSelect').addEventListener('change',alarmFileSelect,false);
 	document.getElementById('UOP_buttonSave').addEventListener('click',saveSettings,false);
 	document.getElementById('UOP_buttonReset').addEventListener('click',clearSettings,false);
 	document.getElementById('UOP_buttonGeneral').addEventListener('click',tabSettings,false);
@@ -1428,6 +1403,7 @@ function initControlPanel() {
 		{
 			S_version = msg.version;
 			S_updateurl = msg.update_url;
+			S_appid = msg.appid;
 			document.getElementById("UOP_version").innerHTML = S_version;
 			
 			var http = new XMLHttpRequest();
@@ -1435,12 +1411,19 @@ function initControlPanel() {
 			http.onreadystatechange = function() {
 				if (http.readyState == 4)
 				{
-					document.getElementById("UOP_checking_update").style.display = "none";
 					if (http.status == 200)
 					{
-						var newversion = http.responseXML.getElementsByTagName("updatecheck")[0].getAttribute("version");
-						if (S_version != newversion) document.getElementById("UOP_update_available").style.display = "block";
-						else document.getElementById("UOP_is_uptodate").style.display = "block";
+						document.getElementById("UOP_checking_update").style.display = "none";
+						var newversion = http.responseXML.getElementsByTagName("updatecheck");
+						for (var i = 0;i < newversion.length;++i)
+							if (S_appid == newversion[i].parentNode.getAttribute("appid"))
+							{
+								newversion = newversion[i].getAttribute("version");
+								if (S_version != newversion) document.getElementById("UOP_update_available").style.display = "block";
+								else document.getElementById("UOP_is_uptodate").style.display = "block";
+								return;
+							}
+						document.getElementById("UOP_cannot_update").style.display = "block";
 					}
 					else
 					{
@@ -1528,6 +1511,11 @@ function alarmTest() {
 	window.localStorage.UOP_alarmSrc = str;
 	S_alarm = num;
 	S_alarmNoti = alarmNoti;
+}
+function alarmFileSelect() {
+	var file = this.files[0];
+	var fileURL = URL.createObjectURL(file);
+	document.getElementById("UOP_alarmSrc").value = fileURL;
 }
 function save_access_token() {
 	if (access_token_loaded == 0)
@@ -1684,10 +1672,10 @@ function syncUser(callbackFunction) {
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + ". Original Data is " + request.responseText + " Refreshing...</label>";
 					document.title = "Sync error !";
 					//setTimeout(function() {syncUser(callbackFunction);},1000);
-					location.reload();
+					setTimeout(function() {location.reload();},10000);
 				}
 			}
 			else
@@ -1695,7 +1683,7 @@ function syncUser(callbackFunction) {
 				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 				document.title = "Sync error !";
 				//setTimeout(function() {syncUser(callbackFunction);},1000);
-				setTimeout(function() {location.reload();},5000);
+				setTimeout(function() {location.reload();},10000);
 			}
 		}
 	};
@@ -1721,16 +1709,18 @@ function syncUserTrapcheck(callbackFunction) {
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + "</label>";
 					document.title = "Trapcheck sync error !";
-					location.reload();
+					setTimeout(function() {location.reload();},5000);
 					//setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
 				}
 			}
 			else
 			{
 				//syncUserTrapcheck(callbackFunction);
-				location.reload();
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				document.title = "Trapcheck sync error !";
+				setTimeout(function() {location.reload();},5000);
 			}
 		}
 	};
@@ -1859,7 +1849,7 @@ function travelcontentLoad() {
 	}
 	var request = new XMLHttpRequest();
 	var contentDiv = O_travelContent;
-	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?r", true);
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?hideShortcuts=true", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -1959,7 +1949,7 @@ function travelcontentLoad() {
 function travelcontentLoadNormal() {
 	var request = new XMLHttpRequest();
 	var contentDiv = O_travelContent;
-	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?r", true);
+	request.open("GET", C_canvasMode[inCanvas] + "/travel.php?hideShortcuts=true", true);
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -2167,7 +2157,15 @@ function shopcontentLoad() {
 				tmp = HTMLdiv.getElementsByClassName('anchorLink');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('journalContainer');while(tmp.length > 0) tmp[0].parentNode.removeChild(tmp[0]);
 				tmp = HTMLdiv.getElementsByClassName('control');tmp[tmp.length - 1].parentNode.style.display = "inline-block";
-				tmp[0].firstChild.textContent = "Cheese";tmp[4].firstChild.textContent = "Charm";
+				for (i = 0;i < tmp.length;++i)
+				{
+					var str = tmp[i].firstChild.textContent;
+					if (str.indexOf("Shoppe") != -1)
+					{
+						str = str.substring(0,str.length - 7);
+						tmp[i].firstChild.textContent = str;
+					}	
+				}
 				for (var i = 0;i < tmp.length;++i)
 				{
 					tmp[i].firstChild.addEventListener('click',simulateTabBar,false);
@@ -3184,7 +3182,7 @@ function showResearchFullTask() {
 									var objdata = obj[prop];
 									if (objdata.complete) tmp.className += " complete";
 									tmp.getElementsByClassName("image")[0].getElementsByTagName("img")[0].src = objdata.thumb;
-									tmp.getElementsByClassName("content")[0].getElementsByTagName("b")[0].textContent = objdata.string;
+									tmp.getElementsByClassName("content")[0].getElementsByTagName("b")[0].textContent = prop + ' - ' + objdata.string;
 									tmp.getElementsByClassName("number")[0].textContent = objdata.progress + " / " + objdata.repetitions;
 									tmp.getElementsByClassName("bar")[0].style.backgroundPosition = (100 - objdata.progress * 100 / objdata.repetitions) + "% 50%";
 									questContainer.appendChild(tmp);
@@ -3208,6 +3206,53 @@ function showResearchFullTask() {
 }
 function toggleSimplifiedTrapSelector() {
 	O_trapSelectorBrowser.classList.toggle("simplified");
+}
+function toggleStatusFavoriteMarketItem(e) {
+	var target = e.target;
+	var targetParent = target.parentNode;
+	if (target.classList.contains("UOP_addFavorite"))
+	{
+		//going to add
+		target.classList.remove("UOP_addFavorite");
+		target.classList.add("UOP_removeFavorite");
+		window.localStorage["UOP_marketfavor_" + targetParent.getAttribute("data-type")] = 1;
+		toggleListFavoriteMarketItem(targetParent,1);
+	}
+	else
+	{
+		//going to remove
+		target.classList.remove("UOP_removeFavorite");
+		target.classList.add("UOP_addFavorite");
+		window.localStorage["UOP_marketfavor_" + targetParent.getAttribute("data-type")] = 0;
+		toggleListFavoriteMarketItem(targetParent,0);
+	}
+}
+function toggleListFavoriteMarketItem(target,status) {
+	var panel;
+	if (status == 0) //remove
+	{
+		panel = target.getAttribute("data-panel");
+		O_specialPanel.parentNode.parentNode.children[2 * panel + 1].firstElementChild.appendChild(target);
+	}
+	else //add
+	{
+		O_specialPanel.appendChild(target);
+	}
+}
+function showTextareaPersonalNote() {
+	var note = localStorage.UOP_personalNote;
+	note = note.replace(/<br>/g,'\n');
+	O_personalNoteTextarea.value = note;
+	O_personalNoteTextarea.style.height = (O_personalNote.offsetHeight * 1.3) + "px";
+	O_personalNoteTextarea.parentNode.style.display = "block";
+	O_personalNote.style.display = "none";
+}
+function saveTextareaPersonalNote() {
+	var note = O_personalNoteTextarea.value;
+	note = note.replace(/\n/g,'<br>');
+	O_personalNote.innerHTML = localStorage.UOP_personalNote = note;
+	O_personalNoteTextarea.parentNode.style.display = "none";
+	O_personalNote.style.display = "block";
 }
 function defaultFullSkin() {
 	if (location.pathname.indexOf('/forum/') != -1) return;
@@ -3283,16 +3328,38 @@ function defaultFullSkin() {
 	arr[i].lastChild.textContent = "This is Mousehuntpedia";
 	++i;
 	
-	//move announcement to the Larry hunting tips
+	//add personal note to the Larry hunting tips
 	var huntingTips = document.getElementById('huntingTips');
-	if (huntingTips != undefined) //if there are Larry around then he will announce it for us ^_^ or if there are something  to announce
+	if (huntingTips != undefined) //if there are Larry around then he will announce personal note for us ^_^ or if there are something  to announce
 	{
 		huntingTips = huntingTips.getElementsByClassName('content')[0];
 		var newHuntingNode = null;
 		newHuntingNode = document.createElement("p");
-		newHuntingNode.innerHTML = "_______________________________________________________<br>";
+		newHuntingNode.innerHTML = "_______________________________________________________<br>Personal Note:<br>";
 		huntingTips.appendChild(newHuntingNode);
-		huntingTips.appendChild(document.getElementsByClassName('mousehuntHeaderView-newsTicker')[0]);
+		
+		O_personalNote = document.createElement("p");
+		var note = localStorage.UOP_personalNote;
+		if (note == null) note = localStorage.UOP_personalNote = 'A place to save some notes. Click to change';
+		O_personalNote.innerHTML = note;
+		O_personalNote.addEventListener('click',showTextareaPersonalNote,false);
+		huntingTips.appendChild(O_personalNote);
+		
+		var personalNoteTextareaDiv = document.createElement("div");
+		personalNoteTextareaDiv.style.display = "none";
+		huntingTips.appendChild(personalNoteTextareaDiv);
+		
+		O_personalNoteTextarea = document.createElement("textarea");
+		O_personalNoteTextarea.style.maxWidth = "320px";
+		O_personalNoteTextarea.style.minWidth = "320px";
+		personalNoteTextareaDiv.appendChild(O_personalNoteTextarea);
+		
+		var personalNoteTextareaSaveButton = document.createElement("button");
+		personalNoteTextareaSaveButton.textContent = "Save";
+		personalNoteTextareaSaveButton.style.left = "260px";
+		personalNoteTextareaSaveButton.style.position = "relative";
+		personalNoteTextareaSaveButton.addEventListener('click',saveTextareaPersonalNote,false);
+		personalNoteTextareaDiv.appendChild(personalNoteTextareaSaveButton);
 	}
 		
 	//==========Change the container (main page) of mousehunt==============
@@ -3333,8 +3400,8 @@ function defaultFullSkin() {
 	////change camp => friend
 	campbtn = document.getElementById('campButton');
 	campbtn.id = "btn-friend";
-	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('" + navnum + ".friends', 'visible');");
-	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('" + navnum + ".friends', 'hidden');");
+	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('" + navnum + ".teams', 'visible');");
+	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('" + navnum + ".teams', 'hidden');");
 
 	////change travel => camp
 	var travelbtn = document.getElementById('btn-travel');
@@ -3348,30 +3415,31 @@ function defaultFullSkin() {
 	//combining friend & team & add scoreboard from lore
 	var teamnav = document.getElementById(navnum + '.teams');
 	var teamnavarr = teamnav.childNodes;
-	var friendnav = document.getElementById(navnum + '.friends');
-	var friendnavarr = friendnav.childNodes;
+	
 	var lorenav = document.getElementById(navnum + '.lore');
 	var lorenavarr = lorenav.childNodes;
-	for (i = 0;i < friendnavarr.length;++i)
-		if (friendnavarr[i].firstChild.textContent == "Invite Friends")//remove invite friend
-		{
-			friendnav.removeChild(friendnavarr[i]);
-			--i;
-		}
+	
 	for (i = 0;i < teamnavarr.length;++i)
-	{
-		if (teamnavarr[i].firstChild.textContent == "View Team")
+		if (teamnavarr[i].firstChild.textContent.indexOf("Scoreboards") != -1) //remove all scoreboards
 		{
-			friendnav.insertBefore(teamnavarr[i],friendnav.firstChild);
+			teamnav.removeChild(teamnavarr[i]);
 			--i;
 		}
-		else if (teamnavarr[i].firstChild.textContent == "Tournaments")
+	
+	var friendnav = document.getElementById(navnum + '.friends');
+	if (friendnav != null)
+	{
+		var friendnavarr = friendnav.childNodes;
+		for (i = 0;i < friendnavarr.length;++i)
 		{
-			friendnav.appendChild(teamnavarr[i]);
-			--i;
+			if (friendnavarr[i].firstChild.textContent != "Invite Friends")
+			{
+				teamnav.insertBefore(friendnavarr[i],teamnav.firstChild);
+				--i;
+			}
 		}
 	}
-	friendnav.appendChild(lorenavarr[0]); //add scoreboard from lore
+	teamnav.appendChild(lorenavarr[0]); //add scoreboard from lore
 	
 	//add Mice to inventory
 	var inventory = document.getElementById(navnum + '.inventory');
@@ -3388,12 +3456,14 @@ function defaultFullSkin() {
 	//mainnav.removeChild(document.getElementsByClassName('navitem shopsbutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem micebutton')[0].parentNode);
 	mainnav.removeChild(document.getElementsByClassName('navitem lorebutton')[0].parentNode);
-	mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
+	document.getElementById('btn-team').style.display = "none"; //mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
+	
 	mainnav.removeChild(document.getElementsByClassName('navitem forumsbutton')[0].parentNode);
 	//fix the dropdown
 	//document.getElementById(navnum + '.shops').style.left = "308px";
 	document.getElementById(navnum + '.inventory').style.left = "213px";
-	document.getElementById(navnum + '.friends').style.left = "645px";
+	teamnav.style.left = "645px";
+	teamnav.style.width = "110px";
 	
 	//======HUD change======
 	var hud_base_parent = document.getElementById('hud_base').parentNode.parentNode.parentNode;
@@ -3407,7 +3477,7 @@ function defaultFullSkin() {
 	if (hud_team != undefined)
 	{
 		hud_team = hud_team.parentNode;
-		hud_team.style.display = "none";
+		//hud_team.parentNode.parentNode.style.display = "none";
 		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
 	}
 	
@@ -3446,9 +3516,22 @@ function defaultFullSkin() {
 		toggleSimplifiedTrapSelector();
 	}
 	
-	//if (C_disableExperimental == 0)
+	tabbar = document.getElementById('journalContainer');
+	if (tabbar != null)
+	{
+		if (tabbar.previousElementSibling != null) tabbar.parentNode.appendChild(tabbar.previousElementSibling);
+	}
+	tabbar = document.getElementsByClassName('mousehuntHeaderView-gameBanner');
+	if (tabbar.length > 0)
+	{
+		tabbar = tabbar[0];
+		tabbar.parentNode.style.marginTop = 0;
+		tabbar.parentNode.parentNode.appendChild(tabbar);
+	}
+	
 	if (location.pathname.indexOf("/trade.php") != -1)
 	{
+		//add quick trade ID box
 		var tabpage = document.getElementById('tabbarContent_page');
 		var tabdiv = document.createElement('div');
 		tabpage.parentNode.insertBefore(tabdiv,tabpage);
@@ -3479,8 +3562,54 @@ function defaultFullSkin() {
 			strurl.textContent = tradeid;
 			header.parentNode.appendChild(strurl);
 		}
+		
+		//add favorite
+		var catelist = document.getElementById("acd-items");
+		O_specialPanel = catelist.lastElementChild;
+		var specialButton = O_specialPanel.previousElementSibling;
+		var collectiblePanel;
+		var collectiblePanelArr;
+		var iterationItem;
+		var cloneItem;
+		var status;
+		specialButton.lastElementChild.textContent = "Favorite";
+		for (collectiblePanel = catelist.firstElementChild;collectiblePanel != specialButton;collectiblePanel = collectiblePanel.nextElementSibling.nextElementSibling)
+		{
+			if (collectiblePanel.lastElementChild.textContent == "Collectible")
+			{
+				collectiblePanel.lastElementChild.textContent = "Collectible - Special";
+				collectiblePanel = collectiblePanel.nextElementSibling;
+				break;
+			}
+		}
+		O_specialPanel = O_specialPanel.firstElementChild;
+		collectiblePanel = collectiblePanel.firstElementChild;
+		var specialPanelArr = O_specialPanel.children;
+		
+		while(specialPanelArr.length > 0)
+		{
+			collectiblePanel.appendChild(specialPanelArr[0]);
+		}
+		
+		for (collectiblePanel = catelist.firstElementChild.nextElementSibling;collectiblePanel != catelist.lastElementChild;collectiblePanel = collectiblePanel.nextElementSibling.nextElementSibling)
+		{
+			collectiblePanelArr = collectiblePanel.firstElementChild.children;
+			for (i = 0;i < collectiblePanelArr.length;++i)
+			{
+				tmp = template.favorite.cloneNode(true);
+				tmp.addEventListener("click",toggleStatusFavoriteMarketItem,false);
+				collectiblePanelArr[i].insertBefore(tmp,collectiblePanelArr[i].firstChild);
+				status = window.localStorage["UOP_marketfavor_" + collectiblePanelArr[i].getAttribute("data-type")];
+				if (!((status == undefined) || (status == "0")))
+				{
+					tmp.classList.remove("UOP_addFavorite");
+					tmp.classList.add("UOP_removeFavorite");
+					toggleListFavoriteMarketItem(collectiblePanelArr[i],1);
+					--i;
+				}
+			}
+		}
 	}
-	//END OF C_disableExperimental
 	
 	//precious title advancing
 	O_titleBar = document.getElementById('hud_titlebar');
@@ -5286,14 +5415,18 @@ function shLoad(url,params,successHandler){
 				}
 				catch (e)
 				{
-					shLoad(url,params,successHandler);
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+					document.title = "Action error !";
+					setTimeout(function() {shLoad(url,params,successHandler);},10000);
+					return;
 				}
 				if (parseok == 1) shActionSuccessHandler(successHandler);
 			}
 			else
 			{
-				shLoad(url,params,successHandler);
-				return;
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+				document.title = "Action error !";
+				setTimeout(function() {shLoad(url,params,successHandler);},10000);
 			}
 		}
 	}
@@ -5319,14 +5452,18 @@ function shLoadOnce(url,params,successHandler) {
 				}
 				catch (e)
 				{
-					shLoadOnce(url,params,successHandler);
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+					document.title = "Action error !";
+					setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
 					return;
 				}
 				if ((parseok == 1) && (successHandler != null)) successHandler();
 			}
 			else
 			{
-				shLoadOnce(url,params,successHandler);
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+				document.title = "Action error !";
+				setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
 				return;
 			}
 		}
@@ -5609,6 +5746,7 @@ function shChangeBestTrap(type,priority) {
 	});
 }
 
+
 var sh_defaultScripts = [
 	{
 		name: 'default_trapcheck',
@@ -5632,7 +5770,7 @@ var sh_defaultScripts = [
 		fullname: 'Iceberg (Base)',
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
 		vars: {customBase: {name: 'Base for Commander Stage (No change = Auto)', val: '', displayType: 'base'}},
-		mode: PLAY,
+		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultIceberg
 		//content: shdefaultIceberg.toString().slice(28,-1)
@@ -5676,7 +5814,7 @@ var sh_defaultScripts = [
 		fullname: "Derr Dunes Farm",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 0,afterHorn: 1,priority: 0, userSync: 0,trapCheckPriority: 0},
 		vars: {customGoudaEachBuy: {name: 'Number of Gouda to buy', val: 1000, displayType: 'number'}},
-		mode: PLAY,
+		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultDerrDunes
 		//content: shdefaultDerrDunes.toString().slice(30,-1)
@@ -5686,26 +5824,26 @@ var sh_defaultScripts = [
 		fullname: "Fiery Warpath",
 		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
 		vars: {
-			customCommanderCharmWave1: {name: 'Number of Commander Charm in Wave 1', val: 0, displayType: 'number'},
-			customCommanderCharmWave2: {name: 'Number of Commander Charm in Wave 2', val: 1, displayType: 'number'},
+			customCommanderCharmWave1: {name: 'Number of Commander Charm in Wave 1', val: 1, displayType: 'number'},
+			customCommanderCharmWave2: {name: 'Number of Commander Charm in Wave 2', val: 2, displayType: 'number'},
 			customCommanderCharmWave3: {name: 'Number of Commander Charm in Wave 3', val: 3, displayType: 'number'},
 			customStreakLevel1: {name: '0 <= streak < streakLevel1', val: 2, displayType: 'number'},
-			customStreakLevel2: {name: 'steakLevel1 <= streak < streakLevel2', val: 5, displayType: 'number'},
-			customCommanderStreak: {name: 'steakLevel2 <= streak < streakCommander', val: 7, displayType: 'number'},
+			customStreakLevel2: {name: 'steakLevel1 <= streak < streakLevel2', val: 3, displayType: 'number'},
+			customCommanderStreak: {name: 'steakLevel2 <= streak < streakCommander', val: 6, displayType: 'number'},
 			customGagaStreak: {name: 'streakCommander <= streak < streakGaga', val: 10, displayType: 'number'},
-			customBaitLevel1: {name: 'Bait in Level 1 streak', val: 'brie_cheese', displayType: 'bait'},
+			customBaitLevel1: {name: 'Bait in Level 1 streak', val: 'gouda_cheese', displayType: 'bait'},
 			customBaitLevel2: {name: 'Bait in Level 2 streak', val: 'gouda_cheese', displayType: 'bait'},
 			customBaitLevel3: {name: 'Bait in Level 3 streak', val: 'super_brie_cheese', displayType: 'bait'},
 			customCharmLevel1: {name: 'Charm in Level 1 streak', val: 'normal', displayType: 'FWcharm'},
 			customCharmLevel2: {name: 'Charm in Level 2 streak', val: 'normal', displayType: 'FWcharm'},
 			customCharmLevel3: {name: 'Charm in Level 3 streak', val: 'super', displayType: 'FWcharm'},
-			customMinMouseRetreatWave1: {name: 'Min number of retreat mouse in Wave 1', val: 16, displayType: 'number'},
+			customMinMouseRetreatWave1: {name: 'Min number of retreat mouse in Wave 1', val: 18, displayType: 'number'},
 			customMinMouseRetreatWave2: {name: 'Min number of retreat mouse in Wave 2', val: 30, displayType: 'number'},
-			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 38, displayType: 'number'},
+			customMinMouseRetreatWave3: {name: 'Min number of retreat mouse in Wave 3', val: 36, displayType: 'number'},
 			leftoverMouse: {name: 'Switch if number of mouse below', val: 17, displayType: 'number'},
 			commanderrepresentativelevel: {name: 'If no commander charm left, use the same setup as', val: 0, displayType: 'FWlevel'}
 		},
-		mode: PLAY,
+		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultFieryWarpath
 		//content: shdefaultFieryWarpath.toString().slice(33,-1)
@@ -5820,20 +5958,18 @@ function shdefaultBalacksCove(){
 				return;
 			}
 	}
-	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)))
+	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)) && (data.user.bait_quantity > 0))
 	{
 		setTimeout(function() {shLoad(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);},5000);
 		return;
 	}
-	if (data.user.bait_item_id == 118)
+	if ((data.user.environment_id != 14) && (data.user.bait_item_id == 118) && (data.user.bait_quantity == 0))
 	{
-		if (data.user.bait_quantity == 0)
-		{
-			shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
-			if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
-			else shChangeBestTrap(SHADOW,TRAPAUTO);
-			return;
-		}
+		shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
+		shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
+		if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
+		else shChangeBestTrap(SHADOW,TRAPAUTO);
+		return;
 	}
 	setTimeout(shFunctionSuccessHandler,0);
 }
@@ -5861,7 +5997,9 @@ function shdefaultZugwangsTowerSimple(){
 	{
 		if (data.user.bait_item_id == 371)
 		{
-			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),function() { //disarm first, then try to arm again
+				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();});
+			});
 			return;
 		}
 	}
@@ -5872,7 +6010,9 @@ function shdefaultSeasonalGarden(){
 	{
 		if (data.user.bait_item_id == 371)
 		{
-			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),function() { //disarm first, then try to arm again
+				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();});
+			});
 			return;
 		}
 		
@@ -6057,188 +6197,244 @@ var C_defaultFieryWarpathData = {
 	warrior: {wave1:"desert_warrior_weak",wave2:"desert_warrior",wave3:"desert_warrior_epic",power:"Physical",val:PHYSICAL,normalcharm:"flame_march_warrior_trinket",supercharm:"super_flame_march_warrior_trinket"},
 	archer: {wave1:"desert_archer_weak",wave2:"desert_archer",wave3:"desert_archer_epic",power:"Physical",val:PHYSICAL,normalcharm:"flame_march_archer_trinket",supercharm:"super_flame_march_archer_trinket"},
 	scout: {wave1:"desert_scout_weak",wave2:"desert_scout",wave3:"desert_scout_epic",power:"Physical",val:PHYSICAL,normalcharm:"flame_march_scout_trinket",supercharm:"super_flame_march_scout_trinket"},
-	cavalry: {wave2:"desert_cavalry",wave3:"desert_cavalry_strong",power:"Tactical",val:TACTICAL,normalcharm:"flame_march_cavalry_trinket",supercharm:"super_flame_march_cavalry_trinket"},
-	mage: {wave2:"desert_mage",wave3:"desert_mage_strong",power:"Hydro",val:HYDRO,normalcharm:"flame_march_mage_trinket",supercharm:"super_flame_march_mage_trinket"},
+	//cavalry: {wave2:"desert_cavalry",wave3:"desert_cavalry_strong",power:"Tactical",val:TACTICAL,normalcharm:"flame_march_cavalry_trinket",supercharm:"super_flame_march_cavalry_trinket"},
+	cavalry: {wave2:"desert_cavalry",wave3:"desert_cavalry_strong",power:"Tactical",val:TACTICAL,normalcharm:"",supercharm:""},
+	//mage: {wave2:"desert_mage",wave3:"desert_mage_strong",power:"Hydro",val:HYDRO,normalcharm:"flame_march_mage_trinket",supercharm:"super_flame_march_mage_trinket"},
+	mage: {wave2:"desert_mage",wave3:"desert_mage_strong",power:"Physical",val:PHYSICAL,normalcharm:"flame_march_mage_trinket",supercharm:"super_flame_march_mage_trinket"},
 	artillery: {wave3:"desert_artillery",power:"Arcane",val:ARCANE,normalcharm:"",supercharm:""}};
 function shdefaultFieryWarpath(){
-	if (data.user.environment_id == 33)
+	if (localStorage.UOP_sh_d_FW_calltime == undefined) localStorage.UOP_sh_d_FW_calltime = 0;
+	var numcall = Number(localStorage.UOP_sh_d_FW_calltime) + 1;
+	localStorage.UOP_sh_d_FW_calltime = numcall;
+	if (numcall > 10) throw new Error("FW is called too much");
+	if (data.user.bait_quantity != 0)
 	{
-		var warpathObj = data.user.viewing_atts.desert_warpath;
-		var wave = warpathObj.wave;
-		var streak = warpathObj.streak.quantity;
-		var streaklevel1 = sh_scripts[sh_sid].vars.customStreakLevel1.val;
-		var streaklevel2 = sh_scripts[sh_sid].vars.customStreakLevel2.val;
-		var streakcommander = sh_scripts[sh_sid].vars.customCommanderStreak.val;
-		var streakgaga = sh_scripts[sh_sid].vars.customGagaStreak.val;
-		if (wave != Number(localStorage.UOP_sh_d_FW_lastwave))
+		if (data.user.environment_id == 33)
 		{
-			localStorage.UOP_sh_d_FW_lastwave = wave;
-			if (wave != 4) localStorage.UOP_sh_d_FW_numcommander = sh_scripts[sh_sid].vars["customCommanderCharmWave" + wave].val;
-		}
-		if (wave == 4)
-		{
-			if (data.user.trap_power_type_name != "Physical")
+			
+			var warpathObj = data.user.viewing_atts.desert_warpath;
+			var wave = warpathObj.wave;
+			var streak = warpathObj.streak.quantity;
+			var streaklevel1 = sh_scripts[sh_sid].vars.customStreakLevel1.val;
+			var streaklevel2 = sh_scripts[sh_sid].vars.customStreakLevel2.val;
+			var streakcommander = sh_scripts[sh_sid].vars.customCommanderStreak.val;
+			var streakgaga = sh_scripts[sh_sid].vars.customGagaStreak.val;
+			if (wave != Number(localStorage.UOP_sh_d_FW_lastwave))
 			{
-				shChangeBestTrap(PHYSICAL,TRAPAUTO);
-				return;
+				localStorage.UOP_sh_d_FW_lastwave = wave;
+				if (wave != 4) localStorage.UOP_sh_d_FW_numcommander = sh_scripts[sh_sid].vars["customCommanderCharmWave" + wave].val;
 			}
-			if (data.user.trinket_item_id != 614)
+			if (wave == 4)
 			{
-				items = ["monger_trinket"];
-				shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-				function() {
-					if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
-				});
-			}
-		}
-		else
-		{
-			var mousetype = 0,retreatmousenum,leftover = sh_scripts[sh_sid].vars.leftoverMouse.val;;
-			var cheese,charmtype,charm;
-			var gagahunt = false;
-			if ((streak == 0) && ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615))) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-			var numcommander = Number(localStorage.UOP_sh_d_FW_numcommander);
-			var requiredRetreatMouse = sh_scripts[sh_sid].vars["customMinMouseRetreatWave" + wave].val;
-			if ((0 <= streak) && (streak < streakcommander))
-			{
-				while ((mousetype < 3) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population < leftover)) mousetype++;
-				if (mousetype == 3)
+				if (data.user.trap_power_type_name != "Physical")
 				{
-					mousetype = 0;
-					while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
-				}
-				if (mousetype >= C_defaultFieryWarpathWave[wave - 1])
-				{
-					syncUser(shActionSuccessHandler);
+					shChangeBestTrap(PHYSICAL,TRAPAUTO);
 					return;
 				}
-				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave] != warpathObj.streak.mouse_type) streak = 0;
-				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].power != data.user.trap_power_type_name)
+				if (data.user.trinket_item_id != 614)
 				{
-					shChangeBestTrap(C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].val,TRAPAUTO);
-					return;
-				}
-				if ((0 <= streak) && (streak < streaklevel1))
-				{
-					charmtype = sh_scripts[sh_sid].vars.customCharmLevel1.val;
-					cheese = sh_scripts[sh_sid].vars.customBaitLevel1.val;
-				}
-				if ((streaklevel1 <= streak) && (streak < streaklevel2))
-				{
-					charmtype = sh_scripts[sh_sid].vars.customCharmLevel2.val;
-					cheese = sh_scripts[sh_sid].vars.customBaitLevel2.val;
-				}
-				if ((streaklevel2 <= streak) && (streak < streakcommander))
-				{
-					charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
-					cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
-				}
-				if ((mousetype >= 3) && (cheese == 'super_brie_cheese')) //No super for Mage, cavalry and artillery
-				{
-					charmtype = "normal";
-					cheese = 'gouda_cheese';
-				}
-				if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
-				else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
-				if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
-				if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-				if ((charm != '') || (cheese != ''))
-				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
-					return;
+					items = ["monger_trinket"];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+					function() {
+						if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
+					});
 				}
 			}
-			else if ((streakcommander <= streak) && (streak < streakgaga))
+			else
 			{
-				if (numcommander > 0)
+				var mousetype = 0,retreatmousenum,leftover = sh_scripts[sh_sid].vars.leftoverMouse.val;;
+				var cheese,charmtype,charm;
+				var gagahunt = false;
+				if ((streak == 0) && ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615))) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+				var numcommander = Number(localStorage.UOP_sh_d_FW_numcommander);
+				var requiredRetreatMouse = sh_scripts[sh_sid].vars["customMinMouseRetreatWave" + wave].val;
+				if ((0 <= streak) && (streak < streakcommander))
 				{
-					if (data.user.trap_power_type_name != "Physical")
+					while ((mousetype < 3) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population < leftover)) mousetype++;
+					if (mousetype == 3)
 					{
-						cheese = 'super_brie_cheese';
-						if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
-							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
-						shChangeBestTrap(PHYSICAL,TRAPAUTO);
+						mousetype = 0;
+						while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
+					}
+					if (mousetype >= C_defaultFieryWarpathWave[wave - 1])
+					{
+						syncUser(shActionSuccessHandler);
 						return;
+					}
+					if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave] != warpathObj.streak.mouse_type) streak = 0;
+					if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].power != data.user.trap_power_type_name)
+					{
+						shChangeBestTrap(C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].val,TRAPAUTO);
+						return;
+					}
+					if ((0 <= streak) && (streak < streaklevel1))
+					{
+						charmtype = sh_scripts[sh_sid].vars.customCharmLevel1.val;
+						cheese = sh_scripts[sh_sid].vars.customBaitLevel1.val;
+					}
+					if ((streaklevel1 <= streak) && (streak < streaklevel2))
+					{
+						charmtype = sh_scripts[sh_sid].vars.customCharmLevel2.val;
+						cheese = sh_scripts[sh_sid].vars.customBaitLevel2.val;
+					}
+					if ((streaklevel2 <= streak) && (streak < streakcommander))
+					{
+						charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
+						cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
+					}
+					if ((mousetype >= 3) && (cheese == 'super_brie_cheese')) //No super for Mage, cavalry and artillery
+					{
+						charmtype = "normal";
+						cheese = 'gouda_cheese';
+					}
+					if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+					else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+					if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
+					if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
+					if ((charm != '') || (cheese != '')) //~~~~auto buy
+					{
+						items = [charm,cheese];
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+						function() {
+							if (data.items[0].quantity == 0) charm = '';
+							if (data.items[1].quantity == 0) cheese = '';
+							if ((charm != '') && (cheese != ''))
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
+							}
+							else
+							{
+								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null);
+							}
+						});
+						
+						return;
+					}
+				}
+				else if ((streakcommander <= streak) && (streak < streakgaga))
+				{
+					if (numcommander > 0)
+					{
+						if (data.user.trap_power_type_name != "Physical")
+						{
+							shChangeBestTrap(PHYSICAL,TRAPAUTO);
+							return;
+						}
+						else
+						{
+							cheese = 'super_brie_cheese';
+							if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
+							{//~~~~ignore
+								items = [cheese];
+								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+								function() {
+									if (data.items[0].quantity == 0) cheese = '';
+									if (cheese != '')
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
+									}
+									else
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null);
+									}
+								});
+								return;
+							}
+						}
 					}
 					else
 					{
+						var streaklevelsetup = sh_scripts[sh_sid].vars.commanderrepresentativelevel.val;
+						if (streaklevelsetup != 0)
+						{
+							while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.streak.mouse_type != C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave])) mousetype++;
+							charmtype = sh_scripts[sh_sid].vars["customCharmLevel" + streaklevelsetup].val;
+							cheese = sh_scripts[sh_sid].vars["customBaitLevel" + streaklevelsetup].val;
+							if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+							else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+							if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
+							if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
+							if ((charm != '') || (cheese != ''))
+							{
+								items = [charm,cheese];
+								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+								function() {//~~~~auto buy
+									if (data.items[0].quantity == 0) charm = '';
+									if (data.items[1].quantity == 0) cheese = '';
+									if ((charm != '') && (cheese != ''))
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
+									}
+									else
+									{
+										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null);
+									}
+								});
+								return;
+							}
+						}
+					}
+				}
+				else if ((streakgaga <= streak) && (streak <= 12))
+				{
+					if (data.user.trap_power_type_name != "Draconic")
+					{
 						cheese = 'super_brie_cheese';
 						if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
-							return;
-						}
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null);
+						shChangeBestTrap(DRACONIC,TRAPAUTO);
+						return;
 					}
 				}
-				else
+				if (streakcommander <= streak) //separated commander charm process
 				{
-					var streaklevelsetup = sh_scripts[sh_sid].vars.commanderrepresentativelevel.val;
-					if (streaklevelsetup != 0)
+					var useCommander = false;
+					if ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615)) useCommander = true;
+					if (numcommander > 0)
 					{
-						while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.streak.mouse_type != C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave])) mousetype++;
-						charmtype = sh_scripts[sh_sid].vars["customCharmLevel" + streaklevelsetup].val;
-						cheese = sh_scripts[sh_sid].vars["customBaitLevel" + streaklevelsetup].val;
-						if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
-						else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
-						if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
-						if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-						if ((charm != '') || (cheese != ''))
+						if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
 						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
-							return;
-						}
-					}
-				}
-			}
-			else if ((streakgaga <= streak) && (streak <= 12))
-			{
-				if (data.user.trap_power_type_name != "Draconic")
-				{
-					cheese = 'super_brie_cheese';
-					if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
-						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null);
-					shChangeBestTrap(DRACONIC,TRAPAUTO);
-					return;
-				}
-			}
-			if (streakcommander <= streak) //separated commander charm process
-			{
-				var useCommander = false;
-				if ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615)) useCommander = true;
-				if (numcommander > 0)
-				{
-					if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
-					{
-						retreatmousenum = 0;
-						var wave_population = warpathObj.wave_population;
-						for (var mouse_population in wave_population)
-							if (wave_population.hasOwnProperty(mouse_population))
+							retreatmousenum = 0;
+							var wave_population = warpathObj.wave_population;
+							for (var mouse_population in wave_population)
+								if (wave_population.hasOwnProperty(mouse_population))
+								{
+									retreatmousenum += Math.min(streak,wave_population[mouse_population].population);
+								}
+							if (retreatmousenum >= requiredRetreatMouse)
 							{
-								retreatmousenum += Math.min(streak,wave_population[mouse_population].population);
+								items = ["super_flame_march_general_trinket","flame_march_general_trinket"];
+								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
+									function() {
+										var charm = '';
+										if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
+										if (data.items[1].quantity > 0) charm = 'flame_march_general_trinket';
+										if (charm != '')
+										{
+											localStorage.UOP_sh_d_FW_numcommander = Number(localStorage.UOP_sh_d_FW_numcommander) - 1;
+											shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
+										}
+										else
+										{
+											localStorage.UOP_sh_d_FW_numcommander = 0;
+											shActionSuccessHandler(null);
+										}
+									});
+								useCommander = true;
+								return;
 							}
-						if (retreatmousenum >= requiredRetreatMouse)
-						{
-							items = ["super_flame_march_general_trinket"];
-							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-								function() {
-									var charm = 'flame_march_general_trinket';
-									if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
-									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
-								});
-							useCommander = true;
-							localStorage.UOP_sh_d_FW_numcommander = numcommander - 1;
-							return;
 						}
 					}
-				}
-				if ((streakgaga <= streak) && (streak <= 12) && (data.user.trinket_item_id != 0) && (useCommander == false)) //if gaga streak and not able to use Commander charm => disarm
-				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-					return;
+					if ((streakgaga <= streak) && (streak <= 12) && (data.user.trinket_item_id != 0) && (useCommander == false)) //if gaga streak and not able to use Commander charm => disarm
+					{
+						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+						return;
+					}
 				}
 			}
 		}
 	}
+	localStorage.UOP_sh_d_FW_calltime = 0;
 	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultFuroma(){

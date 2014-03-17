@@ -187,6 +187,8 @@
 	margin-bottom: 5px;
 	height: 22px;
 	line-height: 22px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .UOP_travelRegionMobile {
 	text-align:center;
@@ -195,9 +197,9 @@
 	margin-right: 10px;
 }
 .UOP_travelRegionMobile:hover {background-color:#F5518D;}
-.UOP_travelPlaceMobile {background-color:#61A2DB;color:#fff;}
+.UOP_travelPlaceMobile {background-color:#61A2DB;color:#fff;max-width: 131px;}
 .UOP_travelPlaceMobile:hover {background-color: #4094DD;}
-.UOP_travelPlaceMobileImpossible {background-color:#acacac;color:#fff;}
+.UOP_travelPlaceMobileImpossible {background-color:#acacac;color:#fff;max-width: 131px;}
 .UOP_travelPlaceMobileImpossible:hover {background-color: #bdbdbd;}
 .UOP_travelRegion {background-color:#12CC28;}
 .UOP_travelRegion:hover {background-color: #4CCF5C;}
@@ -225,6 +227,9 @@
 	margin-right: 0px;
 	color: #fff;
 	background-color:#61A2DB;
+	max-width: 130px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .UOP_travelPlaceDiv .UOP_travelPlaceCost {
 	border-top-right-radius: 5px;
@@ -249,8 +254,21 @@
 	margin-right:5px;
 }
 .menuItem.superBrie {padding-right:0px!important;}
-#huntingTips .mousehuntHeaderView-newsTicker .ticker {width: 250px;}
-#huntingTips .mousehuntHeaderView-newsTicker {
-	line-height: normal;
-	height: 50px;
+
+.UOP_toggleFavorite {
+	float:right;
+	width: 25px;
+	height: 25px;
+	z-index: 5;
+	-webkit-background-size: contain;
+	-moz-background-size: contain;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}
+.UOP_addFavorite {
+	background-image: url('/images/star_empty.png');
+}
+.UOP_removeFavorite {
+	background-image: url('/images/star_favorite.png');
 }

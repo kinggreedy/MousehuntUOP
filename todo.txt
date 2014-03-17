@@ -1,2 +1,4 @@
-﻿trapcheck delay not correct
-bug on FW, scout
+﻿//~~~add Train auto
+//~~~auto buy FW charm and ignore when out of bait
+//~~~add Travel auto
+//~~~add larry note
