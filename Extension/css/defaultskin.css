@@ -272,3 +272,12 @@
 .UOP_removeFavorite {
 	background-image: url('/images/star_favorite.png');
 }
+#UOP_toggleSimplifiedSelector {
+	background: linear-gradient(lightgreen 5%, green);
+	width: 173px;
+	font-weight: bold;
+	font-size: 10px;
+	cursor: pointer;
+	text-align: center;
+}
+#UOP_toggleSimplifiedSelector:hover {background: linear-gradient(white, lightgreen 80%);}

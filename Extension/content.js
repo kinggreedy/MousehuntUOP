@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "9";
+var C_versionCompatibleCode = "11";
 //var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -446,13 +446,6 @@ function runTimeCreateConstant() {
 	<div id="UOP_settting_script" class="UOP_scripttab" style="display:none;">\
 		<div class="UOP_section"><h2>Script Full Name</h2></div>\
 		<div class="UOP_setting">\
-			<label class="UOP_label">Name</label>\
-			<div class="UOP_settingvalue">\
-				<div><label>Full Name: </label><input id="UOP_scriptFullName" type="text" placeholder="Display name"></div>\
-				<div><label>Script Name: </label><input id="UOP_scriptName" type="text" placeholder="Function name"></div>\
-			</div>\
-		</div>\
-		<div class="UOP_setting">\
 			<label class="UOP_label">Run mode</label>\
 			<div class="UOP_settingvalue">\
 				<div class="UOP_settingvalue">\
@@ -779,7 +772,7 @@ function initializationWithUser() {
 	
 	if ((S_simple == 0) && (S_skin != 0)) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
-	if ((S_schedule == 0) && (atCamp)) shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
+	if ((S_schedule == 0) && (atCamp)) shLoadOnceAsync(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
 	soundHornWaiting();
 }
 /*******************MAIN********************/
@@ -1072,8 +1065,8 @@ function saveScript() {
 	
 	var name,fullname,beforeTrapCheck,afterTrapCheck,afterHorn,priority,userSync,trapCheckPriority,content,errorHandler,vars;
 
-	fullname = document.getElementById('UOP_scriptFullName').value;
-	name = document.getElementById('UOP_scriptName').value;
+	//fullname = document.getElementById('UOP_scriptFullName').value;
+	//name = document.getElementById('UOP_scriptName').value;
 	mode = document.getElementById('UOP_scriptMode').getElementsByClassName('tick')[0].value;
 	//content = document.getElementById('UOP_scriptContent').value;
 	afterHorn = document.getElementById("UOP_scriptAfterHorn").checked ? 1 : 0;
@@ -1118,8 +1111,8 @@ function saveScript() {
 	else
 	{
 		if (newscript == 0) shChangeScriptState(STOP,sid); else sh_scripts[sid] = new Object;
-		sh_scripts[sid].name = name;
-		sh_scripts[sid].fullname = fullname;
+		//sh_scripts[sid].name = name;
+		//sh_scripts[sid].fullname = fullname;
 		if (sh_scripts[sid].setting == null) sh_scripts[sid].setting = new Object;
 		sh_scripts[sid].setting.beforeTrapCheck = beforeTrapCheck;
 		sh_scripts[sid].setting.afterTrapCheck = afterTrapCheck;
@@ -1218,8 +1211,8 @@ function editScript(e) {
 	}
 	
 	document.getElementById('UOP_settting_script').getElementsByTagName('h2')[0].textContent = header;
-	document.getElementById('UOP_scriptFullName').value = fullname;
-	document.getElementById('UOP_scriptName').value = name;
+	//document.getElementById('UOP_scriptFullName').value = fullname;
+	//document.getElementById('UOP_scriptName').value = name;
 	document.getElementById("UOP_scriptAfterHorn").checked = (afterHorn == 1) ? true : false;
 	document.getElementById("UOP_scriptBeforeTrapCheck").checked = (beforeTrapCheck == 1) ? true : false;
 	document.getElementById("UOP_scriptAfterTrapCheck").checked = (afterTrapCheck == 1) ? true : false;
@@ -2007,7 +2000,7 @@ function travelcontentLoadNormal() {
 				placegroupitem.style.height = "0px";
 				travelPlacesHeight.push(31);
 				HTMLdiv.appendChild(placegroupitem);
-				envitem = document.createElement('div');
+				/*envitem = document.createElement('div');
 				envitem.textContent = "Free Travel";
 				envitem.className = "UOP_buttonTravel UOP_travelRegion";
 				envitem.setAttribute("groupid",0);
@@ -2025,7 +2018,7 @@ function travelcontentLoadNormal() {
 				costitem.textContent = "Free";
 				listitem.appendChild(nameitem);
 				listitem.appendChild(costitem);
-				placegroupitem.appendChild(listitem);
+				placegroupitem.appendChild(listitem);*/
 				for (i = 0;i < group_env.length;++i)
 				{
 					placegroupitem = document.createElement('div');
@@ -2197,15 +2190,15 @@ function potcontentLoad() {
 			if (request.status == 200)
 			{
 				var HTMLBegin = request.responseText.indexOf("<div class='active' id='tabbarContent_page_3'");
-				var HTMLText = request.responseText.substring(HTMLBegin,request.responseText.indexOf("</script></div>",HTMLBegin));
+				var HTMLText = request.responseText.substring(HTMLBegin,request.responseText.indexOf("<div class='inactive' id='tabbarContent_page_4'>",HTMLBegin));
 				var JSText = request.responseText.match(/app.views.InventoryItemView.*.setValidItemClassifications\(\["potion"\]\);app.views.InventoryItemView.*.setItemsPerRow\(1\);/)[0];
 				var JSUnknownRenderString = JSText.substring(JSText.indexOf("app.views.InventoryItemView.") + 28,JSText.indexOf(".setValidItemClassifications"));
 				
-				JSText = 'app.views.InventoryItemView.' + JSUnknownRenderString + ' = new hg.views.InventoryItemView("' + JSUnknownRenderString + '");' + JSText + 'initInventoryItemView(3);';
+				JSText = 'app.views.InventoryItemView.' + JSUnknownRenderString + ' = new hg.views.InventoryItemView("' + JSUnknownRenderString + '");' + JSText + 'initInventoryItemViewByTab(3);';
 				
 				var HTMLdiv = document.createElement('div');
 				HTMLdiv.innerHTML = HTMLText;
-				contentDiv.innerHTML = "<br>";
+				contentDiv.innerHTML = "";
 				contentDiv.appendChild(HTMLdiv);
 				
 				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
@@ -2230,6 +2223,7 @@ function craftcontentLoad() {
 		{
 			if (request.status == 200)
 			{
+				/*
 				var HTMLText = '<div id="recipeContainer" class="craftingContainer"><div class="top"><div class="loading"></div></div></div><div id="craftingContainer" class="craftingContainer" style="display:none;"><div class="top"><div class="loading"></div></div></div>';
 				var JSUnknownStringStart = request.responseText.indexOf("app.views.RecipeView.");
 				var JSUnknownStringEnd = request.responseText.indexOf(" =",JSUnknownStringStart);
@@ -2253,7 +2247,20 @@ function craftcontentLoad() {
 					}
 					tmp = HTMLdiv.getElementsByClassName('craftingTabs')[0].getElementsByTagName('li')[4].getElementsByTagName('a')[0];
 					tmp.textContent = "Item";
-				}
+				}*/
+				var HTMLBegin = request.responseText.indexOf("<div class='active' id='tabbarContent_page_2'");
+				var HTMLText = request.responseText.substring(HTMLBegin,request.responseText.indexOf("<div class='inactive' id='tabbarContent_page_3'>",HTMLBegin));
+				var JSText = request.responseText.match(/app.views.InventoryItemView.*.setValidItemClassifications\(\["crafting_item"\]\);app.views.InventoryItemView.*.setItemsPerRow\(3\);/)[0];
+				var JSUnknownRenderString = JSText.substring(JSText.indexOf("app.views.InventoryItemView.") + 28,JSText.indexOf(".setValidItemClassifications"));
+				
+				JSText = 'app.views.InventoryItemView.' + JSUnknownRenderString + ' = new hg.views.InventoryItemView("' + JSUnknownRenderString + '");' + JSText + 'initInventoryItemViewByTab(2);';
+				
+				var HTMLdiv = document.createElement('div');
+				HTMLdiv.innerHTML = HTMLText;
+				contentDiv.innerHTML = "";
+				contentDiv.appendChild(HTMLdiv);
+				
+				window.postMessage({name: "UOP_eval", data: JSText},location.origin);
 			}
 			else
 			{
@@ -2574,7 +2581,7 @@ function travel_normal(e) {
 		url += "/managers/ajax/users/changeenvironment.php";
 		param = "destination=" + destination + "&uh=" + data.user.unique_hash;
 		request.open("POST", url, true);
-		request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+		request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	}
 	request.onreadystatechange = function()
 	{
@@ -3108,7 +3115,7 @@ function tradeBuyID() {
 	
 	var http = new XMLHttpRequest();
 	http.open("POST",url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
 		{
@@ -3161,7 +3168,7 @@ function showResearchFullTask() {
 	
 	var http = new XMLHttpRequest();
 	http.open("POST",url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
 		{
@@ -3507,12 +3514,18 @@ function defaultFullSkin() {
 		tmp = document.getElementById("questBarDetails");
 		if (tmp != null) tmp.addEventListener("click",listenResearchQuest,false);
 		
+		tmp = document.getElementById("shareTrapButton")
+		if (tmp != null) tmp.parentNode.removeChild(tmp);
+		tmp = document.getElementById("saveToAlbumButton")
+		if (tmp != null) tmp.parentNode.removeChild(tmp);
+		
 		O_trapSelectorBrowser = document.getElementById('trapSelectorBrowser');
-		tmp = document.createElement('a');
+		tmp = document.createElement('div');
 		tmp.textContent = "Short/Full Selector";
+		tmp.id = "UOP_toggleSimplifiedSelector";
 		tmp.addEventListener("click",toggleSimplifiedTrapSelector,false);
-		tmp2 = document.getElementById('trapSelector');
-		tmp2.parentNode.insertBefore(tmp,tmp2.nextSibling);
+		tmp2 = document.getElementById('trapSpecialBar');
+		tmp2.appendChild(tmp);
 		toggleSimplifiedTrapSelector();
 	}
 	
@@ -4128,7 +4141,7 @@ function postChannel() {
 	var request = new XMLHttpRequest();
 	var param = "team=" + scoreboardMyTeamID + "&tour=" + data.user.viewing_atts.tournament.tournament_id + "&status=" + data.user.viewing_atts.tournament.status + "&timeleft=" + (Math.ceil(new Date().getTime() / 1000) + data.user.viewing_atts.tournament.seconds_remaining);
 	request.open("POST", url, true);
-	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -4579,7 +4592,7 @@ function submitPuzzle(str) {
 	var param = "puzzle_answer=" + str + "&uh=" + data.user.unique_hash;
 	var request = new XMLHttpRequest();
 	request.open("POST", url, true);
-	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	request.onreadystatechange = function()
 	{
 		if (request.readyState === 4)
@@ -5250,8 +5263,8 @@ function shUpdateClock() {
 }
 function shSaveScript(x) {
 	var scriptInfo = new Object;
-	scriptInfo.name = sh_scripts[x].name;
-	scriptInfo.fullname = sh_scripts[x].fullname;
+	//scriptInfo.name = sh_scripts[x].name;
+	//scriptInfo.fullname = sh_scripts[x].fullname;
 	scriptInfo.setting = sh_scripts[x].setting;
 	scriptInfo.errorHandler = sh_scripts[x].errorHandler;
 	scriptInfo.vars = sh_scripts[x].vars;
@@ -5283,32 +5296,6 @@ function shDeleteScript(x) {
 function shCompile(x) {
 	sh_scripts[x].func = sh_defaultScripts[x].func;
 	if (sh_scripts[x].errorHandler != 0) sh_scripts[x].errorFunc = sh_defaultScripts[x].errorFunc;
-	/*
-	var str = 'function ' + sh_scripts[x].name + '() {' + sh_scripts[x].content + ';setTimeout(shFunctionSuccessHandler,0);} sh_scripts[' + x + '].func = ' + sh_scripts[x].name + ';';
-	try
-	{
-		eval(str);
-	}
-	catch (e)
-	{
-		sh_scripts[x].mode = ERROR;
-		console.log(e.message);
-		console.log(str);
-		return;
-	}
-	if (sh_scripts[x].errorHandler != 0)
-	{
-		str = 'function ' + sh_scripts[x].name + 'ErrorFunc() {' + sh_scripts[x].errorContent + '}';
-		try
-		{
-			sh_scripts[x].errorFunc = eval(str);
-		}
-		catch (e)
-		{
-			sh_scripts[x].errorHandler = 0;
-		}
-	}
-	*/
 }
 function shAttach(x) {
 	if (sh_scripts[x].attached == 1) return;
@@ -5365,8 +5352,8 @@ function shSubmit(url,params,successHandler,errorHandler,loadHandler){
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
 	var http = new XMLHttpRequest();
-	http.open("POST",C_canvasMode[inCanvas] + url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.open("POST",C_canvasMode[inCanvas] + url, false);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
 		{
@@ -5400,45 +5387,75 @@ function shLoad(url,params,successHandler){
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
 	var http = new XMLHttpRequest();
-	http.open("POST",C_canvasMode[inCanvas] + url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-	http.onreadystatechange = function() {
-		if (http.readyState == 4)
-		{
-			if (http.status == 200)
-			{
-				var parseok = 0;
-				try
-				{
-					data = JSON.parse(http.responseText);
-					parseok = 1;
-				}
-				catch (e)
-				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
-					document.title = "Action error !";
-					setTimeout(function() {shLoad(url,params,successHandler);},10000);
-					return;
-				}
-				if (parseok == 1) shActionSuccessHandler(successHandler);
-			}
-			else
-			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
-				document.title = "Action error !";
-				setTimeout(function() {shLoad(url,params,successHandler);},10000);
-			}
-		}
-	}
+	http.open("POST",C_canvasMode[inCanvas] + url, false);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	http.send(postparams);
+	if (http.status == 200)
+	{
+		var parseok = 0;
+		try
+		{
+			data = JSON.parse(http.responseText);
+			parseok = 1;
+		}
+		catch (e)
+		{
+			document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+			document.title = "Action error !";
+			setTimeout(function() {shLoad(url,params,successHandler);},10000);
+			return;
+		}
+		if (data.success == 0) throw new Error("Not success in command");
+		if (parseok == 1) shActionSuccessHandler(successHandler);
+	}
+	else
+	{
+		document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+		document.title = "Action error !";
+		setTimeout(function() {shLoad(url,params,successHandler);},10000);
+	}
 }
 function shLoadOnce(url,params,successHandler) {
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
 	var http = new XMLHttpRequest();
+	http.open("POST",C_canvasMode[inCanvas] + url, false);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	http.send(postparams);
+	if (http.status == 200)
+	{
+		var parseok = 0;
+		try
+		{
+			data = JSON.parse(http.responseText);
+			parseok = 1;
+		}
+		catch (e)
+		{
+			document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+			document.title = "Action error !";
+			setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+			return;
+		}
+		if (data.success == 0) throw new Error("Not success in command");
+		if ((parseok == 1) && (successHandler != null)) successHandler();
+	}
+	else
+	{
+		document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+		document.title = "Action error !";
+		setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+		return;
+	}
+}
+function shLoadAsync(url,params,successHandler){
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
+	
+	var http = new XMLHttpRequest();
 	http.open("POST",C_canvasMode[inCanvas] + url, true);
-	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	http.onreadystatechange = function() {
 		if (http.readyState == 4)
 		{
@@ -5454,16 +5471,55 @@ function shLoadOnce(url,params,successHandler) {
 				{
 					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
 					document.title = "Action error !";
-					setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+					setTimeout(function() {shLoadAsync(url,params,successHandler);},10000);
 					return;
 				}
+				if (data.success == 0) throw new Error("Not success in command");
+				if (parseok == 1) shActionSuccessHandler(successHandler);
+			}
+			else
+			{
+				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+				document.title = "Action error !";
+				setTimeout(function() {shLoadAsync(url,params,successHandler);},10000);
+			}
+		}
+	}
+	http.send(postparams);
+}
+function shLoadOnceAsync(url,params,successHandler) {
+	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
+	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
+	
+	var http = new XMLHttpRequest();
+	http.open("POST",C_canvasMode[inCanvas] + url, true);
+	http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	http.onreadystatechange = function() {
+		if (http.readyState == 4)
+		{
+			if (http.status == 200)
+			{
+				var parseok = 0;
+				try
+				{
+					data = JSON.parse(http.responseText);
+					parseok = 1;
+				}
+				catch (e)
+				{
+					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+					document.title = "Action error !";
+					setTimeout(function() {shLoadOnceAsync(url,params,successHandler);},10000);
+					return;
+				}
+				if (data.success == 0) throw new Error("Not success in command");
 				if ((parseok == 1) && (successHandler != null)) successHandler();
 			}
 			else
 			{
 				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
 				document.title = "Action error !";
-				setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+				setTimeout(function() {shLoadOnceAsync(url,params,successHandler);},10000);
 				return;
 			}
 		}
@@ -5540,20 +5596,37 @@ function shAfterTrapCheck() {
 	}
 }
 function shFunctionCaller(sid) {
-	if (sh_scripts[sid].mode != PLAY)
+	if (localStorage.UOP_sh_d_FC_calltime == undefined) localStorage.UOP_sh_d_FC_calltime = 0;
+	if (localStorage.UOP_sh_d_FC_callid == undefined) localStorage.UOP_sh_d_FC_callid = 0;
+	var calltime = Number(localStorage.UOP_sh_d_FC_calltime);
+	var callid = Number(localStorage.UOP_sh_d_FC_callid);
+	if (callid != sid)
 	{
-		setTimeout(shFunctionSuccessHandler,0);
-		return;
+		callid = sid;
+		calltime = 0;
 	}
-	try
+	else ++calltime;
+	localStorage.UOP_sh_d_FC_calltime = calltime;
+	localStorage.UOP_sh_d_FC_callid = callid;
+	
+	if (calltime >= 10) shFunctionErrorHandler(null); //being called too much -> ERROR
+	else
 	{
-		sh_sid = sid;
-		sh_scripts[sh_sid].stage = 0;
-		sh_scripts[sh_sid].func();
-	}
-	catch (e)
-	{
-		shFunctionErrorHandler(e);
+		if (sh_scripts[sid].mode != PLAY)
+		{
+			setTimeout(shFunctionSuccessHandler,0);
+			return;
+		}
+		try
+		{
+			sh_sid = sid;
+			sh_scripts[sh_sid].stage = 0;
+			sh_scripts[sh_sid].func();
+		}
+		catch (e)
+		{
+			shFunctionErrorHandler(e);
+		}
 	}
 }
 function shRequestAgain() {
@@ -5716,34 +5789,33 @@ function shGetItem(items) {
 	return params;
 }
 function shChangeBestTrap(type,priority) {
-	shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {
-		var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
-		for (i = 0;i < data.components.length;++i)
+	shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
+	var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
+	for (i = 0;i < data.components.length;++i)
+	{
+		match = false;
+		switch (type)
 		{
-			match = false;
-			switch (type)
-			{
-				case BASE: match = (data.components[i].classification == "base") ? true : false;break;
-				default: match = (data.components[i].power_type == C_powertype[type]) ? true : false;break;
-			}
-			if (match)
-			{
-				comp = new Object;
-				comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
-				comp.luck = luck = data.components[i].luck;
-				luck += luckbonus;
-				comp.str = power + 4 * luck * luck;
-				comp.attraction = data.components[i].attraction_bonus;
-				comp.name = data.components[i].type;
-				arrcomp.push(comp);
-			}
+			case BASE: match = (data.components[i].classification == "base") ? true : false;break;
+			default: match = (data.components[i].power_type == C_powertype[type]) ? true : false;break;
 		}
-		if (arrcomp.length == 0) return;
-		var prioritystr = C_trapprioritytype[priority];
-		arrcomp.sort(function (a,b) {return b[prioritystr] - a[prioritystr];});
-		var param = (type == BASE) ? shChangeTrap('',arrcomp[0].name,'','') : shChangeTrap(arrcomp[0].name,'','','');
-		shLoad(C_shdefaultAction.CHANGETRAP,param,null);
-	});
+		if (match)
+		{
+			comp = new Object;
+			comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
+			comp.luck = luck = data.components[i].luck;
+			luck += luckbonus;
+			comp.str = power + 4 * luck * luck;
+			comp.attraction = data.components[i].attraction_bonus;
+			comp.name = data.components[i].type;
+			arrcomp.push(comp);
+		}
+	}
+	if (arrcomp.length == 0) return;
+	var prioritystr = C_trapprioritytype[priority];
+	arrcomp.sort(function (a,b) {return b[prioritystr] - a[prioritystr];});
+	var param = (type == BASE) ? shChangeTrap('',arrcomp[0].name,'','') : shChangeTrap(arrcomp[0].name,'','','');
+	shLoadOnce(C_shdefaultAction.CHANGETRAP,param,null);
 }
 
 
@@ -5763,7 +5835,6 @@ var sh_defaultScripts = [
 		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultTrapcheck
-		//content: shdefaultTrapcheck.toString().slice(30,-1)
 	},
 	{
 		name: 'default_iceberg',
@@ -5773,7 +5844,6 @@ var sh_defaultScripts = [
 		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultIceberg
-		//content: shdefaultIceberg.toString().slice(28,-1)
 	},
 	{
 		name: 'default_balackscove',
@@ -5784,7 +5854,6 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultBalacksCove
-		//content: shdefaultBalacksCove.toString().slice(32,-1)
 	},
 	{
 		name: 'default_zugwangstowersimple',
@@ -5794,7 +5863,6 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultZugwangsTowerSimple
-		//content: shdefaultZugwangsTowerSimple.toString().slice(40,-1)
 	},
 	{
 		name: 'default_seasonalgarden',
@@ -5807,7 +5875,6 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultSeasonalGarden
-		//content: shdefaultSeasonalGarden.toString().slice(35,-1)
 	},
 	{
 		name: 'default_derrdunes',
@@ -5817,7 +5884,6 @@ var sh_defaultScripts = [
 		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultDerrDunes
-		//content: shdefaultDerrDunes.toString().slice(30,-1)
 	},
 	{
 		name: 'default_fierywarpath',
@@ -5846,7 +5912,6 @@ var sh_defaultScripts = [
 		mode: STOP,
 		errorHandler: 0,
 		func: shdefaultFieryWarpath
-		//content: shdefaultFieryWarpath.toString().slice(33,-1)
 	},
 	{
 		name: 'default_furoma',
@@ -5856,7 +5921,16 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultFuroma
-		//content: shdefaultFuroma.toString().slice(27,-1)
+	},
+	{
+		name: 'default_eventeggcycle',
+		fullname: "Event Easter Egg Cycle",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {customMinCharged: {name: 'Minimum charged power (Min <= X)', val: 17, displayType: 'number'},
+			customMaxCharged: {name: 'Maximum charged power (X <= Max)', val: 20, displayType: 'number'}},
+		mode: PLAY,
+		errorHandler: 0,
+		func: shdefaultEventEggCycle
 	},
 	{
 		name: 'default_livinggarden',
@@ -5868,7 +5942,6 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultLivingGarden
-		//content: shdefaultLivingGarden.toString().slice(33,-1)
 	}
 ];
 
@@ -5889,7 +5962,6 @@ function shdefaultIceberg(){
 					{
 						shChangeBestTrap(BASE,TRAPAUTO);
 						window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;
-						return;
 					}
 					break;
 				case "Treacherous Tunnels":param = shChangeTrap('','magnet_base','','');break;
@@ -5905,7 +5977,6 @@ function shdefaultIceberg(){
 						{
 							shChangeBestTrap(BASE,TRAPAUTO);
 							window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;
-							return;
 						}
 					}
 					break;
@@ -5913,24 +5984,22 @@ function shdefaultIceberg(){
 			}
 			if (param != '')
 			{
-				shLoad(C_shdefaultAction.CHANGETRAP,param,function () {window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;});
-				return;
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,param,null);
+				window.localStorage.UOP_sh_d_IB_state = data.user.quests.QuestIceberg.current_phase;
 			}
 		}
 	}
-	if (data.user.environment_id == 39)
+	else if (data.user.environment_id == 39)
 	{
 		window.localStorage.UOP_sh_d_IB_state = "slushy_shoreline";
 		if ((data.user.trinket_item_id == 877) || (data.user.trinket_item_id == 876))
 		{
-			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-			return;
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
 		}
 		if (data.user.base_item_id == 899)
 		{
-			if (sh_scripts[sh_sid].vars.customBase.val != '') shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'','');
+			if (sh_scripts[sh_sid].vars.customBase.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
 			else shChangeBestTrap(BASE,TRAPAUTO);
-			return;
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
@@ -5942,8 +6011,11 @@ function shdefaultBalacksCove(){
 			((sh_clock.UOP_locationTimerBalacksCove.stateID == 1) && (sh_clock.UOP_locationTimerBalacksCove.timeleft < 15 * 60)) ||
 			(data.user.bait_quantity == 0))
 			{
-				if (sh_scripts[sh_sid].vars.customBCTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customBCTrap.val,'','','vanilla_stilton_cheese'),null);
-				else shLoadOnce(C_shdefaultAction.GETTRAP,null,function () {
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null);
+				if (sh_scripts[sh_sid].vars.customBCTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customBCTrap.val,'','','vanilla_stilton_cheese'),null);
+				else
+				{
+					shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
 					var i;
 					var trap,besttrap = 5;
 					for (i = 0;i < data.components.length;++i)
@@ -5953,23 +6025,20 @@ function shdefaultBalacksCove(){
 						if (besttrap < trap) besttrap = trap;
 					}
 					trap = C_shdefaultBCTrapR[besttrap];
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(trap,'','','vanilla_stilton_cheese'),null);
-				});
-				return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(trap,'','','vanilla_stilton_cheese'),null);
+				}
 			}
 	}
 	if ((data.user.environment_id == 14) && ((data.user.bait_item_id == 119) || (data.user.bait_item_id == 118)) && (data.user.bait_quantity > 0))
 	{
-		setTimeout(function() {shLoad(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);},5000);
-		return;
+		setTimeout(function() {shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("balacks_cove"),null);},5000);
 	}
 	if ((data.user.environment_id != 14) && (data.user.bait_item_id == 118) && (data.user.bait_quantity == 0))
 	{
 		shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("jungle_of_dread"),null);
 		shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),null);
-		if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
+		if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
 		else shChangeBestTrap(SHADOW,TRAPAUTO);
-		return;
 	}
 	setTimeout(shFunctionSuccessHandler,0);
 }
@@ -5980,27 +6049,18 @@ function shdefaultZugwangsTowerSimple(){
 		if (((data.user.weapon_item_id == 356) && (data.user.viewing_atts.zzt_tech_progress >= 8)) ||
 		    ((data.user.weapon_item_id == 354) && (data.user.viewing_atts.zzt_mage_progress >= 8)))
 			{
-				if (sh_scripts[sh_sid].vars.customTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTrap.val,'','',''),null);
+				if (sh_scripts[sh_sid].vars.customTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTrap.val,'','',''),null);
 				else shChangeBestTrap(TACTICAL,TRAPAUTO);
-				window.localStorage.UOP_ZTS_changeBestBase = 1;
-				return;
-			}
-		if (window.localStorage.UOP_ZTS_changeBestBase == 1)
-		{
-			if (sh_scripts[sh_sid].vars.customBase.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
-			else shChangeBestTrap(BASE,TRAPAUTO);
-			window.localStorage.UOP_ZTS_changeBestBase = 0;
-			return;
+				if (sh_scripts[sh_sid].vars.customBase.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
+				else shChangeBestTrap(BASE,TRAPAUTO);
 		}
 	}
 	if (data.user.environment_id == 31)
 	{
 		if (data.user.bait_item_id == 371)
 		{
-			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),function() { //disarm first, then try to arm again
-				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();});
-			});
-			return;
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null); //disarm first, then try to arm again
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),autoPlay);
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
@@ -6010,16 +6070,13 @@ function shdefaultSeasonalGarden(){
 	{
 		if (data.user.bait_item_id == 371)
 		{
-			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),function() { //disarm first, then try to arm again
-				shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();});
-			});
-			return;
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null); //disarm first, then try to arm again
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),autoPlay);
 		}
 		
 		if ((data.user.viewing_atts.zzt_amplifier == data.user.viewing_atts.zzt_max_amplifier) && (data.user.trinket_item_id == 647))
 		{
-			shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-			return;
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
 		}
 		
 		var thisstate,laststate;
@@ -6031,88 +6088,99 @@ function shdefaultSeasonalGarden(){
 			switch (thisstate)
 			{
 				case 0:
-					if (sh_scripts[sh_sid].vars.customPhysicalTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customPhysicalTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customPhysicalTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customPhysicalTrap.val,'','',''),null);
 					else shChangeBestTrap(PHYSICAL,TRAPAUTO);
 					break;
 				case 1:
-					if (sh_scripts[sh_sid].vars.customTacticalTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTacticalTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customTacticalTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customTacticalTrap.val,'','',''),null);
 					else shChangeBestTrap(TACTICAL,TRAPAUTO);
 					break;
 				case 2:
-					if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customShadowTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customShadowTrap.val,'','',''),null);
 					else shChangeBestTrap(SHADOW,TRAPAUTO);
 					break;
 				case 3:
-					if (sh_scripts[sh_sid].vars.customHydroTrap.val != '') shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customHydroTrap.val,'','',''),null);
+					if (sh_scripts[sh_sid].vars.customHydroTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customHydroTrap.val,'','',''),null);
 					else shChangeBestTrap(HYDRO,TRAPAUTO);
 					break;
 			}
 			window.localStorage.UOP_sh_d_SG_state = thisstate;
-			return;
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultDerrDunes(){
-	if (data.user.environment_id == 5) //cape calwed
+	if (data.user.environment_id == 7) //derr dunes
 	{
-		var i;
-		var state = localStorage.UOP_sh_d_Derr_state;
-		var recall = false;
-		if ((state == null) || (state == "reset"))
+		if (data.user.bait_quantity == 0)
 		{
-			shLoad(C_shdefaultAction.TRAVEL,shTravel("derr_dunes"),null);
-			return;
-		}
-		if (state == "go_shopping") state = localStorage.UOP_sh_d_Derr_state = "buy_craft_0";
-		switch (state)
-		{
-			case "buy_craft_0":
-				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
-				var craftitem1num = craftitem0num * 20 - Number(localStorage.UOP_sh_d_Derr_coconut_milk);
-				localStorage.UOP_sh_d_Derr_state = "buy_craft_1";
+			var i;
+
+			//load item
+			var items = ["delicious_stone_craft_item","coconut_milk_craft_item","salt_craft_item","curds_and_whey_craft_item","crunchy_cheese","gouda_cheese"];
+			shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+			i = 0;
+			var UOP_sh_d_Derr_delicious_stone = data.items[i].quantity;++i;
+			var UOP_sh_d_Derr_coconut_milk = data.items[i].quantity;++i;
+			var UOP_sh_d_Derr_salt = data.items[i].quantity;++i;
+			var UOP_sh_d_Derr_curds_and_whey = data.items[i].quantity;++i;
+			var UOP_sh_d_Derr_crunchy_cheese = data.items[i].quantity;++i;
+			var UOP_sh_d_Derr_gouda_cheese = data.items[i].quantity;++i;
+			
+			//change to crunchy and gouda if found
+			if (UOP_sh_d_Derr_crunchy_cheese > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','crunchy_cheese'),autoPlay);
+			else if (UOP_sh_d_Derr_gouda_cheese > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),autoPlay);
+			else //else go shopping
+			{
+				shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("cape_clawed"),null);
+				
+				//buy coconut
+				var craftitem0num, craftitem1num,craftitem2num,craftitem3num,craftnum;
+				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
+				craftitem1num = craftitem0num * 20 - UOP_sh_d_Derr_coconut_milk;
+				craftitem2num = Math.floor(gold / 800);
+				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
-					localStorage.UOP_sh_d_Derr_coconut_milk = craftitem1num + Number(localStorage.UOP_sh_d_Derr_coconut_milk);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","coconut_milk_craft_item",craftitem1num),null);
+					UOP_sh_d_Derr_coconut_milk = craftitem1num + UOP_sh_d_Derr_coconut_milk;
+					shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","coconut_milk_craft_item",craftitem1num),null);
 				}
-				else recall = true;
-				break;
-			case "buy_craft_1":
-				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
-				var craftitem1num = craftitem0num * 30 - Number(localStorage.UOP_sh_d_Derr_salt);
-				localStorage.UOP_sh_d_Derr_state = "buy_craft_2";
+				
+				//buy salt
+				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
+				craftitem1num = craftitem0num * 30 - UOP_sh_d_Derr_salt;
+				craftitem2num = Math.floor(gold / 6);
+				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
-					localStorage.UOP_sh_d_Derr_salt = craftitem1num + Number(localStorage.UOP_sh_d_Derr_salt);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","salt_craft_item",craftitem1num),null);
+					UOP_sh_d_Derr_salt = craftitem1num + UOP_sh_d_Derr_salt;
+					shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","salt_craft_item",craftitem1num),null);
 				}
-				else recall = true;
-				break;
-			case "buy_craft_2":
-				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
-				var craftitem1num = craftitem0num * 10 - Number(localStorage.UOP_sh_d_Derr_curds_and_whey);
-				localStorage.UOP_sh_d_Derr_state = "buy_cheese";
+				
+				//buy curd
+				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
+				craftitem1num = craftitem0num * 10 - UOP_sh_d_Derr_curds_and_whey;
+				craftitem2num = Math.floor(gold / 12);
+				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
-					localStorage.UOP_sh_d_Derr_curds_and_whey = craftitem1num + Number(localStorage.UOP_sh_d_Derr_curds_and_whey);
-					shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","curds_and_whey_craft_item",craftitem1num),null);
+					UOP_sh_d_Derr_curds_and_whey = craftitem1num + UOP_sh_d_Derr_curds_and_whey;
+					shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","curds_and_whey_craft_item",craftitem1num),null);
 				}
-				else recall = true;
-				break;
-			case "buy_cheese":
-				var gold = data.user.gold,defaultnum = sh_scripts[sh_sid].vars.customGoudaEachBuy.val;
+				
+				//buy max gouda
+				var gold = data.user.gold;
+				var defaultnum = sh_scripts[sh_sid].vars.customGoudaEachBuy.val;
 				var numcheese = Math.floor(gold / 600);
 				numcheese = Math.min(numcheese,defaultnum);
-				shLoad(C_shdefaultAction.PURCHASE,shPurchase("buy","gouda_cheese",numcheese),function() {localStorage.UOP_sh_d_Derr_state = "craft_cheese";});
-				break;
-			case "craft_cheese":
-				var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Derr_delicious_stone) / 30);
-				var craftitem1num = Math.floor(Number(localStorage.UOP_sh_d_Derr_coconut_milk) / 20);
-				var craftitem2num = Math.floor(Number(localStorage.UOP_sh_d_Derr_salt) / 30);
-				var craftitem3num = Math.floor(Number(localStorage.UOP_sh_d_Derr_curds_and_whey) / 10);
-				var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
-				localStorage.UOP_sh_d_Derr_state = "go_home";
+				shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","gouda_cheese",numcheese),null);
+				
+				//craft
+				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
+				craftitem1num = Math.floor(UOP_sh_d_Derr_coconut_milk / 20);
+				craftitem2num = Math.floor(UOP_sh_d_Derr_salt / 30);
+				craftitem3num = Math.floor(UOP_sh_d_Derr_curds_and_whey / 10);
+				craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
 				if (craftnum > 0)
 				{
 					var parts = {};
@@ -6120,68 +6188,20 @@ function shdefaultDerrDunes(){
 					parts.coconut_milk_craft_item = 20;
 					parts.salt_craft_item = 30;
 					parts.curds_and_whey_craft_item = 10;
-					localStorage.UOP_sh_d_Derr_crunchy_cheese = craftnum * 15 + Number(localStorage.UOP_sh_d_Derr_crunchy_cheese);
-					shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+					UOP_sh_d_Derr_crunchy_cheese = craftnum * 15 + UOP_sh_d_Derr_crunchy_cheese;
+					shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
 				}
-				else recall = true;
-				break;
-			case "go_home":
-				shLoad(C_shdefaultAction.TRAVEL,shTravel("cape_clawed"),function() {localStorage.UOP_sh_d_Derr_state = "reset";});
-				break;
-			default:state = localStorage.UOP_sh_d_Derr_state = "reset";break;
-		}
-		if (recall == true) setTimeout(shActionSuccessHandler,0);
-		if (state != "reset") return;
-	}
-	else if (data.user.environment_id == 7) //derr dunes
-	{
-		if (data.user.bait_quantity == 0)
-		{
-			var i;
-			var state = localStorage.UOP_sh_d_Derr_state;
-			var recall = false;
-			if ((state == null) || (state == "reset")) state = localStorage.UOP_sh_d_Derr_state = "get_item";
-			switch (state)
-			{
-				case "get_item":
-					var items = ["delicious_stone_craft_item","coconut_milk_craft_item","salt_craft_item","curds_and_whey_craft_item",
-					"crunchy_cheese","gouda_cheese"];
-					shLoad(C_shdefaultAction.GETITEM,shGetItem(items),function() {localStorage.UOP_sh_d_Derr_state = "loaded_item";});
-					break;
-				case "loaded_item":
-					i = 0;
-					localStorage.UOP_sh_d_Derr_delicious_stone = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Derr_coconut_milk = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Derr_salt = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Derr_curds_and_whey = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Derr_crunchy_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Derr_gouda_cheese = data.items[i].quantity;++i;
-					state = localStorage.UOP_sh_d_Derr_state = "use_crunchy";
-					recall = true;
-					break;
-				case "use_crunchy":
-					if (Number(localStorage.UOP_sh_d_Derr_crunchy_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','crunchy_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Derr_state = "reset";});
-					else 
-					{
-						localStorage.UOP_sh_d_Derr_state = "use_gouda";
-						recall = true;
-					}
-					break;
-				case "use_gouda":
-					if (Number(localStorage.UOP_sh_d_Derr_gouda_cheese) > 0) shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Derr_state = "reset";});
-					else 
-					{
-						localStorage.UOP_sh_d_Derr_state = "go_shopping";
-						recall = true;
-					}
-					break;
-				case "go_shopping":
-					shLoad(C_shdefaultAction.TRAVEL,shTravel("cape_clawed"),null);
-					break;
-				default:state = localStorage.UOP_sh_d_Derr_state = "reset";break;
+				
+				//go home and arm
+				shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("derr_dunes"),null);
+				if (craftnum > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','crunchy_cheese'),autoPlay);
+				else if (numcheese > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','gouda_cheese'),autoPlay);
+				else
+				{
+					//throw new Error("Out of cheese");
+					//basically, I think zero bait will stop the script
+				}
 			}
-			if (recall == true) setTimeout(shActionSuccessHandler,0);
-			if (state != "reset") return;
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
@@ -6442,272 +6462,221 @@ function shdefaultFuroma(){
 	{
 		if (data.user.bait_quantity == 0)
 		{
-			var state = localStorage.UOP_sh_d_Furoma_state;
+			//load item
 			var i;
-			var recall = false;
-			if ((state == null) || (state == "reset")) state = localStorage.UOP_sh_d_Furoma_state = "get_item";
-			switch (state) 
+			var items = ["token_of_the_cheese_belt_craft_item","token_of_the_cheese_claw_craft_item","token_of_the_cheese_fang_craft_item",
+				"master_belt_shard_craft_item","master_claw_shard_craft_item","master_fang_shard_craft_item","masters_seal_craft_item",
+				"onyx_stone_craft_item","magic_essence_craft_item",
+				"glutter_cheese","susheese_cheese","combat_cheese","rumble_cheese","unstable_curd_convertible","onyx_gorgonzola_cheese","maki_cheese","brie_cheese",
+				"cheesy_fluffs_craft_item","invisiglu_craft_item","burroughs_salmon_craft_item","nori_craft_item","paintbrand_paint_craft_item","splintered_wood_craft_item",
+				"ionized_salt_craft_item","curds_and_whey_craft_item"];
+			shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+
+			i = 0;
+			UOP_sh_d_Furoma_token_belt = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_token_claw = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_token_fang = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_master_belt = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_master_claw = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_master_fang = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_master_seal = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_onyx_stone = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_magic_essence = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_glutter_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_susheese_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_combat_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_rumble_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_unstable_curd = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_onyx_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_maki_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_brie_cheese = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_cheesy_fluffs = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_invisiglu = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_burroughs_salmon = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_nori = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_paintbrand_paint = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_splintered_wood = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_ionized_salt = data.items[i].quantity;++i;
+			UOP_sh_d_Furoma_curds_and_whey = data.items[i].quantity;++i;
+
+			//craft belt cheese then use it
+			craftitem0num, craftitem1num, craftitem2num, craftitem3num, craftnum;
+			craftitem0num = Math.floor(Number(UOP_sh_d_Furoma_token_belt) / 3);
+			craftitem1num = Number(UOP_sh_d_Furoma_cheesy_fluffs);
+			craftitem2num = Number(UOP_sh_d_Furoma_invisiglu);
+			craftitem3num = Math.floor(Number(UOP_sh_d_Furoma_curds_and_whey) / 7);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
+			if (craftnum > 0)
 			{
-				case "get_item":
-					var items = ["token_of_the_cheese_belt_craft_item","token_of_the_cheese_claw_craft_item","token_of_the_cheese_fang_craft_item",
-					"master_belt_shard_craft_item","master_claw_shard_craft_item","master_fang_shard_craft_item","masters_seal_craft_item",
-					"onyx_stone_craft_item","magic_essence_craft_item",
-					"glutter_cheese","susheese_cheese","combat_cheese","rumble_cheese","unstable_curd_convertible","onyx_gorgonzola_cheese","maki_cheese","brie_cheese",
-					"cheesy_fluffs_craft_item","invisiglu_craft_item","burroughs_salmon_craft_item","nori_craft_item","paintbrand_paint_craft_item","splintered_wood_craft_item",
-					"ionized_salt_craft_item","curds_and_whey_craft_item"];
-					shLoad(C_shdefaultAction.GETITEM,shGetItem(items),function() {localStorage.UOP_sh_d_Furoma_state = "loaded_item";});
-					break;
-				case "loaded_item":
-					i = 0;
-					localStorage.UOP_sh_d_Furoma_token_belt = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_token_claw = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_token_fang = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_master_belt = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_master_claw = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_master_fang = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_master_seal = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_onyx_stone = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_magic_essence = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_glutter_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_susheese_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_combat_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_rumble_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_unstable_curd = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_onyx_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_maki_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_brie_cheese = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_cheesy_fluffs = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_invisiglu = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_burroughs_salmon = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_nori = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_paintbrand_paint = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_splintered_wood = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_ionized_salt = data.items[i].quantity;++i;
-					localStorage.UOP_sh_d_Furoma_curds_and_whey = data.items[i].quantity;++i;
-					state = localStorage.UOP_sh_d_Furoma_state = "craft_student_shard_belt";
-					recall = true;
-					break;
-				case "craft_student_shard_belt":
-					var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_token_belt) / 3);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_cheesy_fluffs);
-					var craftitem2num = Number(localStorage.UOP_sh_d_Furoma_invisiglu);
-					var craftitem3num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_curds_and_whey) / 7);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
-					localStorage.UOP_sh_d_Furoma_state = "use_glutter_cheese";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.token_of_the_cheese_belt_craft_item = 3;
-						parts.cheesy_fluffs_craft_item = 1;
-						parts.invisiglu_craft_item = 1;
-						parts.curds_and_whey_craft_item = 7;
-						localStorage.UOP_sh_d_Furoma_glutter_cheese = craftnum * 3 + Number(localStorage.UOP_sh_d_Furoma_glutter_cheese);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "use_glutter_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_glutter_cheese) > 0)
-					{
-						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','glutter_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else
-					{
-						localStorage.UOP_sh_d_Furoma_state = "craft_student_shard_claw";
-						recall = true;
-					}
-					break;
-				case "craft_student_shard_claw":
-					var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_token_claw) / 3);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_burroughs_salmon);
-					var craftitem2num = Number(localStorage.UOP_sh_d_Furoma_nori);
-					var craftitem3num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_curds_and_whey) / 3);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
-					localStorage.UOP_sh_d_Furoma_state = "use_susheese_cheese";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.token_of_the_cheese_claw_craft_item = 3;
-						parts.burroughs_salmon_craft_item = 1;
-						parts.nori_craft_item = 1;
-						parts.curds_and_whey_craft_item = 3;
-						localStorage.UOP_sh_d_Furoma_susheese_cheese = craftnum * 3 + Number(localStorage.UOP_sh_d_Furoma_susheese_cheese);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "use_susheese_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_susheese_cheese) > 0)
-					{
-						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','susheese_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else 
-					{
-						localStorage.UOP_sh_d_Furoma_state = "craft_student_shard_fang";
-						recall = true;
-					}
-					break;
-				case "craft_student_shard_fang":
-					var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_token_fang) / 3);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_paintbrand_paint);
-					var craftitem2num = Number(localStorage.UOP_sh_d_Furoma_splintered_wood);
-					var craftitem3num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_curds_and_whey) / 5);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
-					localStorage.UOP_sh_d_Furoma_state = "use_combat_cheese";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.token_of_the_cheese_fang_craft_item = 3;
-						parts.paintbrand_paint_craft_item = 1;
-						parts.splintered_wood_craft_item = 1;
-						parts.curds_and_whey_craft_item = 5;
-						localStorage.UOP_sh_d_Furoma_combat_cheese = craftnum * 3 + Number(localStorage.UOP_sh_d_Furoma_combat_cheese);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "use_combat_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_combat_cheese) > 0)
-					{
-						if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','combat_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else
-					{
-						state = localStorage.UOP_sh_d_Furoma_state = "craft_master_shard";
-						recall = true;
-					}
-					break;
-				case "craft_master_shard":
-					var craftitem0num = Number(localStorage.UOP_sh_d_Furoma_master_belt);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_master_claw);
-					var craftitem2num = Number(localStorage.UOP_sh_d_Furoma_master_fang);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
-					localStorage.UOP_sh_d_Furoma_state = "craft_rumble_cheese";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.master_belt_shard_craft_item = 1;
-						parts.master_claw_shard_craft_item = 1;
-						parts.master_fang_shard_craft_item = 1;
-						localStorage.UOP_sh_d_Furoma_master_seal = craftnum + Number(localStorage.UOP_sh_d_Furoma_master_seal);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "craft_rumble_cheese":
-					var craftitem0num = Number(localStorage.UOP_sh_d_Furoma_master_seal);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_ionized_salt);
-					var craftitem2num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_curds_and_whey) / 20);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
-					localStorage.UOP_sh_d_Furoma_state = "use_rumble_cheese";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.masters_seal_craft_item = 1;
-						parts.ionized_salt_craft_item = 1;
-						parts.curds_and_whey_craft_item = 20;
-						localStorage.UOP_sh_d_Furoma_rumble_cheese = craftnum * 3 + Number(localStorage.UOP_sh_d_Furoma_rumble_cheese);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "use_rumble_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_rumble_cheese) > 0)
-					{
-						if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','rumble_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else
-					{
-						state = localStorage.UOP_sh_d_Furoma_state = "craft_curd";
-						recall = true;
-					}
-					break;
-				case "craft_curd":
-					var craftitem0num = Number(localStorage.UOP_sh_d_Furoma_onyx_stone);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_ionized_salt);
-					var craftitem2num = Number(localStorage.UOP_sh_d_Furoma_curds_and_whey);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
-					localStorage.UOP_sh_d_Furoma_state = "use_curd";
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.onyx_stone_craft_item = 1;
-						parts.ionized_salt_craft_item = 1;
-						parts.curds_and_whey_craft_item = 1;
-						localStorage.UOP_sh_d_Furoma_unstable_curd = craftnum + Number(localStorage.UOP_sh_d_Furoma_unstable_curd);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
-					}
-					else recall = true;
-					break;
-				case "use_curd":
-					var numcurd = Number(localStorage.UOP_sh_d_Furoma_unstable_curd);
-					if (numcurd > 0) shLoad(C_shdefaultAction.CONVERTIBLE,shUseConvertible('unstable_curd_convertible',numcurd),function() {localStorage.UOP_sh_d_Furoma_state = "reset";});
-					else
-					{
-						state = localStorage.UOP_sh_d_Furoma_state = "use_onyx_cheese";
-						recall = true;
-					}
-					break;
-				case "use_onyx_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_onyx_cheese) > 0)
-					{
-						if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','onyx_gorgonzola_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else
-					{
-						state = localStorage.UOP_sh_d_Furoma_state = "use_maki";
-						recall = true;
-					}
-					break;
-				case "use_maki":
-					if (Number(localStorage.UOP_sh_d_Furoma_maki_cheese) > 0)
-					{
-						if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','maki_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else
-					{
-						state = localStorage.UOP_sh_d_Furoma_state = "craft_maki";
-						recall = true;
-					}
-					break;
-				case "craft_maki": 
-					var craftitem0num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_magic_essence) / 3);
-					var craftitem1num = Number(localStorage.UOP_sh_d_Furoma_nori);
-					var craftitem2num = Math.floor(Number(localStorage.UOP_sh_d_Furoma_curds_and_whey) / 3);
-					var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
-					if (craftnum > 0)
-					{
-						var parts = {};
-						parts.magic_essence_craft_item = 3;
-						parts.nori_craft_item = 1;
-						parts.curds_and_whey_craft_item = 3;
-						localStorage.UOP_sh_d_Furoma_maki_cheese = craftnum * 3 + Number(localStorage.UOP_sh_d_Furoma_maki_cheese);
-						shLoad(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),function() {localStorage.UOP_sh_d_Furoma_state = "use_maki";});
-					}
-					else {
-						state = localStorage.UOP_sh_d_Furoma_state = "use_default_cheese";
-						recall = true;
-					}
-					break;
-				case "use_default_cheese":
-					if (Number(localStorage.UOP_sh_d_Furoma_brie_cheese) > 0)
-					{
-						if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','brie_cheese'),function() {autoPlay();localStorage.UOP_sh_d_Furoma_state = "reset";});
-					}
-					else shLoad(C_shdefaultAction.TRAVEL,shTravel('training_grounds'),function() {localStorage.UOP_sh_d_Furoma_state = "reset";});
-					//travel to training ground so the script won't run anymore
-					break;
-				default: state = localStorage.UOP_sh_d_Furoma_state = "reset";break;
+				var parts = {};
+				parts.token_of_the_cheese_belt_craft_item = 3;
+				parts.cheesy_fluffs_craft_item = 1;
+				parts.invisiglu_craft_item = 1;
+				parts.curds_and_whey_craft_item = 7;
+				UOP_sh_d_Furoma_glutter_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_glutter_cheese);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
 			}
-			if (recall == true) setTimeout(shActionSuccessHandler,0);
-			if (state != "reset") return;
+			if (Number(UOP_sh_d_Furoma_glutter_cheese) > 0)
+			{
+				if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','glutter_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+
+			//craft claw shard then arm
+			craftitem0num = Math.floor(Number(UOP_sh_d_Furoma_token_claw) / 3);
+			craftitem1num = Number(UOP_sh_d_Furoma_burroughs_salmon);
+			craftitem2num = Number(UOP_sh_d_Furoma_nori);
+			craftitem3num = Math.floor(Number(UOP_sh_d_Furoma_curds_and_whey) / 3);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.token_of_the_cheese_claw_craft_item = 3;
+				parts.burroughs_salmon_craft_item = 1;
+				parts.nori_craft_item = 1;
+				parts.curds_and_whey_craft_item = 3;
+				UOP_sh_d_Furoma_susheese_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_susheese_cheese);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+			}
+			if (Number(UOP_sh_d_Furoma_susheese_cheese) > 0)
+			{
+				if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','susheese_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+
+			//craft fang shard then arm
+			craftitem0num = Math.floor(Number(UOP_sh_d_Furoma_token_fang) / 3);
+			craftitem1num = Number(UOP_sh_d_Furoma_paintbrand_paint);
+			craftitem2num = Number(UOP_sh_d_Furoma_splintered_wood);
+			craftitem3num = Math.floor(Number(UOP_sh_d_Furoma_curds_and_whey) / 5);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.token_of_the_cheese_fang_craft_item = 3;
+				parts.paintbrand_paint_craft_item = 1;
+				parts.splintered_wood_craft_item = 1;
+				parts.curds_and_whey_craft_item = 5;
+				UOP_sh_d_Furoma_combat_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_combat_cheese);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+			}
+			if (Number(UOP_sh_d_Furoma_combat_cheese) > 0)
+			{
+				if (data.user.environment_id != 19) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("meditation_room"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','combat_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+			
+			//craft master shard then arm
+			craftitem0num = Number(UOP_sh_d_Furoma_master_belt);
+			craftitem1num = Number(UOP_sh_d_Furoma_master_claw);
+			craftitem2num = Number(UOP_sh_d_Furoma_master_fang);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.master_belt_shard_craft_item = 1;
+				parts.master_claw_shard_craft_item = 1;
+				parts.master_fang_shard_craft_item = 1;
+				UOP_sh_d_Furoma_master_seal = craftnum + Number(UOP_sh_d_Furoma_master_seal);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+			}
+			
+			craftitem0num = Number(UOP_sh_d_Furoma_master_seal);
+			craftitem1num = Number(UOP_sh_d_Furoma_ionized_salt);
+			craftitem2num = Math.floor(Number(UOP_sh_d_Furoma_curds_and_whey) / 20);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.masters_seal_craft_item = 1;
+				parts.ionized_salt_craft_item = 1;
+				parts.curds_and_whey_craft_item = 20;
+				UOP_sh_d_Furoma_rumble_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_rumble_cheese);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+			}
+			if (Number(UOP_sh_d_Furoma_rumble_cheese) > 0)
+			{
+				if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','rumble_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+
+			//craft curd then poke and restart
+			var craftitem0num = Number(UOP_sh_d_Furoma_onyx_stone);
+			var craftitem1num = Number(UOP_sh_d_Furoma_ionized_salt);
+			var craftitem2num = Number(UOP_sh_d_Furoma_curds_and_whey);
+			var craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.onyx_stone_craft_item = 1;
+				parts.ionized_salt_craft_item = 1;
+				parts.curds_and_whey_craft_item = 1;
+				UOP_sh_d_Furoma_unstable_curd = craftnum + Number(UOP_sh_d_Furoma_unstable_curd);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+			}
+			var numcurd = Number(UOP_sh_d_Furoma_unstable_curd);
+			if (numcurd > 0)
+			{
+				//~~~~need reload
+				shLoad(C_shdefaultAction.CONVERTIBLE,shUseConvertible('unstable_curd_convertible',numcurd),null);
+				return;
+			}
+
+			//arm onyx
+			if (Number(UOP_sh_d_Furoma_onyx_cheese) > 0)
+			{
+				if (data.user.environment_id != 23) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("pinnacle_chamber"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','onyx_gorgonzola_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+			
+			//arm maki
+			if (Number(UOP_sh_d_Furoma_maki_cheese) > 0)
+			{
+				if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','maki_cheese'),autoPlay);
+				
+				setTimeout(shFunctionSuccessHandler,0);
+				return;
+			}
+
+			//craft then arm maki
+			craftitem0num = Math.floor(Number(UOP_sh_d_Furoma_magic_essence) / 3);
+			craftitem1num = Number(UOP_sh_d_Furoma_nori);
+			craftitem2num = Math.floor(Number(UOP_sh_d_Furoma_curds_and_whey) / 3);
+			craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num);
+			if (craftnum > 0)
+			{
+				var parts = {};
+				parts.magic_essence_craft_item = 3;
+				parts.nori_craft_item = 1;
+				parts.curds_and_whey_craft_item = 3;
+				UOP_sh_d_Furoma_maki_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_maki_cheese);
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null); //~~~~reload to arm maki
+			}
+
+			//arm brie
+			if (Number(UOP_sh_d_Furoma_brie_cheese) > 0)
+			{
+				if (data.user.environment_id != 8) shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("dojo"),null);
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','brie_cheese'),autoPlay);
+			}
+			else shLoadOnce(C_shdefaultAction.TRAVEL,shTravel('training_grounds'),null);
+			//travel to training ground so the script won't run anymore
 		}
 	}
 	setTimeout(shFunctionSuccessHandler,0);
@@ -6738,6 +6707,30 @@ function shdefaultTrapcheck(){
 	}
 	setTimeout(shFunctionSuccessHandler,0);
 }
+function shdefaultEventEggCycle() {
+	if (data.user.quests.QuestSpringHunt2014 != null) {
+		if ((data.user.quests.QuestSpringHunt2014.charge_quantity <= sh_scripts[sh_sid].vars.customMinCharged.val)&&(data.user.trinket_item_id != 1164))
+		{
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','egg_charge_trinket',''),null);
+		}
+		if ((data.user.quests.QuestSpringHunt2014.charge_quantity >= sh_scripts[sh_sid].vars.customMaxCharged.val)&&(data.user.trinket_item_id != 851))
+		{
+			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','eggstra_trinket',''),null);
+		}
+	}
+	setTimeout(shFunctionSuccessHandler,0);
+}
+function shdefaultLivingGardenArmCharmWithCheck(trinket) {
+	if ((trinket == '') || (trinket == 'disarmTrinket')) return;
+	var items = [trinket];
+	shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+	if (data.items[0].quantity == 0)
+	{
+		trinket = 'disarmTrinket';
+		sh_scripts[sh_sid].vars.customNormalCharm.val = 'disarmTrinket';
+	}
+	return trinket;
+}
 function shdefaultLivingGarden(){
 	if ((data.user.environment_id == 35) || (data.user.environment_id == 41) || (data.user.environment_id == 42))
 	{
@@ -6747,117 +6740,83 @@ function shdefaultLivingGarden(){
 			var LGObject = data.user.quests.QuestLivingGarden;
 			if (LGObject.is_normal == true)
 			{
-				if ((LGObject.minigame.dewdrops < 20) && (data.user.trinket_item_id != 1020) && (data.user.trinket_item_id != 1130) && (LGObject.minigame.timer == 0))
+				if ((LGObject.minigame.dewdrops < 20) && (((data.user.trinket_item_id != 1020) && (data.user.trinket_item_id != 1130)) || (data.user.trinket_quantity == 0)) && (LGObject.minigame.timer == 0))
 				{
 					var items = ["sponge_trinket","double_sponge_trinket"];
-					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-						var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-						if ((doublecharm == true) && (data.items[1].quantity > 0))
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+					var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+					if ((doublecharm == true) && (data.items[1].quantity > 0) && (LGObject.minigame.dewdrops < 19))
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','double_sponge_trinket',''),null);
+					else if (data.items[0].quantity > 0)
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
+					else
+					{
+						var numbuy = Math.min(LGObject.essences[0].quantity,20 - LGObject.minigame.dewdrops,Math.floor(data.user.gold / 200));
+						if (numbuy > 0)
 						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','double_sponge_trinket',''),null);
-							return;
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","sponge_trinket",numbuy),null);
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
 						}
-						else if (data.items[0].quantity > 0)
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
-							return;
-						}
-						else
-						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","sponge_trinket",20 - LGObject.minigame.dewdrops),
-								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);});
-							return;
-						}
-					});
-					return;
-				}
-				if ((LGObject.minigame.dewdrops == 19) && (data.user.trinket_item_id == 1130) && (LGObject.minigame.timer == 0))
-				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','sponge_trinket',''),null);
-					return;
+					}
 				}
 				if ((LGObject.minigame.timer == 0) && (LGObject.minigame.dewdrops == 20))
 				{
 					window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.livingGardenDoAlchemy(true);"},location.origin);
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
+					trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
 					if (trinket == '') trinket = 'disarmTrinket';
 					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
-					return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 				}
 			}
 			else //if (LGObject.is_normal == false)
 			{
 				if (LGObject.minigame.timer == 0)
 				{
-					if (data.user.bait_item_id == 1010)
-					{
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','duskshade_camembert_cheese',''),null);
-						return;
-					}
+					if (data.user.bait_item_id == 1010) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','duskshade_camembert_cheese',''),null);
 					if (LGObject.minigame.red_drops < 10)
 					{
-						if ((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132))
+						if (((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132)) || (data.user.trinket_quantity == 0))
 						{
 							var items = ["red_sponge_trinket","red_double_sponge_trinket"];
-							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-								var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-								if ((doublecharm == true) && (data.items[1].quantity > 0))
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+							var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+							if ((doublecharm == true) && (data.items[1].quantity > 0))
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_double_sponge_trinket',''),null);
+							else if (data.items[0].quantity > 0)
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
+							else
+							{
+								var numbuy = Math.min(LGObject.essences[1].quantity,10 - LGObject.minigame.red_drops,Math.floor(data.user.gold / 400));
+								if (numbuy > 0)
 								{
-									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_double_sponge_trinket',''),null);
-									return;
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","red_sponge_trinket",numbuy),null);
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
 								}
-								else if (data.items[0].quantity > 0)
-								{
-									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
-									return;
-								}
-								else
-								{
-									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","red_sponge_trinket",10 - LGObject.minigame.red_drops),
-										function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);});
-									return;
-								}
-							});
-							return;
-						}
-						if ((LGObject.minigame.red_drops == 9) && (data.user.trinket_item_id == 1132))
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','red_sponge_trinket',''),null);
-							return;
+							}
 						}
 					}
 					else if (LGObject.minigame.yellow_drops < 10)
 					{
-						if ((data.user.trinket_item_id != 1022) && (data.user.trinket_item_id != 1135))
+						if (((data.user.trinket_item_id != 1022) && (data.user.trinket_item_id != 1135)) || (data.user.trinket_quantity == 0))
 						{
 							var items = ["yellow_sponge_trinket","yellow_double_sponge_trinket"];
-							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-								var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-								if ((doublecharm == true) && (data.items[1].quantity > 0))
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+							var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+							if ((doublecharm == true) && (data.items[1].quantity > 0))
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_double_sponge_trinket',''),null);
+							else if (data.items[0].quantity > 0)
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
+							else
+							{
+								var numbuy = Math.min(LGObject.essences[1].quantity,10 - LGObject.minigame.yellow_drops,Math.floor(data.user.gold / 400));
+								if (numbuy > 0)
 								{
-									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_double_sponge_trinket',''),null);
-									return;
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","yellow_sponge_trinket",numbuy),null);
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
 								}
-								else if (data.items[0].quantity > 0)
-								{
-									shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
-									return;
-								}
-								else
-								{
-									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","yellow_sponge_trinket",10 - LGObject.minigame.yellow_drops),
-										function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);});
-									return;
-								}
-							});
-							return;
-						}
-						if ((LGObject.minigame.yellow_drops == 9) && (data.user.trinket_item_id == 1135))
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','yellow_sponge_trinket',''),null);
-							return;
+							}
 						}
 					}
 				}
@@ -6867,11 +6826,11 @@ function shdefaultLivingGarden(){
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
 					var bait = '';
+					trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
 					if (trinket == '') trinket = 'disarmTrinket';
 					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
 					if ((trinket == 'shattering_trinket') && (data.user.bait_item_id != 1010)) bait = 'lunaria_camembert_cheese';
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,bait),null);
-					return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,bait),null);
 				}
 			}
 		}
@@ -6887,15 +6846,15 @@ function shdefaultLivingGarden(){
 					if (data.user.trinket_item_id != 1018)
 					{
 						if (LCObject.minigame.curses[0].charm.quantity > 0)
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
-							return;
-						}
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
 						else
 						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",1),
-								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);});
-							return;
+							var numbuy = Math.min(LGObject.essences[0].quantity,1,Math.floor(data.user.gold / 350));
+							if (numbuy > 0)
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",numbuy),null);
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
+							}
 						}
 					}
 				}
@@ -6904,10 +6863,10 @@ function shdefaultLivingGarden(){
 					localStorage.UOP_sh_d_LGLC_cursedStatus = "normal";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
+					trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
 					if (trinket == '') trinket = 'disarmTrinket';
 					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
-					return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 				}
 			}
 			else //if (LCObject.is_normal == false)
@@ -6920,16 +6879,16 @@ function shdefaultLivingGarden(){
 					{
 						if (data.user.trinket_item_id != 1011)
 						{
-							if (LCObject.minigame.curses[0].charm.quantity > 0)
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);
-								return;
-							}
+							if (LCObject.minigame.curses[0].charm.quantity > 0) 
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);
 							else
 							{
-								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","bravery_trinket",1),
-									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);});
-								return;
+								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								if (numbuy > 0)
+								{
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","bravery_trinket",numbuy),null);
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);
+								}
 							}
 						}
 					}
@@ -6938,15 +6897,15 @@ function shdefaultLivingGarden(){
 						if (data.user.trinket_item_id != 1019)
 						{
 							if (LCObject.minigame.curses[1].charm.quantity > 0)
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);
-								return;
-							}
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);
 							else
 							{
-								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","shine_trinket",1),
-									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);});
-								return;
+								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								if (numbuy > 0)
+								{
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","shine_trinket",1),null);
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);
+								}
 							}
 						}
 					}
@@ -6955,15 +6914,15 @@ function shdefaultLivingGarden(){
 						if (data.user.trinket_item_id != 1012)
 						{
 							if (LCObject.minigame.curses[2].charm.quantity > 0)
-							{
 								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);
-								return;
-							}
 							else
 							{
-								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","clarity_trinket",1),
-									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);});
-								return;
+								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								if (numbuy > 0)
+								{
+									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","clarity_trinket",1),null);
+									shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);
+								}
 							}
 						}
 					}
@@ -6973,10 +6932,10 @@ function shdefaultLivingGarden(){
 					localStorage.UOP_sh_d_LGCC_cursedStatus = "normal";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
+					trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
 					if (trinket == '') trinket = 'disarmTrinket';
 					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
-					return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 				}
 			}
 		}
@@ -6992,15 +6951,15 @@ function shdefaultLivingGarden(){
 					if (data.user.trinket_item_id != 1016)
 					{
 						if (SDObject.minigame.grubling_charm_quantity >= 15)
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
-							return;
-						}
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
 						else
 						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),
-								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);});
-							return;
+							var numbuy = Math.min(LGObject.essences[0].quantity,15 - SDObject.minigame.grubling_charm_quantity,Math.floor(data.user.gold / 350));
+							if (numbuy > 0)
+							{
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),null);
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
+							}
 						}
 					}
 				}
@@ -7009,84 +6968,56 @@ function shdefaultLivingGarden(){
 					localStorage.UOP_sh_d_LGSD_stampedeStatus = "ended";
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
 					var base = '';
+					trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
 					if (trinket == '') trinket = 'disarmTrinket';
 					if ((trinket == 'champion_trinket') && (data.user.base_item_id != 779)) base = 'champions_gold_base';
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
-					return;
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',base,trinket,''),null);
 				}
 			}
 			else //if (SDObject.is_normal == false)
 			{
 				var saltcharm = sh_scripts[sh_sid].vars.customNumberSaltCharm.val;
-				if ((SDObject.minigame.salt_charms_used < saltcharm) && (data.user.trinket_item_id != 1014) && (data.user.trinket_item_id != 1134))
+				if ((SDObject.minigame.salt_charms_used < saltcharm) && (((data.user.trinket_item_id != 1014) && (data.user.trinket_item_id != 1134)) || (data.user.trinket_quantity == 0)))
 				{
 					var items = ["grub_salt_trinket","super_salt_trinket"];
-					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-						var saltcharm = sh_scripts[sh_sid].vars.customNumberSaltCharm.val;
-						var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
-						if ((doublecharm == true) && (data.items[1].quantity > 0))
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+					var saltcharm = sh_scripts[sh_sid].vars.customNumberSaltCharm.val;
+					var doublecharm = sh_scripts[sh_sid].vars.customDoubleCharm.val;
+					if ((doublecharm == true) && (data.items[1].quantity > 0))
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','super_salt_trinket',''),null);
+					else if (data.items[0].quantity > 0)
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
+					else
+					{
+						var numbuy = Math.min(LGObject.essences[1].quantity,saltcharm - SDObject.minigame.salt_charms_used,Math.floor(data.user.gold / 200));
+						if (numbuy > 0)
 						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','super_salt_trinket',''),null);
-							return;
+							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_salt_trinket",numbuy),null);
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
 						}
-						else if (data.items[0].quantity > 0)
-						{
-							shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
-							return;
-						}
-						else
-						{
-							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_salt_trinket",saltcharm - SDObject.minigame.salt_charms_used),
-								function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);});
-							return;
-						}
-					});
-					return;
-				}
-				if ((data.user.trinket_item_id == 1134) && ((saltcharm - SDObject.minigame.salt_charms_used) == 1))
-				{
-					shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
-					return;
+					}
 				}
 				if ((SDObject.minigame.salt_charms_used >= saltcharm) && (data.user.trinket_item_id != 1015) && (data.user.trinket_item_id != 1074))
 				{
 					var items;
 					var trinket = sh_scripts[sh_sid].vars.customNormalCharm.val;
-					if (trinket == "shattering_trinket")
-					{
-						items = ["shattering_trinket"];
-						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-							if (data.items[0].quantity > 0)
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shattering_trinket',''),null);
-								return;
-							}
-							else
-							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-								sh_scripts[sh_sid].vars.customNormalCharm.val = 'disarmTrinket';
-								return;
-							}
-						});
-						return;
-					}
+					if (trinket == "shattering_trinket") trinket = shdefaultLivingGardenArmCharmWithCheck(trinket);
+					if (trinket == "shattering_trinket") shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',trinket,''),null);
 					else
 					{
 						items = ["grub_scent_trinket"];
-						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),function() {
-							if (data.items[0].quantity > 0)
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+						if (data.items[0].quantity > 0)
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
+						else
+						{
+							var numbuy = Math.min(LGObject.essences[2].quantity,1,Math.floor(data.user.gold / 500));
+							if (numbuy > 0)
 							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
-								return;
+								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",numbuy),null);
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
 							}
-							else
-							{
-								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",1),
-									function() {shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);});
-								return;
-							}
-						});
-						return;
+						}
 					}
 				}
 			}
