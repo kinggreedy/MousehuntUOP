@@ -7,3 +7,11 @@
 }
 #giftSelectorContainer .friendList a.friend {width: 65px;}
 #giftSelectorContainer .friendList .actions {width: auto;}
+.free_gift_container {
+	width: auto;
+}
+.paid_gift_container {
+	margin-left: 0px;
+	width: auto;
+	float: left;
+}

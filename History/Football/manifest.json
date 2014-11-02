@@ -1,0 +1,14 @@
+﻿{
+	"name": "MH Football",
+	"short_name": "MH Football",
+	"description": "description",
+	"version": "1.0.0",
+	"manifest_version": 2,
+	"permissions": ["https://apps.facebook.com/mousehunt/*","*://www.mousehuntgame.com/*"],
+	"content_scripts": [{
+		"js": ["content.js", "jquery.min.js"],
+		"matches": [ "*://www.mousehuntgame.com/*", "https://apps.facebook.com/mousehunt/*" ],
+		"all_frames" : true,
+		"run_at": "document_end"
+	}]
+}

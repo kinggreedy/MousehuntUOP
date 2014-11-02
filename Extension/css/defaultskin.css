@@ -281,3 +281,22 @@
 	text-align: center;
 }
 #UOP_toggleSimplifiedSelector:hover {background: linear-gradient(white, lightgreen 80%);}
+
+.sidebarTitle {cursor:pointer;}
+.UOP_sunkenRevealHUD {
+	display:none;
+	text-align:left;
+	height:84px!important;
+}
+.UOP_sunkenRevealHUDElement {text-transform:capitalize;}
+.UOP_currentSunken {background-color: lightblue!important;}
+.UOP_sunkenRevealHUDElement:nth-child(even) {background-color: #DDD;}
+.UOP_showHUD .sidebarContent.UOP_sunkenRevealHUD {display:block;}
+.UOP_showHUD .diveControls {display:none;}
+.UOP_showHUD .sidebarContent {display:none;}
+.UOP_barnacle {color:blue;}
+.UOP_damaged_coral {color:green;}
+.UOP_mouse_scale {color:purple;}
+.UOP_danger {color:red;}
+.UOP_treasure {color:gold;background-color:rgb(70, 130, 180)!important;}
+.UOP_bonus {color:rgb(123, 104, 238);}

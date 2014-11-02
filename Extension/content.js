@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "11";
+var C_versionCompatibleCode = "15";
 //var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -80,15 +80,16 @@ var S_cacheKRstr,S_serverUrl;
 var S_settingGroupsLength = [415,415];
 var S_channelScoreboard;
 var S_version,S_updateurl,S_appid;
+var S_reloadInAction = false;
 
 //Object Variables
-var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser, O_specialPanel;
+var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser, O_specialPanel, O_sunkenRevealHUD, O_sunkenRevealHUDParent;
 var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto, O_personalNote, O_personalNoteTextarea;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
 var O_funArea, O_scoreboardDiv, O_scoreboardFetch,O_scoreboard, O_scoreboardUpdateSecond, O_scoreboardinput, O_scoredboardControl, O_scoreboardChannel, O_scoreboardStatus, O_scoreboardCounter;
-var O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGclockWeather, O_SGSchedule = null;
+var O_commandDiv, O_commandInput, O_clockDiv,O_FGclock,O_FGcounter,O_BCclock,O_BCcounter,O_SGclock,O_SGclockWeather, O_SGSchedule = null;
 //Auto Variables
 var A_autoState,A_soundingCounter, A_soundedCounter, A_hornRetryCounter = 0, A_autoPaused, A_delayTime, A_delayTimestamp, A_solveStage, A_puzzleTimeout, A_puzzleCalled = 0, A_audioDiv, A_audioWin;
 
@@ -106,6 +107,7 @@ var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzle
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 var currentScoreboardChannel,currentScoreboardChannelTeamData, initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
 var travelPlacesHeight;
+var cacheTrapComponent,sh_components;
 var dval;
 /*******************INITIALIZATION********************/
 function initialization() {
@@ -372,7 +374,7 @@ function runTimeCreateConstant() {
 		</div>\
 	</div>\
 	<div id="UOP_settting_shedule" class="UOP_settingtab" style="display:none;">\
-		<div class="UOP_section"><h2>Schedule Settings</h2></div>\
+		<div class="UOP_section"><h2>Miniscripts Settings</h2></div>\
 		<div class="UOP_setting">\
 			<label class="UOP_label">Miniscript</label>\
 			<div class="UOP_settingvalue">\
@@ -693,7 +695,7 @@ function checkBrowser() {
 	{
 		if (atCamp) // at camp => error
 		{
-			setTimeout(function () {location.reload();},10000);
+			setTimeout(function () {reloadMH();},10000);
 		}
 		return 1;
 	}
@@ -772,8 +774,7 @@ function initializationWithUser() {
 	
 	if ((S_simple == 0) && (S_skin != 0)) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
-	if ((S_schedule == 0) && (atCamp)) shLoadOnceAsync(C_shdefaultAction.GETTRAP,null,function () {sh_components = data.components;});
-	soundHornWaiting();
+	if ((S_schedule == 0) && (atCamp)) shLoadOnceAsync(C_shdefaultAction.GETTRAP,null,function () {cacheTrapComponent = sh_components = data.components;soundHornWaiting();});
 }
 /*******************MAIN********************/
 function main() {
@@ -801,7 +802,7 @@ function loadSettings() {
 		window.localStorage.UOP_ads = 2; //not important = 1
 		window.localStorage.UOP_schedule = 0;
 		window.localStorage.UOP_solve = 0;
-		window.localStorage.UOP_server = 0;
+		window.localStorage.UOP_server = 1;
 		
 		window.localStorage.UOP_simple = 0;
 		window.localStorage.UOP_autoPaused = 0;
@@ -864,7 +865,7 @@ function loadSettings() {
 	
 	S_cacheKRstr = window.localStorage.UOP_cacheKRstr;
 	S_serverUrl = window.localStorage.UOP_serverUrl;
-
+	if ((S_serverUrl == "") && (S_server == 0)) window.localStorage.UOP_server = S_server = 1;
 	if (S_trapCheckTime == -1) registerSoundHornWaiting.push(shDetectTrapCheckTimestamp);
 }
 function firstTimeSetup() {
@@ -931,7 +932,7 @@ function saveFirstTimeSettings() {
 		localStorage.UOP_serverUrl = S_serverUrl = document.getElementById("UOP_serverUrl").value;
 	}
 	
-	if ((profile != 0) || (aggressive != 0) || (server != 0) || (S_emulateMode != 0)) location.reload();
+	if ((profile != 0) || (aggressive != 0) || (server != 0) || (S_emulateMode != 0)) reloadMH();
 	document.getElementById("jsDialogClose").click();
 }
 function addControlPanel() {
@@ -947,7 +948,7 @@ function addControlPanel() {
 function clearSettings() {
 	delete window.localStorage.UOP_versionCompatibleCode;
 	
-	location.reload();
+	reloadMH();
 }
 function saveSettings() {
 	S_skin = document.getElementById("UOP_skin").getElementsByClassName("tick")[0].value;
@@ -997,7 +998,7 @@ function saveSettings() {
 	window.localStorage.UOP_cacheKRstr = S_cacheKRstr;
 	window.localStorage.UOP_serverUrl = S_serverUrl;
 
-	location.reload();
+	reloadMH();
 }
 function tabSettings(e) {
 	var target = e.target;
@@ -1196,8 +1197,8 @@ function editScript(e) {
 	}
 	else
 	{
-		name = sh_scripts[sid].name;
-		header = fullname = sh_scripts[sid].fullname;
+		name = sh_defaultScripts[sid].name;
+		header = fullname = sh_defaultScripts[sid].fullname;
 		beforeTrapCheck = sh_scripts[sid].setting.beforeTrapCheck;
 		afterTrapCheck = sh_scripts[sid].setting.afterTrapCheck;
 		afterHorn = sh_scripts[sid].setting.afterHorn;
@@ -1613,6 +1614,11 @@ function formatWeek(sec) {
 function callArrayFunction(element, index, array) {
 	element();
 }
+function reloadMH() {
+	if (S_reloadInAction) return;
+	else S_reloadInAction = true;
+	reloadMH();
+}
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
 	//WINDOW <=> FACEBOOK <=> CANVAS
@@ -1658,25 +1664,25 @@ function syncUser(callbackFunction) {
 					data = JSON.parse(request.responseText);
 					if (document.getElementById('pagemessage').textContent.indexOf("Error while sync") != -1)
 					{
-						document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: green;'>Sync ok !</label>";
+						document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Sync ok !</label>";
 						setTimeout(function () {document.getElementById('pagemessage').innerHTML = "";},3000);
 					}
 					if (callbackFunction != null) setTimeout(callbackFunction,0);
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + ". Original Data is " + request.responseText + " Refreshing...</label>";
+					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + ". Original Data is " + request.responseText + " Refreshing...</label>";
 					document.title = "Sync error !";
 					//setTimeout(function() {syncUser(callbackFunction);},1000);
-					setTimeout(function() {location.reload();},10000);
+					setTimeout(function() {reloadMH();},10000);
 				}
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 				document.title = "Sync error !";
 				//setTimeout(function() {syncUser(callbackFunction);},1000);
-				setTimeout(function() {location.reload();},10000);
+				setTimeout(function() {reloadMH();},10000);
 			}
 		}
 	};
@@ -1702,18 +1708,18 @@ function syncUserTrapcheck(callbackFunction) {
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + "</label>";
+					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + "</label>";
 					document.title = "Trapcheck sync error !";
-					setTimeout(function() {location.reload();},5000);
+					setTimeout(function() {reloadMH();},5000);
 					//setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
 				}
 			}
 			else
 			{
 				//syncUserTrapcheck(callbackFunction);
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
 				document.title = "Trapcheck sync error !";
-				setTimeout(function() {location.reload();},5000);
+				setTimeout(function() {reloadMH();},5000);
 			}
 		}
 	};
@@ -2125,7 +2131,7 @@ function shopcontentLoad() {
 		{
 			if (request.status == 200)
 			{
-				var HTMLText = request.responseText.substring(request.responseText.indexOf("<div class='pagetabbartop'>"),request.responseText.indexOf("</div></div><a href='#' name='hudbottom'></a>"));
+				var HTMLText = request.responseText.substring(request.responseText.indexOf("<div class='pagetabbartop"),request.responseText.indexOf("</div></div><a href='#' name='hudbottom'></a>"));
 				HTMLText += request.responseText.substring(request.responseText.indexOf("<div class='contentcontainer'>"),request.responseText.indexOf("<div class='footer'>"));
 				var JSText = request.responseText.substring(request.responseText.indexOf("app.views.ItemPurchaseView"),request.responseText.indexOf("user = {"));
 				
@@ -2669,7 +2675,7 @@ function updateUserHash() {
 }
 function toggleSkin() {
 	window.localStorage.UOP_simple = 1 - S_simple;
-	location.reload();
+	reloadMH();
 }
 function showToolbox() {
 	window.postMessage({name: "UOP_eval", data: C_toolboxMessage},location.origin);
@@ -2841,12 +2847,11 @@ function defaultSimpleSkin() {
 	}
 	
 	//detailed timer
-	O_huntTimer = document.getElementById('huntTimer').cloneNode(true);
-	document.getElementById('huntTimer').style.display = "none";
-	O_huntTimer.id = "UOP_huntTimerParent";
-	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
-	document.getElementById('hornArea').appendChild(O_huntTimer);
-	O_huntTimer = O_huntTimer.lastChild;
+	tmp = document.getElementById('huntTimer');
+	O_huntTimer = tmp.cloneNode(true);
+	tmp.style.display = "none";
+	O_huntTimer.id = "UOP_huntTimer";
+	tmp.parentNode.appendChild(O_huntTimer);
 	
 	//register hudupdater
 	registerSoundHornWaiting.push(updateSimpleHud);
@@ -3246,6 +3251,9 @@ function toggleListFavoriteMarketItem(target,status) {
 		O_specialPanel.appendChild(target);
 	}
 }
+function toggleSunkenDetailHUD() {
+	O_sunkenRevealHUDParent.classList.toggle("UOP_showHUD");
+}
 function showTextareaPersonalNote() {
 	var note = localStorage.UOP_personalNote;
 	note = note.replace(/<br>/g,'\n');
@@ -3372,7 +3380,7 @@ function defaultFullSkin() {
 	//==========Change the container (main page) of mousehunt==============
 	var container = document.getElementsByClassName('container')[0];
 	var containerclear = container.getElementsByClassName('clear');
-	if (containerclear.length > 0) container.removeChild(containerclear[0]);//remove the like button in the bottom of the pages
+	if (containerclear.length > 0) containerclear[0].parentNode.removeChild(containerclear[0]);//remove the like button in the bottom of the pages
 	
 	//=======gameinfo changes=======
 	//add Golden shield expires day (more obvious)
@@ -3632,10 +3640,8 @@ function defaultFullSkin() {
 	O_oldHuntTimer = document.getElementById('huntTimer');
 	O_huntTimer = O_oldHuntTimer.cloneNode(true);
 	O_oldHuntTimer.style.display = "none";
-	O_huntTimer.id = "UOP_huntTimerParent";
-	O_huntTimer.innerHTML = "<span class='timerlabel'>Next Hunt: </span><span id='UOP_huntTimer'></span>";
-	document.getElementById('hornArea').appendChild(O_huntTimer);
-	O_huntTimer = O_huntTimer.lastChild;
+	O_huntTimer.id = "UOP_huntTimer";
+	O_oldHuntTimer.parentNode.appendChild(O_huntTimer);
 	
 	//location timer
 	var headsup = document.getElementById('hud_statList1').parentNode;
@@ -3706,6 +3712,22 @@ function removeAds() {
 function addThings() {
 	addScoreboard();
 	addClock();
+	addCommand();
+}
+function addCommand() {
+	O_commandDiv = document.createElement("div");
+	O_commandDiv.id = "UOP_commandDiv";
+	O_funArea.appendChild(O_commandDiv);
+	
+	O_commandInput = document.createElement("input");
+	O_commandInput.id = "UOP_commandInput";
+	O_commandDiv.appendChild(O_commandInput);
+	O_commandInput.addEventListener('keypress', function (e) {var key = e.which || e.keyCode;if (key == 13) {executeCommand()}});
+}
+function executeCommand() {
+	var txt = O_commandInput.value;
+	try {txt = eval(txt);} catch (e) {txt = "ERROR";}
+	O_commandInput.value = txt;
 }
 function addClock() {
 	O_clockDiv = document.createElement("div");
@@ -4241,7 +4263,7 @@ function updateScoreboard() {
 				var status = 0;
 				if (HTMLstr.indexOf('"has_puzzle":true') != -1)
 				{
-					location.reload(); //KR
+					reloadMH(); //KR
 					return;
 				}
 				else if (HTMLstr.indexOf('<span id="info">Complete</span>') != -1)
@@ -4401,7 +4423,7 @@ function autoCoreAction() {
 	else if (A_autoState == 4) //if HORN => HORN
 	{
 		if (S_auto == 0) O_hornButton.click();
-		else if (S_auto == 2) location.reload();
+		else if (S_auto == 2) reloadMH();
 		return;
 	}
 	else if (A_autoState == 5) //TIME OUT BUT NOT READY
@@ -4450,7 +4472,7 @@ function autoSounding() {
 	{
 		O_autoSounding.textContent = "Refreshing !";
 		refreshingByError = 1;
-		location.reload();
+		reloadMH();
 	}
 	else if (A_soundingCounter > 30)
 	{
@@ -4478,7 +4500,7 @@ function autoHornWaiting() {
 		if (A_hornRetryCounter > 1)
 		{
 			O_autoSounding.textContent = "Error, refreshing...";
-			location.reload();
+			reloadMH();
 			return;
 		}
 	}
@@ -4602,19 +4624,19 @@ function submitPuzzle(str) {
 				try
 				{
 					var tmpRespondJSON = JSON.parse(request.responseText);
-					document.getElementById('pagemessage').textContent = tmpRespondJSON.result;
+					document.getElementById('pagemessage').textContent += str + " - " + tmpRespondJSON.result;
 					window.localStorage.UOP_puzzleLastResult = str + " - " + tmpRespondJSON.result;
-					location.reload();
+					reloadMH();
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').textContent = request.responseText;
+					document.getElementById('pagemessage').textContent += request.responseText;
 					window.localStorage.UOP_puzzleLastResult = str + " - " + request.responseText;
 				}
 			}
 			else
 			{
-				document.getElementById('pagemessage').textContent = "Network error, retrying";
+				document.getElementById('pagemessage').textContent += "Network error, retrying";
 				puzzleSubmitErrorStr = str;
 				puzzleSubmitErrorHash = data.user.unique_hash;
 				submitPuzzleErrorHandle();
@@ -4635,7 +4657,7 @@ function submitPuzzleErrorHandle() {
 			submitPuzzle(puzzleSubmitErrorStr);
 			break;
 		case 2: //already, but our hash changed, and we don't have reset the stage, if KR solved, the page will reload and the stage will be zero again
-			location.reload();
+			reloadMH();
 			break;
 		defafult: break;
 	}
@@ -4664,7 +4686,7 @@ function puzzleStandardReaction() {
 		if (window.localStorage.UOP_puzzleReloaded == 0)
 		{
 			window.localStorage.UOP_puzzleReloaded = 1;
-			location.reload();
+			reloadMH();
 		}
 	}
 	puzzleContainer = document.getElementById('puzzleContainer');
@@ -4703,7 +4725,7 @@ function puzzleUserSubmit() {
 				resumeElement.click();
 				
 				// reload url if click fail
-				setTimeout(function () { location.reload(); }, 6000);
+				setTimeout(function () { reloadMH(); }, 6000);
 				
 				return;
 			}
@@ -5193,6 +5215,8 @@ function shInitSchedule() {
 	{
 		sh_scripts[i] = JSON.parse(window.localStorage['UOP_scriptInfo' + i]);
 		sh_scripts[i].mode = Number(window.localStorage['UOP_scriptMode' + i]);
+		sh_scripts[i].name = sh_defaultScripts[i].name;
+		sh_scripts[i].fullname = sh_defaultScripts[i].fullname;
 		//sh_scripts[i].content = window.localStorage['UOP_scriptContent' + i];
 		//if (sh_scripts[i].errorHandler != 0) sh_scripts[i].errorContent = window.localStorage['UOP_scriptErrorContent' + i];
 	}
@@ -5400,9 +5424,9 @@ function shLoad(url,params,successHandler){
 		}
 		catch (e)
 		{
-			document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+			document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
 			document.title = "Action error !";
-			setTimeout(function() {shLoad(url,params,successHandler);},10000);
+			shLoad(url,params,successHandler);
 			return;
 		}
 		if (data.success == 0) throw new Error("Not success in command");
@@ -5410,9 +5434,9 @@ function shLoad(url,params,successHandler){
 	}
 	else
 	{
-		document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+		document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
 		document.title = "Action error !";
-		setTimeout(function() {shLoad(url,params,successHandler);},10000);
+		shLoad(url,params,successHandler);
 	}
 }
 function shLoadOnce(url,params,successHandler) {
@@ -5433,9 +5457,9 @@ function shLoadOnce(url,params,successHandler) {
 		}
 		catch (e)
 		{
-			document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+			document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
 			document.title = "Action error !";
-			setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+			shLoadOnce(url,params,successHandler);
 			return;
 		}
 		if (data.success == 0) throw new Error("Not success in command");
@@ -5443,9 +5467,9 @@ function shLoadOnce(url,params,successHandler) {
 	}
 	else
 	{
-		document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+		document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
 		document.title = "Action error !";
-		setTimeout(function() {shLoadOnce(url,params,successHandler);},10000);
+		shLoadOnce(url,params,successHandler);
 		return;
 	}
 }
@@ -5469,7 +5493,7 @@ function shLoadAsync(url,params,successHandler){
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
 					document.title = "Action error !";
 					setTimeout(function() {shLoadAsync(url,params,successHandler);},10000);
 					return;
@@ -5479,7 +5503,7 @@ function shLoadAsync(url,params,successHandler){
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
 				document.title = "Action error !";
 				setTimeout(function() {shLoadAsync(url,params,successHandler);},10000);
 			}
@@ -5507,7 +5531,7 @@ function shLoadOnceAsync(url,params,successHandler) {
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
+					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = 200 but Exception = " + e.message + ". Original Data is " + http.responseText + " Retrying...</label>";
 					document.title = "Action error !";
 					setTimeout(function() {shLoadOnceAsync(url,params,successHandler);},10000);
 					return;
@@ -5517,7 +5541,7 @@ function shLoadOnceAsync(url,params,successHandler) {
 			}
 			else
 			{
-				document.getElementById('pagemessage').innerHTML = "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while doing action, request status = " + http.status + " Retrying...</label>";
 				document.title = "Action error !";
 				setTimeout(function() {shLoadOnceAsync(url,params,successHandler);},10000);
 				return;
@@ -5547,7 +5571,7 @@ function shStartAfterTrapCheck() {
 	sh_mode = AFTERTRAPCHECK;
 	sh_si = 0;
 	sh_sq = 0;
-	if (S_trapCheck == 2) {location.reload();return;}
+	if (S_trapCheck == 2) {reloadMH();return;}
 	if (S_trapCheck == 1)
 	{
 		if (sh_userSync > 0) syncUserTrapcheck(shAfterTrapCheck);
@@ -5789,25 +5813,29 @@ function shGetItem(items) {
 	return params;
 }
 function shChangeBestTrap(type,priority) {
-	shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
+	if (cacheTrapComponent == null)
+	{
+		shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
+		cacheTrapComponent = data.components;
+	}
 	var i,j,arrcomp = new Array,comp,match,luckbonus = data.user.has_shield ? 7 : 0,power,luck;
-	for (i = 0;i < data.components.length;++i)
+	for (i = 0;i < cacheTrapComponent.length;++i)
 	{
 		match = false;
 		switch (type)
 		{
-			case BASE: match = (data.components[i].classification == "base") ? true : false;break;
-			default: match = (data.components[i].power_type == C_powertype[type]) ? true : false;break;
+			case BASE: match = (cacheTrapComponent[i].classification == "base") ? true : false;break;
+			default: match = (cacheTrapComponent[i].power_type == C_powertype[type]) ? true : false;break;
 		}
 		if (match)
 		{
 			comp = new Object;
-			comp.power = power = data.components[i].power * (1 + data.components[i].power_bonus);
-			comp.luck = luck = data.components[i].luck;
+			comp.power = power = cacheTrapComponent[i].power * (1 + cacheTrapComponent[i].power_bonus);
+			comp.luck = luck = cacheTrapComponent[i].luck;
 			luck += luckbonus;
 			comp.str = power + 4 * luck * luck;
-			comp.attraction = data.components[i].attraction_bonus;
-			comp.name = data.components[i].type;
+			comp.attraction = cacheTrapComponent[i].attraction_bonus;
+			comp.name = cacheTrapComponent[i].type;
 			arrcomp.push(comp);
 		}
 	}
@@ -5942,6 +5970,35 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultLivingGarden
+	},
+	{
+		name: 'default_expresstrain',
+		fullname: "Express Train MiniGame",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {},
+		mode: PLAY,
+		errorHandler: 0,
+		func: shDefaultExpressTrain
+	},
+	{
+		name: 'default_sunkencity',
+		fullname: "Sunken City Treasure zone",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {customSmartCheese: {name: 'Smart Cheese: Switch SB+/Gouda/Brie based on zone type', val: true, displayType: 'checkbox'},
+			customTreasureRush: {name: 'Treasure Rush: Use Water Jet Charm to reach treasure zones asap', val: false, displayType: 'checkbox'},
+			customFishyFromage: {name: 'Fishy Fromage (negative = craft/buy with Magic Essence)', val: 100, displayType: 'number'},
+			customGlobalCharm: {name: 'Global (zone settings: No change = Global)', val: 'disarmTrinket', displayType: 'trinket'},
+			customSunkenCharm: {name: 'Sunken City (Surface)', val: '', displayType: 'trinket'},
+			customDefaultCharm: {name: 'Default zone (Low loot)', val: '', displayType: 'trinket'},
+			customBarnacleCharm: {name: 'Barnacle zone', val: '', displayType: 'trinket'},
+			customScaleCharm: {name: 'Scale zone', val: '', displayType: 'trinket'},
+			customCoralCharm: {name: 'Coral zone', val: '', displayType: 'trinket'},
+			customDangerCharm: {name: 'Danger zone', val: '', displayType: 'trinket'},
+			customTreasureCharm: {name: 'Treasure zone', val: 'anchor_trinket', displayType: 'trinket'},
+			customOxygenCharm: {name: 'Oxygen zone', val: 'anchor_trinket', displayType: 'trinket'}},
+		mode: PLAY,
+		errorHandler: 0,
+		func: shdefaultSunkenCity
 	}
 ];
 
@@ -6015,16 +6072,21 @@ function shdefaultBalacksCove(){
 				if (sh_scripts[sh_sid].vars.customBCTrap.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(sh_scripts[sh_sid].vars.customBCTrap.val,'','','vanilla_stilton_cheese'),null);
 				else
 				{
-					shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
+					if (cacheTrapComponent == null)
+					{
+						shLoadOnce(C_shdefaultAction.GETTRAP,null,null);
+						cacheTrapComponent = data.components;
+					}
 					var i;
 					var trap,besttrap = 5;
-					for (i = 0;i < data.components.length;++i)
+					for (i = 0;i < cacheTrapComponent.length;++i)
 					{
-						trap = C_shdefaultBCTrap[data.components[i].type];
+						trap = C_shdefaultBCTrap[cacheTrapComponent[i].type];
 						if (trap == undefined) trap = 5;
 						if (besttrap < trap) besttrap = trap;
 					}
 					trap = C_shdefaultBCTrapR[besttrap];
+					//~~~~check cheese ?
 					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap(trap,'','','vanilla_stilton_cheese'),null);
 				}
 			}
@@ -6138,7 +6200,7 @@ function shdefaultDerrDunes(){
 				var craftitem0num, craftitem1num,craftitem2num,craftitem3num,craftnum;
 				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
 				craftitem1num = craftitem0num * 20 - UOP_sh_d_Derr_coconut_milk;
-				craftitem2num = Math.floor(gold / 800);
+				craftitem2num = Math.floor(data.user.gold / 800);
 				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
@@ -6149,7 +6211,7 @@ function shdefaultDerrDunes(){
 				//buy salt
 				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
 				craftitem1num = craftitem0num * 30 - UOP_sh_d_Derr_salt;
-				craftitem2num = Math.floor(gold / 6);
+				craftitem2num = Math.floor(data.user.gold / 6);
 				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
@@ -6160,7 +6222,7 @@ function shdefaultDerrDunes(){
 				//buy curd
 				craftitem0num = Math.floor(UOP_sh_d_Derr_delicious_stone / 30);
 				craftitem1num = craftitem0num * 10 - UOP_sh_d_Derr_curds_and_whey;
-				craftitem2num = Math.floor(gold / 12);
+				craftitem2num = Math.floor(data.user.gold / 12);
 				craftitem1num = Math.min(craftitem1num,craftitem2num);
 				if (craftitem1num > 0)
 				{
@@ -6169,9 +6231,8 @@ function shdefaultDerrDunes(){
 				}
 				
 				//buy max gouda
-				var gold = data.user.gold;
 				var defaultnum = sh_scripts[sh_sid].vars.customGoudaEachBuy.val;
-				var numcheese = Math.floor(gold / 600);
+				var numcheese = Math.floor(data.user.gold / 600);
 				numcheese = Math.min(numcheese,defaultnum);
 				shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","gouda_cheese",numcheese),null);
 				
@@ -6223,238 +6284,211 @@ var C_defaultFieryWarpathData = {
 	mage: {wave2:"desert_mage",wave3:"desert_mage_strong",power:"Physical",val:PHYSICAL,normalcharm:"flame_march_mage_trinket",supercharm:"super_flame_march_mage_trinket"},
 	artillery: {wave3:"desert_artillery",power:"Arcane",val:ARCANE,normalcharm:"",supercharm:""}};
 function shdefaultFieryWarpath(){
-	if (localStorage.UOP_sh_d_FW_calltime == undefined) localStorage.UOP_sh_d_FW_calltime = 0;
-	var numcall = Number(localStorage.UOP_sh_d_FW_calltime) + 1;
-	localStorage.UOP_sh_d_FW_calltime = numcall;
-	if (numcall > 10) throw new Error("FW is called too much");
-	if (data.user.bait_quantity != 0)
+	if (data.user.environment_id == 33)
 	{
-		if (data.user.environment_id == 33)
+		var warpathObj = data.user.viewing_atts.desert_warpath;
+		var wave = warpathObj.wave;
+		var streak = warpathObj.streak.quantity;
+		var streaklevel1 = sh_scripts[sh_sid].vars.customStreakLevel1.val;
+		var streaklevel2 = sh_scripts[sh_sid].vars.customStreakLevel2.val;
+		var streakcommander = sh_scripts[sh_sid].vars.customCommanderStreak.val;
+		var streakgaga = sh_scripts[sh_sid].vars.customGagaStreak.val;
+		var items;
+		if (wave != Number(localStorage.UOP_sh_d_FW_lastwave))
 		{
-			
-			var warpathObj = data.user.viewing_atts.desert_warpath;
-			var wave = warpathObj.wave;
-			var streak = warpathObj.streak.quantity;
-			var streaklevel1 = sh_scripts[sh_sid].vars.customStreakLevel1.val;
-			var streaklevel2 = sh_scripts[sh_sid].vars.customStreakLevel2.val;
-			var streakcommander = sh_scripts[sh_sid].vars.customCommanderStreak.val;
-			var streakgaga = sh_scripts[sh_sid].vars.customGagaStreak.val;
-			if (wave != Number(localStorage.UOP_sh_d_FW_lastwave))
+			localStorage.UOP_sh_d_FW_lastwave = wave;
+			if (wave != 4) localStorage.UOP_sh_d_FW_numcommander = sh_scripts[sh_sid].vars["customCommanderCharmWave" + wave].val;
+		}
+		if (wave == 4)
+		{
+			if (data.user.trap_power_type_name != "Physical") shChangeBestTrap(PHYSICAL,TRAPAUTO);
+			if (data.user.trinket_item_id != 614)
 			{
-				localStorage.UOP_sh_d_FW_lastwave = wave;
-				if (wave != 4) localStorage.UOP_sh_d_FW_numcommander = sh_scripts[sh_sid].vars["customCommanderCharmWave" + wave].val;
-			}
-			if (wave == 4)
-			{
-				if (data.user.trap_power_type_name != "Physical")
+				items = ["monger_trinket"];
+				shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+				if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
+				else
 				{
-					shChangeBestTrap(PHYSICAL,TRAPAUTO);
-					return;
-				}
-				if (data.user.trinket_item_id != 614)
-				{
-					items = ["monger_trinket"];
-					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-					function() {
-						if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
-					});
+					//~~~~auto buy monger trinket ?
+					//shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','monger_trinket',''),null);
 				}
 			}
-			else
+		}
+		else
+		{
+			var mousetype = 0,retreatmousenum,leftover = sh_scripts[sh_sid].vars.leftoverMouse.val;;
+			var cheese,charmtype,charm;
+			var gagahunt = false;
+			if ((streak == 0) && ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615))) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+			var numcommander = Number(localStorage.UOP_sh_d_FW_numcommander);
+			var requiredRetreatMouse = sh_scripts[sh_sid].vars["customMinMouseRetreatWave" + wave].val;
+			if ((0 <= streak) && (streak < streakcommander))
 			{
-				var mousetype = 0,retreatmousenum,leftover = sh_scripts[sh_sid].vars.leftoverMouse.val;;
-				var cheese,charmtype,charm;
-				var gagahunt = false;
-				if ((streak == 0) && ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615))) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-				var numcommander = Number(localStorage.UOP_sh_d_FW_numcommander);
-				var requiredRetreatMouse = sh_scripts[sh_sid].vars["customMinMouseRetreatWave" + wave].val;
-				if ((0 <= streak) && (streak < streakcommander))
+				//leftover mouse, so we can try streak on another type of mouse
+				while ((mousetype < 3) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population < leftover)) mousetype++;
+				if (mousetype == 3) //all leftover is already used -> clear all mouse
 				{
-					while ((mousetype < 3) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population < leftover)) mousetype++;
-					if (mousetype == 3)
+					mousetype = 0;
+					while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
+				}
+				if (mousetype >= C_defaultFieryWarpathWave[wave - 1]) syncUser(shActionSuccessHandler); //sumthing wrong
+				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave] != warpathObj.streak.mouse_type) streak = 0;
+				if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].power != data.user.trap_power_type_name)
+					shChangeBestTrap(C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].val,TRAPAUTO);
+				if ((0 <= streak) && (streak < streaklevel1))
+				{
+					charmtype = sh_scripts[sh_sid].vars.customCharmLevel1.val;
+					cheese = sh_scripts[sh_sid].vars.customBaitLevel1.val;
+				}
+				if ((streaklevel1 <= streak) && (streak < streaklevel2))
+				{
+					charmtype = sh_scripts[sh_sid].vars.customCharmLevel2.val;
+					cheese = sh_scripts[sh_sid].vars.customBaitLevel2.val;
+				}
+				if ((streaklevel2 <= streak) && (streak < streakcommander))
+				{
+					charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
+					cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
+				}
+				if ((mousetype >= 3) && (cheese == 'super_brie_cheese')) //No super for Mage, cavalry and artillery
+				{
+					charmtype = "normal";
+					cheese = 'gouda_cheese';
+				}
+				if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+				else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+				if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
+				if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
+				if (charm != '')
+				{
+					items = [charm];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+					if (data.items[0].quantity == 0)
 					{
-						mousetype = 0;
-						while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.wave_population[C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave]].population == 0)) mousetype++;
+						cheese = ''; //temporally
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null); //temporally
+						
+						//~~~~go buy
+						//not success: ???
+						//cheese should be normal like gouda and stay like that
 					}
-					if (mousetype >= C_defaultFieryWarpathWave[wave - 1])
+					else shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
+				}
+				if (cheese != '')
+				{
+					items = [cheese];
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+					if (data.items[0].quantity == 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null); //no cheese = disarm, end of story
+					else shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
+				}
+			}
+			else if ((streakcommander <= streak) && (streak < streakgaga))
+			{
+				if (numcommander > 0)
+				{
+					if (data.user.trap_power_type_name != "Physical") shChangeBestTrap(PHYSICAL,TRAPAUTO);
+					cheese = 'super_brie_cheese';
+					if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
 					{
-						syncUser(shActionSuccessHandler);
-						return;
+						items = [cheese];
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+						if (data.items[0].quantity != 0) 
+							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
 					}
-					if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave] != warpathObj.streak.mouse_type) streak = 0;
-					if (C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].power != data.user.trap_power_type_name)
+				}
+				else
+				{
+					var streaklevelsetup = sh_scripts[sh_sid].vars.commanderrepresentativelevel.val;
+					if (streaklevelsetup != 0)
 					{
-						shChangeBestTrap(C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]].val,TRAPAUTO);
-						return;
-					}
-					if ((0 <= streak) && (streak < streaklevel1))
-					{
-						charmtype = sh_scripts[sh_sid].vars.customCharmLevel1.val;
-						cheese = sh_scripts[sh_sid].vars.customBaitLevel1.val;
-					}
-					if ((streaklevel1 <= streak) && (streak < streaklevel2))
-					{
-						charmtype = sh_scripts[sh_sid].vars.customCharmLevel2.val;
-						cheese = sh_scripts[sh_sid].vars.customBaitLevel2.val;
-					}
-					if ((streaklevel2 <= streak) && (streak < streakcommander))
-					{
-						charmtype = sh_scripts[sh_sid].vars.customCharmLevel3.val;
-						cheese = sh_scripts[sh_sid].vars.customBaitLevel3.val;
-					}
-					if ((mousetype >= 3) && (cheese == 'super_brie_cheese')) //No super for Mage, cavalry and artillery
-					{
-						charmtype = "normal";
-						cheese = 'gouda_cheese';
-					}
-					if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
-					else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
-					if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
-					if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-					if ((charm != '') || (cheese != '')) //~~~~auto buy
-					{
-						items = [charm,cheese];
-						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-						function() {
-							if (data.items[0].quantity == 0) charm = '';
-							if (data.items[1].quantity == 0) cheese = '';
-							if ((charm != '') && (cheese != ''))
+						while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.streak.mouse_type != C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave])) mousetype++;
+						charmtype = sh_scripts[sh_sid].vars["customCharmLevel" + streaklevelsetup].val;
+						cheese = sh_scripts[sh_sid].vars["customBaitLevel" + streaklevelsetup].val;
+						if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
+						else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
+						if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
+						if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
+						
+						if (charm != '')
+						{
+							items = [charm];
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+							if (data.items[0].quantity == 0)
 							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
+								cheese = ''; //temporally
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null); //temporally
+								
+								//~~~~go buy
+								//not success: ???
+								//cheese should be normal like gouda and stay like that
+							}
+							else shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
+						}
+						if (cheese != '')
+						{
+							items = [cheese];
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+							if (data.items[0].quantity == 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null); //no cheese = disarm, end of story
+							else shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
+						}
+						
+					}
+				}
+			}
+			else if ((streakgaga <= streak) && (streak <= 12))
+			{
+				if (data.user.trap_power_type_name != "Draconic")
+				{
+					cheese = 'super_brie_cheese';
+					if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
+						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null); //check cheese plz
+					shChangeBestTrap(DRACONIC,TRAPAUTO);
+				}
+			}
+			if (streakcommander <= streak) //separated commander charm process
+			{
+				var useCommander = false;
+				if ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615)) useCommander = true;
+				if (numcommander > 0)
+				{
+					if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
+					{
+						retreatmousenum = 0;
+						var wave_population = warpathObj.wave_population;
+						for (var mouse_population in wave_population)
+							if (wave_population.hasOwnProperty(mouse_population))
+							{
+								retreatmousenum += Math.min(streak,wave_population[mouse_population].population);
+							}
+						if (retreatmousenum >= requiredRetreatMouse)
+						{
+							items = ["super_flame_march_general_trinket","flame_march_general_trinket"];
+							shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+							var charm = '';
+							if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
+							if (data.items[1].quantity > 0) charm = 'flame_march_general_trinket';
+							if (charm != '')
+							{
+								localStorage.UOP_sh_d_FW_numcommander = Number(localStorage.UOP_sh_d_FW_numcommander) - 1;
+								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
 							}
 							else
 							{
-								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null);
-							}
-						});
-						
-						return;
-					}
-				}
-				else if ((streakcommander <= streak) && (streak < streakgaga))
-				{
-					if (numcommander > 0)
-					{
-						if (data.user.trap_power_type_name != "Physical")
-						{
-							shChangeBestTrap(PHYSICAL,TRAPAUTO);
-							return;
-						}
-						else
-						{
-							cheese = 'super_brie_cheese';
-							if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
-							{//~~~~ignore
-								items = [cheese];
-								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-								function() {
-									if (data.items[0].quantity == 0) cheese = '';
-									if (cheese != '')
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',cheese),null);
-									}
-									else
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null);
-									}
-								});
+								localStorage.UOP_sh_d_FW_numcommander = 0;
+								setTimeout(shActionSuccessHandler,0);
 								return;
 							}
-						}
-					}
-					else
-					{
-						var streaklevelsetup = sh_scripts[sh_sid].vars.commanderrepresentativelevel.val;
-						if (streaklevelsetup != 0)
-						{
-							while ((mousetype < C_defaultFieryWarpathWave[wave - 1]) && (warpathObj.streak.mouse_type != C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]]["wave" + wave])) mousetype++;
-							charmtype = sh_scripts[sh_sid].vars["customCharmLevel" + streaklevelsetup].val;
-							cheese = sh_scripts[sh_sid].vars["customBaitLevel" + streaklevelsetup].val;
-							if (((wave == 1) && (mousetype == 2)) || ((wave == 2) && (mousetype == 4)) || ((wave == 3) && (mousetype == 4))) charm = ''; //last mousetype doesn't need charm
-							else charm = C_defaultFieryWarpathData[C_defaultFieryWarpathOrder[mousetype]][charmtype + "charm"];
-							if (data.user.trinket_item_id == C_defaultFieryWarpathMapItem[charm]) charm = '';
-							if (data.user.bait_item_id == C_defaultFieryWarpathMapItem[cheese]) cheese = '';
-							if ((charm != '') || (cheese != ''))
-							{
-								items = [charm,cheese];
-								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-								function() {//~~~~auto buy
-									if (data.items[0].quantity == 0) charm = '';
-									if (data.items[1].quantity == 0) cheese = '';
-									if ((charm != '') && (cheese != ''))
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,cheese),null);
-									}
-									else
-									{
-										shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket','disarmBait'),null);
-									}
-								});
-								return;
-							}
+							useCommander = true;
 						}
 					}
 				}
-				else if ((streakgaga <= streak) && (streak <= 12))
+				if ((streakgaga <= streak) && (streak <= 12) && (data.user.trinket_item_id != 0) && (useCommander == false)) //if gaga streak and not able to use Commander charm => disarm
 				{
-					if (data.user.trap_power_type_name != "Draconic")
-					{
-						cheese = 'super_brie_cheese';
-						if (data.user.bait_item_id != C_defaultFieryWarpathMapItem[cheese])
-							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','super_brie_cheese'),null);
-						shChangeBestTrap(DRACONIC,TRAPAUTO);
-						return;
-					}
-				}
-				if (streakcommander <= streak) //separated commander charm process
-				{
-					var useCommander = false;
-					if ((data.user.trinket_item_id == 536) || (data.user.trinket_item_id == 615)) useCommander = true;
-					if (numcommander > 0)
-					{
-						if ((data.user.trinket_item_id != 536) && (data.user.trinket_item_id != 615))
-						{
-							retreatmousenum = 0;
-							var wave_population = warpathObj.wave_population;
-							for (var mouse_population in wave_population)
-								if (wave_population.hasOwnProperty(mouse_population))
-								{
-									retreatmousenum += Math.min(streak,wave_population[mouse_population].population);
-								}
-							if (retreatmousenum >= requiredRetreatMouse)
-							{
-								items = ["super_flame_march_general_trinket","flame_march_general_trinket"];
-								shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),
-									function() {
-										var charm = '';
-										if (data.items[0].quantity > 0) charm = 'super_flame_march_general_trinket';
-										if (data.items[1].quantity > 0) charm = 'flame_march_general_trinket';
-										if (charm != '')
-										{
-											localStorage.UOP_sh_d_FW_numcommander = Number(localStorage.UOP_sh_d_FW_numcommander) - 1;
-											shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',charm,''),null);
-										}
-										else
-										{
-											localStorage.UOP_sh_d_FW_numcommander = 0;
-											shActionSuccessHandler(null);
-										}
-									});
-								useCommander = true;
-								return;
-							}
-						}
-					}
-					if ((streakgaga <= streak) && (streak <= 12) && (data.user.trinket_item_id != 0) && (useCommander == false)) //if gaga streak and not able to use Commander charm => disarm
-					{
-						shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
-						return;
-					}
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
 				}
 			}
 		}
 	}
-	localStorage.UOP_sh_d_FW_calltime = 0;
 	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultFuroma(){
@@ -6629,8 +6663,8 @@ function shdefaultFuroma(){
 			var numcurd = Number(UOP_sh_d_Furoma_unstable_curd);
 			if (numcurd > 0)
 			{
-				//~~~~need reload
-				shLoad(C_shdefaultAction.CONVERTIBLE,shUseConvertible('unstable_curd_convertible',numcurd),null);
+				shLoadOnce(C_shdefaultAction.CONVERTIBLE,shUseConvertible('unstable_curd_convertible',numcurd),null);
+				setTimeout(shActionSuccessHandler,0);
 				return;
 			}
 
@@ -6666,7 +6700,9 @@ function shdefaultFuroma(){
 				parts.nori_craft_item = 1;
 				parts.curds_and_whey_craft_item = 3;
 				UOP_sh_d_Furoma_maki_cheese = craftnum * 3 + Number(UOP_sh_d_Furoma_maki_cheese);
-				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null); //~~~~reload to arm maki
+				shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+				setTimeout(shActionSuccessHandler,0);
+				return;
 			}
 
 			//arm brie
@@ -6849,7 +6885,7 @@ function shdefaultLivingGarden(){
 							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','searcher_trinket',''),null);
 						else
 						{
-							var numbuy = Math.min(LGObject.essences[0].quantity,1,Math.floor(data.user.gold / 350));
+							var numbuy = Math.min(LCObject.essences[0].quantity,1,Math.floor(data.user.gold / 350));
 							if (numbuy > 0)
 							{
 								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","searcher_trinket",numbuy),null);
@@ -6883,7 +6919,7 @@ function shdefaultLivingGarden(){
 								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','bravery_trinket',''),null);
 							else
 							{
-								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								var numbuy = Math.min(LCObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
 								if (numbuy > 0)
 								{
 									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","bravery_trinket",numbuy),null);
@@ -6900,7 +6936,7 @@ function shdefaultLivingGarden(){
 								shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','shine_trinket',''),null);
 							else
 							{
-								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								var numbuy = Math.min(LCObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
 								if (numbuy > 0)
 								{
 									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","shine_trinket",1),null);
@@ -6917,7 +6953,7 @@ function shdefaultLivingGarden(){
 								shLoad(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','clarity_trinket',''),null);
 							else
 							{
-								var numbuy = Math.min(LGObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
+								var numbuy = Math.min(LCObject.essences[1].quantity,1,Math.floor(data.user.gold / 300));
 								if (numbuy > 0)
 								{
 									shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","clarity_trinket",1),null);
@@ -6954,7 +6990,7 @@ function shdefaultLivingGarden(){
 							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grubling_chow_trinket',''),null);
 						else
 						{
-							var numbuy = Math.min(LGObject.essences[0].quantity,15 - SDObject.minigame.grubling_charm_quantity,Math.floor(data.user.gold / 350));
+							var numbuy = Math.min(SDObject.essences[0].quantity,15 - SDObject.minigame.grubling_charm_quantity,Math.floor(data.user.gold / 350));
 							if (numbuy > 0)
 							{
 								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grubling_chow_trinket",15 - SDObject.minigame.grubling_charm_quantity),null);
@@ -6989,7 +7025,7 @@ function shdefaultLivingGarden(){
 						shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_salt_trinket',''),null);
 					else
 					{
-						var numbuy = Math.min(LGObject.essences[1].quantity,saltcharm - SDObject.minigame.salt_charms_used,Math.floor(data.user.gold / 200));
+						var numbuy = Math.min(SDObject.essences[1].quantity,saltcharm - SDObject.minigame.salt_charms_used,Math.floor(data.user.gold / 200));
 						if (numbuy > 0)
 						{
 							shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_salt_trinket",numbuy),null);
@@ -7011,7 +7047,7 @@ function shdefaultLivingGarden(){
 							shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','grub_scent_trinket',''),null);
 						else
 						{
-							var numbuy = Math.min(LGObject.essences[2].quantity,1,Math.floor(data.user.gold / 500));
+							var numbuy = Math.min(SDObject.essences[2].quantity,1,Math.floor(data.user.gold / 500));
 							if (numbuy > 0)
 							{
 								shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","grub_scent_trinket",numbuy),null);
@@ -7019,6 +7055,249 @@ function shdefaultLivingGarden(){
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+	setTimeout(shFunctionSuccessHandler,0);
+}
+function shDefaultExpressTrain() {
+	if (data.user.quests.QuestTrainStation != undefined)
+	{
+		if (data.user.environment_id == 44)
+		{
+			var tourObj = data.user.viewing_atts.tournament;
+			var tourData = tourObj.minigame;
+			if (tourObj.phase_name == "Supply Depot")
+			{
+				//change trap
+				
+				//use crate if it's higher than 10
+				if (tourData.supply_crates >= 10) document.getElementsByClassName('phaseButton')[0].click();
+				
+				//if rush hour -> disarm schedule trap
+				if (tourData.supply_hoarder_turns > 0)
+				{
+					if (data.user.trinket_item_id == 1206) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+				}
+				else
+				{
+					//else arm schedule
+					if (tourData.trinkets.book_warmer_trinket == 0)
+					{
+						var items = ["fools_gold_stat_item"],numbuy;
+						shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(items),null);
+						numbuy = Math.min(10,data.items[0].quantity);
+						shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy","book_warmer_trinket",numbuy),null);
+					}
+					if (data.user.trinket_item_id != 1206) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','book_warmer_trinket',''),null);
+				}
+			}
+			else if (tourObj.phase_name == "Raider River")
+			{
+				//change trap
+				
+				//disarm charm from last stage
+				if (data.user.trinket_item_id == 1206) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+			}
+			else if (tourObj.phase_name == "Supply Depot")
+			{
+				//change trap
+				
+				//powder ?
+			}
+		}
+		else
+		{
+			//move to train if time is over
+			//shLoadOnce(C_shdefaultAction.TRAVEL,shTravel("train_station"),null);
+		}
+	}
+	setTimeout(shFunctionSuccessHandler,0);
+}
+function shdefaultSunkenCity() {
+	if (data.user.environment_id == 47)
+	{
+		if (O_sunkenRevealHUD == null)
+		{
+			var tmp = document.getElementsByClassName("sidebarTitle");
+			if (tmp.length > 0)
+			{
+				tmp = tmp[0];
+				O_sunkenRevealHUD = document.createElement("div");
+				O_sunkenRevealHUD.className = "sidebarContent UOP_sunkenRevealHUD";
+				tmp.parentNode.parentNode.appendChild(O_sunkenRevealHUD);
+				O_sunkenRevealHUDParent = O_sunkenRevealHUD.parentNode;
+				tmp.addEventListener("click",toggleSunkenDetailHUD,false);
+			}
+		}
+
+		var i,currentHUDStr,currentHUDleft,strHUD = '',questObj = data.user.quests.QuestSunkenCity,currentZone,stageCharm = '',stageBait = '',checkedBait = false,zonename,lastzone = localStorage.UOP_sh_d_Sunken_lastzone;
+		
+		if (questObj.is_diving == true)
+		{
+			for (i = 0;i < questObj.zones.length;++i)
+			{
+				currentHUDStr = "";
+				currentHUDleft = "";
+				if (questObj.zones[i].num == questObj.active_zone)
+				{
+					currentZone = questObj.zones[i];
+					currentHUDStr = " UOP_currentSunken";
+					currentHUDleft = " - " + Math.floor((80 - questObj.zones[i].left) * 250 / 150) + "m";
+				}
+				strHUD += "<div class='UOP_sunkenRevealHUDElement" + currentHUDStr + " UOP_" + questObj.zones[i].category + "'>" + Math.floor(questObj.zones[i].width * 250 / 150) + " - " + questObj.zones[i].type.replace(/_/g," ") + currentHUDleft + "</div>";
+			}
+			O_sunkenRevealHUD.innerHTML = strHUD;
+			
+			zonename = currentZone.category;
+			if (sh_scripts[sh_sid].vars.customTreasureRush.val == true)
+				if ((zonename != "treasure") && (zonename != "oxygen_stream_low") && (zonename != "oxygen_stream_high"))
+					zonename = "treasure_rush";
+			
+			switch (zonename)
+			{
+				case "treasure_rush":stageCharm = "water_jet_trinket";break;
+				case "treasure":stageCharm = sh_scripts[sh_sid].vars.customTreasureCharm.val;break; //ok
+				case "oxygen_stream_low":
+				case "oxygen_stream_high":stageCharm = sh_scripts[sh_sid].vars.customOxygenCharm.val;break; //unknown ?
+				case "default":stageCharm = sh_scripts[sh_sid].vars.customDefaultCharm.val;break; //ok
+				case "barnacle":stageCharm = sh_scripts[sh_sid].vars.customBarnacleCharm.val;break; //ok
+				case "mouse_scale":stageCharm = sh_scripts[sh_sid].vars.customScaleCharm.val;break; //ok
+				case "damaged_coral":stageCharm = sh_scripts[sh_sid].vars.customCoralCharm.val;break; //ok ?
+				case "danger":stageCharm = sh_scripts[sh_sid].vars.customDangerCharm.val;break; //ok
+				default: stageCharm = sh_scripts[sh_sid].vars.customOxygenCharm.val;break; //undetected oxygen, next update will be global
+			}
+			
+			if (sh_scripts[sh_sid].vars.customSmartCheese.val == true)
+			{
+				switch (zonename)
+				{
+					case "treasure":
+					case "oxygen_stream_low":
+					case "oxygen_stream_high":
+						stageBait = "super_brie_cheese";
+						break;
+					default: stageBait = "gouda_cheese";
+				}
+			}
+		}
+		else
+		{
+			zonename = "sunkencity";
+
+			//arm Charm for Sunken City
+			stageCharm = sh_scripts[sh_sid].vars.customSunkenCharm.val;
+			
+			//change bait to FF
+			var numcheese = 0,usingSB = false,targetFF;
+			targetFF = sh_scripts[sh_sid].vars.customFishyFromage.val;
+			if (targetFF < 0) {targetFF = Math.abs(targetFF);usingSB = true;}
+			if ((lastzone != zonename) && (targetFF > 0))
+			{
+				var craftitem0num, craftitem1num,craftitem2num,craftitem3num,craftnum,targetnum,divnum;
+				if (usingSB) divnum = 3; else divnum = 2;
+				
+				numcheese = questObj.items.fishy_fromage_cheese;
+				if (numcheese < targetFF) //craft FF first
+				{
+					craftitem0num = Math.floor(questObj.items.barnacle_crafting_item / 3);
+					craftitem1num = Math.floor(questObj.items.mouse_scale_crafting_item / 3);
+					craftitem2num = Math.floor(questObj.items.damaged_coral_crafting_item / 3);
+					craftitem3num = Math.floor(questObj.items.brined_curd_crafting_item / 4);
+					targetnum = Math.floor((targetFF - numcheese) / divnum);
+					craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num,targetnum);
+					if (usingSB) craftnum = Math.min(craftnum,questObj.items.magic_essence_craft_item);
+					
+					if (craftnum > 0)
+					{
+						var parts = {};
+						parts.barnacle_crafting_item = 3;
+						parts.mouse_scale_crafting_item = 3;
+						parts.damaged_coral_crafting_item = 3;
+						parts.brined_curd_crafting_item = 4;
+						if (usingSB) parts.magic_essence_craft_item = 1;
+						shLoadOnce(C_shdefaultAction.CRAFT,shCraft(parts,craftnum),null);
+						
+						questObj = data.user.quests.QuestSunkenCity; //update data
+					}
+				}
+				
+				numcheese = questObj.items.fishy_fromage_cheese;
+				if (numcheese < targetFF) //buy FF
+				{
+					craftitem0num = Math.floor(questObj.items.barnacle_crafting_item / 3);
+					craftitem1num = Math.floor(questObj.items.mouse_scale_crafting_item / 3);
+					craftitem2num = Math.floor(questObj.items.damaged_coral_crafting_item / 3);
+					craftitem3num = Math.floor(data.user.gold / 2000);
+					targetnum = Math.floor((targetFF - numcheese) / divnum);
+					craftnum = Math.min(craftitem0num,craftitem1num,craftitem2num,craftitem3num,targetnum);
+					if (usingSB) craftnum = Math.min(craftnum,questObj.items.magic_essence_craft_item);
+					
+					if (craftnum > 0)
+					{
+						var buyItem;
+						if (usingSB) buyItem = "fishy_fromage_three_pack_convertible"; else buyItem = "fishy_fromage_two_pack_convertible";
+						shLoadOnce(C_shdefaultAction.PURCHASE,shPurchase("buy",buyItem,craftnum),null);
+						
+						questObj = data.user.quests.QuestSunkenCity; //update data
+					}
+				}
+				
+				numcheese = questObj.items.fishy_fromage_cheese;
+				if (numcheese > 0)
+				{
+					stageBait = "fishy_fromage_cheese";
+					checkedBait = true;
+				}
+			}
+			
+			//in case of out of bait, change to normal bait
+			if ((data.user.bait_quantity < 3) && (questObj.bait_armed == true))
+			{
+				shLoadOnce(C_shdefaultAction.GETITEM,shGetItem(["brie_cheese","gouda_cheese"]),null);
+				if (data.items[0].quantity > 0) stageBait = "brie_cheese";
+				else if (data.items[1].quantity > 0) stageBait = "gouda_cheese";
+
+				numcheese = data.items[0].quantity + data.items[1].quantity;
+				if (numcheese == 0)
+				{
+					stageBait = '';
+					shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','disarmBait'),null);
+					//no need to throw, disarm will stop
+					//throw new Error("Out of Cheese !!!");
+				}
+				else checkedBait = true;
+			}
+		}
+		
+		if (stageCharm == '') stageCharm = sh_scripts[sh_sid].vars.customGlobalCharm.val;
+		
+		if (lastzone != zonename)
+		{
+			var stageBaitID = 0, stageCharmID = 0,i;
+			
+			localStorage.UOP_sh_d_Sunken_lastzone = zonename;
+			if ((stageCharm == 'disarmTrinket') && (data.user.trinket_item_id != 0))
+				shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','disarmTrinket',''),null);
+			else if (stageCharm != '')
+			{
+				for (i = 0;i < cacheTrapComponent.length;++i) if (cacheTrapComponent[i].type == stageCharm) {stageCharmID = cacheTrapComponent[i].item_id;break;}
+				if (data.user.trinket_item_id != stageCharmID)
+				{
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem([stageCharm]),null);
+					if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','',stageCharm,''),null);
+				}
+			}
+			
+			for (i = 0;i < cacheTrapComponent.length;++i) if (cacheTrapComponent[i].type == stageBait) {stageBaitID = cacheTrapComponent[i].item_id;break;}
+			if ((stageBait != '') && (data.user.trinket_item_id != stageBaitID))
+			{
+				if (checkedBait) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',stageBait),null);
+				else
+				{
+					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem([stageBait]),null);
+					if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',stageBait),null);
 				}
 			}
 		}

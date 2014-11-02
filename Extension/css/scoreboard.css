@@ -96,3 +96,5 @@
 }
 .UOP_searchbuttonSB:hover {background-color: #f2f2f2;}
 .UOP_searchinputSB {width: 140px;}
+
+#UOP_commandDiv:before {content:"Calculator: ";}

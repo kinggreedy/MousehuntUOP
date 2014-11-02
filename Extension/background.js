@@ -1,11 +1,13 @@
 /****************RELOAD on ERROR*******************/
+var reloadInAction = false;
 chrome.webRequest.onErrorOccurred.addListener(
 	function (details){
+		if (reloadInAction) return;
+		reloadInAction = true;
 		setTimeout(function () {chrome.tabs.reload(details.tabId)},10000);
 	},
 	{urls: ["*://www.mousehuntgame.com/*"],types: ["main_frame"]}
 );
-
 /****************REDIRECTION if INCORRECT*******************/
 chrome.webRequest.onBeforeRequest.addListener(
 	function (details){
@@ -21,6 +23,24 @@ chrome.webRequest.onBeforeRequest.addListener(
 	},
 	{urls: ["http://apps.facebook.com/mousehunt/*"],types: ["main_frame"]},
 	["blocking"]
+);
+/*********************LOCAL STORAGE**************************/
+chrome.runtime.onConnect.addListener(function(port) {
+	if (port.name == "APPStorage")
+	port.onMessage.addListener(function(msg) {
+		if (msg.send == "Get")
+		{
+			
+		}
+	});
+});
+/***********************SYNC USER****************************/
+chrome.webRequest.onCompleted.addListener(
+	function (details){
+		//console.log(details);
+		//x = details;
+	},
+	{urls: ["*://www.mousehuntgame.com/*"],types: ["main_frame","sub_frame","xmlhttprequest"]}
 );
 /*********************APP VERSION****************************/
 chrome.runtime.onConnect.addListener(function(port) {
@@ -58,7 +78,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 				details.requestHeaders.splice(i, 1);
 			}
 			//else if (details.requestHeaders[i].name === "Accept") {
-			//details.requestHeaders[i].value = "application/json, text/javascript, */*; q=0.01";
+			//	details.requestHeaders[i].value = "application/json, text/javascript, */*; q=0.01";
 			//}
 			/*
 			else if (details.requestHeaders[i].name === "Content-Type") {
