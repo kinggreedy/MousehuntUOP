@@ -774,7 +774,12 @@ function initializationWithUser() {
 	
 	if ((S_simple == 0) && (S_skin != 0)) updateMinuteTimer();
 	if (S_ads == 2) startUpdateFunArea();
-	if ((S_schedule == 0) && (atCamp)) shLoadOnceAsync(C_shdefaultAction.GETTRAP,null,function () {cacheTrapComponent = sh_components = data.components;soundHornWaiting();});
+	if (atCamp)
+	{
+		if (S_schedule == 0) shLoadOnceAsync(C_shdefaultAction.GETTRAP,null,function () {cacheTrapComponent = sh_components = data.components;soundHornWaiting();});
+		else soundHornWaiting();
+	}
+	
 }
 /*******************MAIN********************/
 function main() {
@@ -1617,7 +1622,7 @@ function callArrayFunction(element, index, array) {
 function reloadMH() {
 	if (S_reloadInAction) return;
 	else S_reloadInAction = true;
-	reloadMH();
+	location.reload();
 }
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
@@ -4625,13 +4630,13 @@ function submitPuzzle(str) {
 				{
 					var tmpRespondJSON = JSON.parse(request.responseText);
 					document.getElementById('pagemessage').textContent += str + " - " + tmpRespondJSON.result;
-					window.localStorage.UOP_puzzleLastResult = str + " - " + tmpRespondJSON.result;
+					window.localStorage.UOP_puzzleLastResult = str + " - Attempt: " + A_solveStage + " - Result: " + tmpRespondJSON.result;
 					reloadMH();
 				}
 				catch (e)
 				{
 					document.getElementById('pagemessage').textContent += request.responseText;
-					window.localStorage.UOP_puzzleLastResult = str + " - " + request.responseText;
+					window.localStorage.UOP_puzzleLastResult = str + " - Attempt: " + A_solveStage + " - Result: " + tmpRespondJSON.result;
 				}
 			}
 			else
@@ -5163,7 +5168,6 @@ function KR_sendResult() {
 				if (votingSystem[cUpper] == null)
 				{
 					votingSystem[cUpper] = new Object;
-					votingSystem[cUpper].n = 1;
 					votingSystem[cUpper].n = 1;
 					votingSystem[cUpper].u = 0;
 					votingSystem[cUpper].l = 0;
