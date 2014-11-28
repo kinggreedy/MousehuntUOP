@@ -3,7 +3,8 @@ window.addEventListener('DOMContentLoaded',initialization,false);
 /**************VARIABLES*****************/
 //==========Constants==========
 //Setting Constants
-var C_versionCompatibleCode = "15";
+var C_versionCompatibleCode = "16";
+
 //var C_disableExperimental = 0;
 var C_SecondInterval = 1;
 var C_MinuteInterval = 60;
@@ -1405,6 +1406,9 @@ function initControlPanel() {
 			S_appid = msg.appid;
 			document.getElementById("UOP_version").innerHTML = S_version;
 			
+			document.getElementById("UOP_checking_update").style.display = "none";
+			document.getElementById("UOP_is_uptodate").style.display = "block";
+			/*
 			var http = new XMLHttpRequest();
 			http.open("GET",S_updateurl + "?t=" + new Date().getTime(), true);
 			http.onreadystatechange = function() {
@@ -1426,11 +1430,12 @@ function initControlPanel() {
 					}
 					else
 					{
+						document.getElementById("UOP_checking_update").style.display = "none";
 						document.getElementById("UOP_cannot_update").style.display = "block";
 					}
 				}
 			}
-			http.send(null);
+			http.send(null);*/
 		}
 	});
 	
@@ -3728,6 +3733,12 @@ function addCommand() {
 	O_commandInput.id = "UOP_commandInput";
 	O_commandDiv.appendChild(O_commandInput);
 	O_commandInput.addEventListener('keypress', function (e) {var key = e.which || e.keyCode;if (key == 13) {executeCommand()}});
+	
+	var O_commandButton = document.createElement("button");
+	O_commandButton.id = "UOP_clearMessageButton";
+	O_commandDiv.appendChild(O_commandButton);
+	O_commandButton.addEventListener('click', function (e) {document.getElementById('pagemessage').innerHTML = "";});
+	O_commandButton.textContent = "Clear miniscript log";
 }
 function executeCommand() {
 	var txt = O_commandInput.value;
@@ -5411,6 +5422,8 @@ function shSubmit(url,params,successHandler,errorHandler,loadHandler){
 	http.send(postparams);
 }
 function shLoad(url,params,successHandler){
+	document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loading: URL = " + url + " - params = " + params + "</label>";
+	
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
@@ -5420,6 +5433,8 @@ function shLoad(url,params,successHandler){
 	http.send(postparams);
 	if (http.status == 200)
 	{
+		document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loaded</label>";
+		
 		var parseok = 0;
 		try
 		{
@@ -5444,6 +5459,8 @@ function shLoad(url,params,successHandler){
 	}
 }
 function shLoadOnce(url,params,successHandler) {
+	document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loading: URL = " + url + " - params = " + params + "</label>";
+	
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
@@ -5453,6 +5470,8 @@ function shLoadOnce(url,params,successHandler) {
 	http.send(postparams);
 	if (http.status == 200)
 	{
+		document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loaded</label>";
+		
 		var parseok = 0;
 		try
 		{
@@ -5478,6 +5497,8 @@ function shLoadOnce(url,params,successHandler) {
 	}
 }
 function shLoadAsync(url,params,successHandler){
+	document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loading: URL = " + url + " - params = " + params + "</label>";
+	
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
@@ -5489,6 +5510,8 @@ function shLoadAsync(url,params,successHandler){
 		{
 			if (http.status == 200)
 			{
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loaded</label>";
+				
 				var parseok = 0;
 				try
 				{
@@ -5516,6 +5539,8 @@ function shLoadAsync(url,params,successHandler){
 	http.send(postparams);
 }
 function shLoadOnceAsync(url,params,successHandler) {
+	document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loading: URL = " + url + " - params = " + params + "</label>";
+	
 	var postparams = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
 	if ((params != null) && (params.length > 0)) postparams = postparams + "&" + params;
 	
@@ -5527,6 +5552,8 @@ function shLoadOnceAsync(url,params,successHandler) {
 		{
 			if (http.status == 200)
 			{
+				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: green;'>Loaded</label>";
+				
 				var parseok = 0;
 				try
 				{
@@ -6003,6 +6030,16 @@ var sh_defaultScripts = [
 		mode: PLAY,
 		errorHandler: 0,
 		func: shdefaultSunkenCity
+	},
+	{
+		name: 'default_burroughsrift',
+		fullname: "Burroughs Rift MiniGame",
+		setting: {beforeTrapCheck: 0,afterTrapCheck: 1,afterHorn: 1,priority: 0, userSync: 1,trapCheckPriority: 0},
+		vars: {customMinCharged: {name: 'Minimum charged power (Min <= X)', val: 7, displayType: 'number'},
+			customMaxCharged: {name: 'Maximum charged power (X <= Max)', val: 20, displayType: 'number'}},
+		mode: PLAY,
+		errorHandler: 0,
+		func: shDefaultBurroughsRift
 	}
 ];
 
@@ -6062,6 +6099,10 @@ function shdefaultIceberg(){
 			if (sh_scripts[sh_sid].vars.customBase.val != '') shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('',sh_scripts[sh_sid].vars.customBase.val,'',''),null);
 			else shChangeBestTrap(BASE,TRAPAUTO);
 		}
+	}
+	else 
+	{
+		window.localStorage.UOP_sh_d_IB_state = "other_area";
 	}
 	setTimeout(shFunctionSuccessHandler,0);
 }
@@ -7303,6 +7344,27 @@ function shdefaultSunkenCity() {
 					shLoadOnce(C_shdefaultAction.GETITEM,shGetItem([stageBait]),null);
 					if (data.items[0].quantity > 0) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','',stageBait),null);
 				}
+			}
+		}
+	}
+	setTimeout(shFunctionSuccessHandler,0);
+}
+function shDefaultBurroughsRift() {
+	if (data.user.quests.QuestRiftBurroughs != undefined)
+	{
+		if (data.user.environment_id == 48)
+		{
+			var questObj = data.user.quests.QuestRiftBurroughs;
+			if ((questObj.mist_released <= sh_scripts[sh_sid].vars.customMinCharged.val) && (questObj.is_misting != true) && (questObj.items.mist_canister_stat_item >= (sh_scripts[sh_sid].vars.customMaxCharged.val - questObj.mist_released)))
+			//if mist_relased < min AND is not misting AND number of mist can reach target max mist
+			{
+				window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.riftBurroughsToggleMist();"},location.origin);
+				questObj.is_misting = !questObj.is_misting;
+			}
+			if ((questObj.mist_released >= sh_scripts[sh_sid].vars.customMaxCharged.val) && (questObj.is_misting == true))
+			{
+				window.postMessage({name: "UOP_eval", data: "app.views.HeadsUpDisplayView.hud.riftBurroughsToggleMist();"},location.origin);
+				questObj.is_misting = !questObj.is_misting;
 			}
 		}
 	}

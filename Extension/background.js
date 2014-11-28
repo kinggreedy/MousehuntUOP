@@ -4,7 +4,7 @@ chrome.webRequest.onErrorOccurred.addListener(
 	function (details){
 		if (reloadInAction) return;
 		reloadInAction = true;
-		setTimeout(function () {chrome.tabs.reload(details.tabId)},10000);
+		setTimeout(function () {chrome.tabs.reload(details.tabId, null, function () {reloadInAction = false;})},10000);
 	},
 	{urls: ["*://www.mousehuntgame.com/*"],types: ["main_frame"]}
 );

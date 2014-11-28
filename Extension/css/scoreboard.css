@@ -98,3 +98,6 @@
 .UOP_searchinputSB {width: 140px;}
 
 #UOP_commandDiv:before {content:"Calculator: ";}
+#UOP_commandInput {
+	margin-bottom: 5px;
+}

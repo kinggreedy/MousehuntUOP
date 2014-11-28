@@ -353,3 +353,6 @@
 	white-space: nowrap;
 }
 #UOP_alarmFileSelect {width: 85px;}
+#pagemessage label{
+	display: block;
+}
