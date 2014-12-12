@@ -84,8 +84,8 @@ var S_version,S_updateurl,S_appid;
 var S_reloadInAction = false;
 
 //Object Variables
-var O_titleBar,O_hornHeader,O_hornButton,O_hgRow,O_baitNum,O_titlePercentage,O_oldHuntTimer, O_trapSelectorBrowser, O_specialPanel, O_sunkenRevealHUD, O_sunkenRevealHUDParent;
-var O_huntTimer,O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_locationTimer,O_simpleHud,O_imageBox,O_imagePhoto, O_personalNote, O_personalNoteTextarea;
+var O_titleBar,O_hornHeader,O_hornButton,O_hgRow, O_trapSelectorBrowser, O_specialPanel, O_sunkenRevealHUD, O_sunkenRevealHUDParent;
+var O_LGSTimerDay,O_LGSTimerDayLeft,O_LGSTimerHourMin,O_gamelogo,O_imageBox,O_imagePhoto, O_personalNote, O_personalNoteTextarea;
 var O_mode,O_environment;
 var O_settingGroup,O_travelTab,O_travelContent,O_shopContent,O_potContent,O_craftContent,O_supplyContent,O_giftContent;
 var O_playing, O_autoPanel, O_autoPauseCounter, O_autoSounding, O_autoCounter, O_autoMainCounter, O_autoDelayCounter;
@@ -103,8 +103,8 @@ var registerSoundHornWaiting = new Array;
 var eval_callback;
 var nextTurnTimestamp,atCamp = false,nextUpdateScoreboardTimeLeft;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1;
-var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
+var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1, battleShipClearState = 0, battleShipValue = 0;
+var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 var currentScoreboardChannel,currentScoreboardChannelTeamData, initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
 var travelPlacesHeight;
@@ -131,10 +131,10 @@ function initialization() {
 	main();
 }
 function initVariables() {
-	O_hornHeader = document.getElementById('header');
+	O_hornHeader = document.getElementsByClassName('mousehuntHud-top')[0];
 	O_hgRow = document.getElementsByClassName('mousehuntHeaderView-gameTabs')[0];
-	O_gamelogo = document.getElementsByClassName('gamelogo')[0];
-	O_hornButton = document.getElementsByClassName('hornbutton')[0].firstChild;
+	O_gamelogo = document.getElementsByClassName('mousehuntHud-shield golden')[0];
+	O_hornButton = document.getElementsByClassName('mousehuntHud-huntersHorn')[0];
 	O_hornButton.addEventListener('click',soundHorn,false);
 	
 	var scriptstr = windowScript.toString();
@@ -692,11 +692,11 @@ function checkBrowser() {
 		canvasWindow = document.getElementById("iframe_canvas").contentWindow;
 		return 1;
 	}
-	else if (document.getElementById('campButton') == null) //no camp button
+	else if (document.getElementsByClassName('mousehuntHud-menu').length == 0) //no HUD
 	{
 		if (atCamp) // at camp => error
 		{
-			setTimeout(function () {reloadMH();},10000);
+			reloadMH();
 		}
 		return 1;
 	}
@@ -712,7 +712,7 @@ function createTemplate() {
 	
 	tmp = document.createElement('div');
 	tmp.className = "objective clear-block";
-	tmp.innerHTML = '<div class="image"><img src="https://www.mousehuntgame.com/images/mice/thumb/70b81f94dfabf120f5b1bc9b3a421b87.gif?cv=190" width="50" height="50"><div class="status"></div></div><div class="content"><b>Collect 3 Warp Nails from Realm Rippers</b><br><div class="progressBarContainer"><div class="number">1 / 3</div><div class="bar" style="background-position: 66.66666666666667% 50%;"></div></div><div class="description"></div></div>';
+	tmp.innerHTML = '<div class="campPage-quests-objective-container "><div class="campPage-quests-objective"><div class="campPage-quests-objective-thumb"><div class="campPage-quests-objective-checkmark"></div></div><div class="campPage-quests-objective-content"><div class="campPage-quests-objective-task"></div><div class="campPage-quests-objective-progressBar"><span style="width:0%;"></span></div></div><div class="campPage-quests-objective-progress"></div></div></div>';
 	template.progressObj = tmp;
 	
 	tmp = document.createElement('div');
@@ -1627,7 +1627,7 @@ function callArrayFunction(element, index, array) {
 function reloadMH() {
 	if (S_reloadInAction) return;
 	else S_reloadInAction = true;
-	location.reload();
+	setTimeout(function() {location.reload()},10000);
 }
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
@@ -1684,7 +1684,7 @@ function syncUser(callbackFunction) {
 					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + ". Original Data is " + request.responseText + " Refreshing...</label>";
 					document.title = "Sync error !";
 					//setTimeout(function() {syncUser(callbackFunction);},1000);
-					setTimeout(function() {reloadMH();},10000);
+					reloadMH();
 				}
 			}
 			else
@@ -1692,7 +1692,7 @@ function syncUser(callbackFunction) {
 				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 				document.title = "Sync error !";
 				//setTimeout(function() {syncUser(callbackFunction);},1000);
-				setTimeout(function() {reloadMH();},10000);
+				reloadMH();
 			}
 		}
 	};
@@ -1720,7 +1720,7 @@ function syncUserTrapcheck(callbackFunction) {
 				{
 					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + "</label>";
 					document.title = "Trapcheck sync error !";
-					setTimeout(function() {reloadMH();},5000);
+					reloadMH();
 					//setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
 				}
 			}
@@ -1729,21 +1729,21 @@ function syncUserTrapcheck(callbackFunction) {
 				//syncUserTrapcheck(callbackFunction);
 				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
 				document.title = "Trapcheck sync error !";
-				setTimeout(function() {reloadMH();},5000);
+				reloadMH();
 			}
 		}
 	};
 	request.send(null);
 }
 function soundHorn() {
-	//please take note that the phrase is: "hornwaiting => hornready => hornsounding => hornsounded => hornwaiting"
-	if (O_hornHeader.className.indexOf('hornsounding') != -1)
+	//please take note that the phrase is: "<no status> => hornRady => hornSounding => hornResult/hornError => <no status>"
+	if (O_hornHeader.className.indexOf('hornSounding') != -1)
 	{
 		setTimeout(soundHorn, 100);
 		registerSoundHornSounding.forEach(callArrayFunction);
 		return;
 	}
-	else if (O_hornHeader.className.indexOf('hornsounded') != -1)
+	else if (O_hornHeader.className.indexOf('hornResult') != -1)
 	{
 		setTimeout(soundHorn, 100);
 		registerSoundHornSounded.forEach(callArrayFunction);
@@ -1815,28 +1815,6 @@ function windowScript() {
 }
 /*******************SKIN AREA********************/
 //TOOLS
-function skinSecondTimer() {
-	//update sound timer
-	var nextTurnSeconds = Math.ceil((nextTurnTimestamp - new Date().getTime()) / 1000);
-	if (nextTurnSeconds > 0)
-	{
-		var textTime = formatMinute(nextTurnSeconds);
-		O_huntTimer.textContent = textTime;
-		if (S_auto == 1)
-		{
-			document.title = textTime;
-			if (data.user.has_puzzle) document.title = "King's Reward";
-		}
-	}
-	else
-	{
-		O_huntTimer.textContent = "Ready";
-		return;
-	}
-
-	//set the second time interval
-	setTimeout(function () { (skinSecondTimer)() }, C_SecondInterval * 1000);
-}
 function travelgroupchange(e) {
 	var target = e.target;
 	while (target.className.indexOf("UOP_buttonTravel") == -1) target = target.parentNode;
@@ -2692,332 +2670,8 @@ function showToolbox() {
 }
 //DEFAULT skin
 function defaultSkin() {
-	if (S_simple == 0) defaultFullSkin(); else defaultSimpleSkin();
-}
-//Simple
-function defaultSimpleSkin() {
-	if (!atCamp) return;
-	manageCSSJSAdder(4);
-	//=======================add things============================
-	//add mobile button
-	var simpleSkinButton = document.getElementById('UOP_appControlPanel').cloneNode(true);
-	simpleSkinButton.id = "UOP_simpleSkin";
-	simpleSkinButton.className = "hgMenu UOP_hgMenu";
-	simpleSkinButton.removeAttribute('onclick');
-	simpleSkinButton.addEventListener('click',toggleSkin,false);
-	O_hgRow.appendChild(simpleSkinButton);
-	
-	var inbox = document.getElementById('communityMenu').cloneNode(true);
-	var oldinbox = document.getElementById('appInboxTab');
-	var inboxnotification = document.getElementById('appInboxTab').getElementsByClassName('alerts')[0].cloneNode(true);
-	oldinbox.id = "appoldInbox";
-	inbox.id = "appInboxTab";
-	inbox.removeChild(inbox.lastChild);
-	inbox.appendChild(inboxnotification);
-	inbox.setAttribute('onclick',oldinbox.firstChild.getAttribute('onclick'));
-	inbox.firstChild.textContent = "INBOX";
-	O_hgRow.insertBefore(inbox,document.getElementById('communityMenu'));
-	
-	//add hud
-	O_simpleHud = document.createElement('div');
-	O_simpleHud.id = "UOP_simpleHud";
-	var tmp = document.getElementById('tabbarContent_page');
-	tmp.parentNode.insertBefore(O_simpleHud,tmp);
-	
-	//add journal
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0].firstChild;
-		var journalbar = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive')[1].cloneNode(true);
-		journalbar.className = "inactive";
-
-		var journalbarChild = journalbar.firstChild.firstChild;
-		var numOfTabbar = tabbar.getElementsByClassName('bar')[0].getElementsByClassName('inactive').length + 1;
-		journalbarChild.setAttribute('onclick',journalbarChild.getAttribute('onclick').replace("showFriendsOnline(); ","").replace("show(2)","show(" + numOfTabbar + ")"));
-		journalbarChild = journalbarChild.childNodes[1];
-		journalbarChild.id = "UOP_journalCampTab";
-		journalbarChild.textContent = "Journal";
-		tabbar.getElementsByClassName('bar')[0].firstChild.appendChild(journalbar);
-		
-		var journalcontent = tabbar.getElementsByClassName('tabbody')[0].lastChild.cloneNode(false);
-		var campRight = document.getElementsByClassName('campRight')[0];
-		if (campRight != null)
-		{
-			campRight.parentNode.removeChild(campRight);
-			journalcontent.appendChild(campRight);
-			journalcontent.style.width = "375px";
-		}
-		journalcontent.id = journalcontent.id.substring(0,journalcontent.id.length - 1) + numOfTabbar;
-		var journalcontentChild = journalcontent.lastChild;
-		journalcontentChild.id = "UOP_campjournal";
-		tabbar.getElementsByClassName('tabbody')[0].appendChild(journalcontent);
-		
-		//add tab bars
-		travelToTabBar();
-		shopToTabBar();
-		potToTabBar();
-		craftToTabBar();
-		supplyToTabBar();
-		giftToTabBar();
-		
-		//hide them
-		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
-		tmp[0].style.display = "none";
-		tmp[1].style.display = "none";
-		journalbarChild.parentNode.click();
-	}
-	
-	//clean up king reward
-	var tmp2;
-	tmp2 = document.getElementsByClassName('puzzle');
-	if (tmp2.length > 0)
-	{
-		tmp2 = tmp2[0];
-		tmp = document.getElementsByClassName('puzzleImageContainer')[0].nextSibling;
-		tmp.removeChild(tmp.firstChild);
-		tmp.removeChild(tmp.firstChild);
-		tmp.insertBefore(tmp2,tmp.firstChild);
-		tmp2 = document.createElement("div");
-		tmp2.id = "pagemessage";
-		tmp.insertBefore(tmp2,tmp.firstChild);
-		tmp = document.getElementsByClassName('puzzleImageContainer')[0];
-		tmp.parentNode.removeChild(tmp);
-	}
-	tmp = document.getElementById('pagemessage');
-	if (tmp != null) tmp.style.width = "375px";
-	
-	//cleanup heading
-	tmp = document.getElementById('hgbar');
-	tmp.removeChild(document.getElementById('appRow'));
-	tmp.removeChild(document.getElementById('newsRowHolder'));
-	
-	//cleanup hud
-	tmp = document.getElementsByClassName('gameinfo')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('gamelogo')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('donatebuttonarea')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('campbutton')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('dropdownmenu')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('marblesplash')[0];if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementsByClassName('switch')[0];if(tmp != null) {tmp=tmp.parentNode;tmp.parentNode.removeChild(tmp);}
-	tmp = document.getElementById('trapSpecialBar');if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementById('questBar');if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementById('huntingTips');if(tmp != null) tmp.parentNode.removeChild(tmp);
-	tmp = document.getElementById('journalContainer');if(tmp != null) tmp.parentNode.removeChild(tmp.nextSibling);
-	tmp = document.getElementById('overlayContainer');if(tmp != null) 
-	for (i=0;i < 3;)
-	{
-		if ((tmp.lastChild.tagName != null) && (tmp.lastChild.tagName.toUpperCase() == "A")) ++i;
-		tmp.removeChild(tmp.lastChild);
-	}
-	//add hud_baitName because it cause error
-	tmp = document.createElement('span');
-	tmp.id = "hud_baitName";
-	tmp.setAttribute("style","display: none;");
-	document.body.appendChild(tmp);
-	
-	//==========================cleanup things=================
-	tmp = document.getElementById('hgSideBar');
-	if (tmp != null)
-	{
-		tmp.style.margin = "auto";
-		tmp.style.display = "inline-block";
-		tmp2 = 170;
-	}
-	else tmp2 = 0;
-	tmp = document.getElementById('hgAppContainer');
-	tmp.style.width = "375px";
-	tmp.parentNode.style.width = (tmp2 + 375) + "px";
-	document.getElementsByClassName('container')[0].style.width = "inherit";
-	document.getElementsByClassName('headertop')[0].style.height = "auto";
-	var headercontrol = document.getElementsByClassName('headercontrols')[0];
-	headercontrol.style.width = "inherit";
-	headercontrol.style.cssFloat = "none";
-	headercontrol.style.height = "auto";
-	headercontrol.style.backgroundColor = "white";
-	document.getElementById('huntTimer').style.margin = "auto";
-	
-	//cleanup hgRow
-	O_hgRow.removeChild(document.getElementById('appLogo'));
-	O_hgRow.removeChild(document.getElementById('communityMenu')); 
-	O_hgRow.removeChild(document.getElementById('supportMenu'));
-	var userGreeting = document.getElementById('userGreeting');
-	userGreeting.removeChild(userGreeting.getElementsByClassName('userText')[0]); 
-	
-	//cleanup journal
-	tmpArr = document.getElementsByClassName('journalimage');
-	for (i = 0;i < tmpArr.length;++i)
-	{
-		tmp = tmpArr[i].getElementsByTagName('img')[0];
-		if (tmp != null)
-		{
-			tmpArr[i].removeChild(tmpArr[i].firstChild);
-			tmpArr[i].appendChild(tmp);
-		}
-	}
-	
-	//detailed timer
-	tmp = document.getElementById('huntTimer');
-	O_huntTimer = tmp.cloneNode(true);
-	tmp.style.display = "none";
-	O_huntTimer.id = "UOP_huntTimer";
-	tmp.parentNode.appendChild(O_huntTimer);
-	
-	//register hudupdater
-	registerSoundHornWaiting.push(updateSimpleHud);
-	registerSoundHornWaiting.push(skinSecondTimer);
-}
-function updateSimpleHud() {
-	O_simpleHud.innerHTML = "";
-	
-	//=================add hud=====================
-	//gold point
-	var userObj = data.user;
-	O_simpleHud.innerHTML += "<span class='hudstatlabel'>Gold:</span> " + userObj.gold + " ";
-	//timer
-	var locationTimerObject,states,hour,min,timetmp;
-	var currentTime = Math.floor(new Date().getTime() / 1000);
-	for (var i = 0;i < C_LOCATION_TIMES.length;++i)
-	{
-		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
-		for (var j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
-		{
-			timetmp -= C_LOCATION_TIMES[i].length[j];
-			if (timetmp < 0) break;
-			else if (timetmp == 0)
-			{
-				j = (j + 1) % C_LOCATION_TIMES[i].length.length;
-				timetmp = -C_LOCATION_TIMES[i].length[j];
-				break;
-			}
-		}
-		timetmp = -timetmp;
-		hour = Math.floor(timetmp / 3600);
-		min = Math.floor((timetmp % 3600) / 60);
-		
-		O_simpleHud.innerHTML += "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].shortstate[j]+ "</span>" + " - " + hour + ":" + (min < 10 ? "0"+min : min) + " ";
-	}
-	O_simpleHud.innerHTML += "<br>";
-	
-	//add tour
-	if(userObj.viewing_atts.hasOwnProperty('tournament')){
-		var secleft,minleft,hourleft;
-		var timeleft = userObj.viewing_atts.tournament.seconds_remaining;
-		var huntsleft = Math.floor((timeleft - userObj.next_activeturn_seconds)/900)+1;
-		hourleft = Math.floor(timeleft / 3600);
-		minleft = Math.floor(timeleft / 60) % 60;
-		secleft = timeleft % 60;
-		var textTime = hourleft +":"+(minleft < 10 ? '0'+minleft : minleft)+":"+(secleft < 10 ? '0'+secleft : secleft);
-		O_simpleHud.innerHTML += "<a href=\"tournament.php?tid=" + userObj.viewing_atts.tournament.tournament_id + "\" data-ajax=\"false\" target=\"_blank\" style='font-weight: bold;'>Tournament</a>" + " : " + userObj.viewing_atts.tournament.status[0].toUpperCase() + userObj.viewing_atts.tournament.status.slice(1) + " - " + textTime + " <span class='hudstatlabel'>Rank:</span> " + userObj.viewing_atts.tournament.rank + " <span class='hudstatlabel'>Score:</span> " + userObj.viewing_atts.tournament.score + "<br>";
-		O_simpleHud.innerHTML += '<a href=\"team.php\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Team</a> online:' + userObj.viewing_atts.tournament.team_members_online + ' <a href=\"team.php?tab=2\" data-ajax=\"false\" target=\"_blank\" style="font-weight: bold;">Journals</a>' + " - Hunts left: " + huntsleft + ' <a href=\"team.php?invite=true\" data-ajax=\"false\" target=\"_blank\"  style="font-weight: bold;">Invite</a><br>'; 
-	}
-	//SG: Amplifier
-	if (userObj.environment_id == 31){
-		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Amplifier:</span> " + userObj.viewing_atts.zzt_amplifier + "<br>";
-	}
-	
-	//ZT: piece
-	if (userObj.environment_id == 32){
-		var piece = ['None','Pawn1','Pawn2','Pawn3','Pawn4','Pawn5','Pawn6','Pawn7','Pawn8','Kight1','Kight2','Bishop1','Bishop2','Rook1','Rook2','Queen','King']; 
-		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Amplifier: </span>" + userObj.viewing_atts.zzt_amplifier + " - <span class='hudstatlabel'>Tech:</span> " + piece[userObj.viewing_atts.zzt_tech_progress] + " - <span class='hudstatlabel'>Mystic:</span> " + piece[userObj.viewing_atts.zzt_mage_progress] + "<br>";
-	}
-	
-	//Iceberg: Phase, ft
-	if (userObj.environment_id == 40){
-		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Phase:</span> " + userObj.quests.QuestIceberg.current_phase + " - " + userObj.quests.QuestIceberg.user_progress + " ft - " + userObj.quests.QuestIceberg.turns_taken + " hunts<br>";
-	}
-	
-	//FW
-	if (userObj.environment_id == 33){
-		var fwObj = userObj.viewing_atts.desert_warpath;
-		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Victories:</span> " + fwObj.victories + " - <span class='hudstatlabel'>Friends:</span> " + fwObj.friends_in_area + " - <span class='hudstatlabel'>Wave " + fwObj.wave + ":</span><br>";
-		
-		for (var wp in fwObj.wave_population)
-		O_simpleHud.innerHTML += "<p style=\"text-align:right;\">" + fwObj.wave_population[wp].name + " - <b style=\"color:blue;\">" + fwObj.wave_population[wp].population + "</b> [" + fwObj.wave_population[wp].status + "]<br>";
-		
-		for (var wp in fwObj.common_population)
-		O_simpleHud.innerHTML += fwObj.common_population[wp].name + " [" + fwObj.common_population[wp].status + "]<br>";
-		
-		O_simpleHud.innerHTML += "<span class='hudstatlabel'>Streak:</span> - " + fwObj.streak.mouse_type + " - <b style=\"color:green;\">" + fwObj.streak.quantity + "</b><br>";
-		
-		O_simpleHud.innerHTML += JSON.stringify(userObj.viewing_atts.desert_warpath.streak,null,'\t') ;
-	}
-	
-	//LG
-	if ((userObj.environment_id == 35)||(userObj.environment_id == 41)||(userObj.environment_id == 42)){
-		for (var key in userObj.quests){
-			if (userObj.quests[key].hasOwnProperty('essences')) {
-				O_simpleHud.innerHTML += '<em style=\"font-size:1.1em;color:limegreen;\" >Petals : ' + userObj.quests[key].loot_drops.dewthief_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.dreamfluff_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.duskshade_petal_crafting_item.quantity + ']-' + userObj.quests[key].loot_drops.graveblossom_petal_crafting_item.quantity + '-[' + userObj.quests[key].loot_drops.plumepearl_herbs_crafting_item.quantity + '-' + userObj.quests[key].loot_drops.lunaria_petal_crafting_item.quantity + ']</em><br>';
-				i=8;
-				while (userObj.quests[key].essences[i].quantity==0) i--;
-				var sum=0;
-				for (var j=0; j<9; j++){// j<=i
-					if (j<=i) O_simpleHud.innerHTML += '<em style=\"color:dodgerblue;\" >['+String.fromCharCode(j+65) + ':'+userObj.quests[key].essences[j].quantity + ']&emsp;</em>';
-					if (j<7) sum = sum/3 + userObj.quests[key].essences[j].quantity;//Gur
-				}
-				O_simpleHud.innerHTML += '<br>= ' + sum + '&emsp;<em style=\"color:dodgerblue;\" >' +  userObj.quests[key].essences[6].name + '<br></em>';//Gur
-				O_simpleHud.innerHTML += '<em style=\"font-size:0.8em;color:grey;\">' + JSON.stringify(userObj.quests[key].minigame ,null,'\t') + '</em><br>';
-			} 
-			break;
-		}
-		
-		//Living Garden
-		if (userObj.environment_id == 35){
-			var smallObj = userObj.quests.QuestLivingGarden;
-			if (smallObj.is_normal){
-				if (smallObj.minigame.bucket_state == "filling"){
-					if (smallObj.minigame.estimate == 35){
-						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						}else{// <35
-						if (userObj.trinket_item_id != 1020){//sponge id
-							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****20 charms only****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-						}
-					}
-				}
-				}else{
-				if (smallObj.minigame.vials_state == "filling"){
-					if (smallObj.minigame.estimate == 35){
-						O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"/?switch_to=standard\" data-ajax=\"false\" >Pour now - Full site</a></div>";
-						}else{// <35
-						if ((userObj.trinket_item_id != 1017) && (userObj.trinket_item_id != 1022)){
-							O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\">****10 charms each****<br><br><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-						}
-					}
-				}
-			}
-		}
-		//Lost City
-		if (userObj.environment_id == 41){
-			var smallObj = userObj.quests.QuestLostCity;
-			if (smallObj.is_normal){
-				if (smallObj.minigame.curses[0].active && !smallObj.minigame.curses[0].charm.equipped){
-					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-				}
-				}else{
-				if (smallObj.minigame.is_cursed && !((smallObj.minigame.curses[0].active && smallObj.minigame.curses[0].charm.equipped) || (smallObj.minigame.curses[1].active && smallObj.minigame.curses[1].charm.equipped) || (smallObj.minigame.curses[2].active && smallObj.minigame.curses[2].charm.equipped) )){
-					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-				}
-			}
-		}
-		//Sand Dunes
-		if (userObj.environment_id == 42){
-			var smallObj = userObj.quests.QuestSandDunes;
-			if (smallObj.is_normal){
-				if (smallObj.minigame.has_stampede && (userObj.trinket_item_id != 1016)){
-					O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-				}
-				}else{
-				var salt = window.localStorage.getItem("KGSalt");
-				if (salt == undefined || salt == null){
-					window.localStorage.setItem("KGSalt", 20);
-					salt = 20;
-				}
-				O_simpleHud.innerHTML += 'min Salt to alert : <input type="number" id="SaltInput" name="Salt" value="' + salt.toString() + '"/>';
-				O_simpleHud.innerHTML += '&emsp;&emsp;&emsp;&emsp;<input type="button" value="Save" onclick="window.localStorage.setItem(\'KGSalt\', document.getElementById(\'SaltInput\').value);window.location.href=\'/\';"/><br>';
-				O_simpleHud.innerHTML += "<div style=\"text-align:center;font-size:1.2em;padding:0.5em;\"><a href=\"shops.php?tab=4\" data-ajax=\"false\" >&emsp;&emsp;Charm Shop&emsp;&emsp;</a><br><a href=\"inventory.php?tab=1&subtab=2\" data-ajax=\"false\">&emsp;&emsp;Charms&emsp;&emsp;</a></div>";
-			}
-		}
-	}
+	//if (S_simple == 0) defaultFullSkin(); else defaultSimpleSkin();
+    defaultFullSkin();
 }
 //Full
 function hideImageBox() {
@@ -3067,25 +2721,7 @@ function updateMinuteTimer() {
 	var currentDate = new Date();
 	var currentTime = Math.floor(currentDate.getTime() / 1000);
 	var i,j,day;
-	for (i = 0;i < C_LOCATION_TIMES.length;++i)
-	{
-		timetmp = (currentTime - C_LOCATION_TIMES[i].base) % C_LOCATION_TIMES[i].totaltime;
-		for (j = 0;j < C_LOCATION_TIMES[i].length.length;++j)
-		{
-			timetmp -= C_LOCATION_TIMES[i].length[j];
-			if (timetmp < 0) break;
-			else if (timetmp == 0)
-			{
-				j = (j + 1) % C_LOCATION_TIMES[i].length.length;
-				timetmp = -C_LOCATION_TIMES[i].length[j];
-				break;
-			}
-		}
-		timetmp = formatMinute(Math.floor(-timetmp / 60));
-		
-		locationTimerObject = document.getElementById(C_LOCATION_TIMES[i].id);
-		locationTimerObject.innerHTML = "<span style='color: " + C_LOCATION_TIMES[i].color[j] + "; font-weight: bold;'>" + C_LOCATION_TIMES[i].state[j]+ "</span>" + " - " + timetmp;
-	}
+
 	if (data.user.has_shield == false)
 	{
 		O_gamelogo.style.opacity = 0;
@@ -3118,10 +2754,6 @@ function updateMinuteTimer() {
 	
 	//set the minute time interval
 	setTimeout(function () { (updateMinuteTimer)() }, C_MinuteInterval * 1000);
-}
-function updateHud() {
-	O_titlePercentage.textContent = data.user.title_percentage.toString();
-	O_baitNum.textContent = data.user.bait_quantity;
 }
 function tradeBuyID() {
 	var itemTradeID = document.getElementById('UOP_inputTrade').value;
@@ -3161,21 +2793,16 @@ function tradeBuyID() {
 	}
 	http.send(params);
 }
-function listenResearchQuest() {
-	if (document.getElementsByClassName("questContainer").length != 0)
+function showResearchUrl() {
+    if (document.getElementsByClassName("campPage-quests-container").length != 0)
 	{
-		showResearchFullButton();
+        tmp = document.createElement('a');
+        tmp.textContent = "[Full]";
+        tmp.addEventListener('click',showResearchFullTask,false);
+        document.getElementsByClassName("campPage-quests-title")[0].appendChild(tmp);
+        return;
 	}
-	else
-	{
-		setTimeout(listenResearchQuest,200);
-	}
-}
-function showResearchFullButton() {
-	var tmp = document.createElement('a');
-	tmp.textContent = "[Full]";
-	tmp.addEventListener('click',showResearchFullTask,false);
-	document.getElementById("jsDialogAjaxPrefix").appendChild(tmp);
+    setTimeout(showResearchUrl, 100);
 }
 function showResearchFullTask() {
 	var params = "hg_is_ajax=1&sn=Hitgrab&uh=" + data.user.unique_hash;
@@ -3192,21 +2819,21 @@ function showResearchFullTask() {
 				try
 				{
 					data = JSON.parse(http.responseText);
-					var questContainer = document.getElementsByClassName("questContainer")[0];
+					var questContainer = document.getElementsByClassName("campPage-quests-container")[0];
 					questContainer.innerHTML = "";
 					for (var key in data.progress) {
 						if (data.progress.hasOwnProperty(key)) {
 							var obj = data.progress[key].progress;
-							questContainer.innerHTML += "<h2>" + data.progress[key].name + "</h2>";
+							questContainer.innerHTML += '<div class="campPage-quests-title">' + data.progress[key].name + "</div>";
 							for (var prop in obj) {
 								if (obj.hasOwnProperty(prop)) {
 									var tmp = template.progressObj.cloneNode(true);
 									var objdata = obj[prop];
 									if (objdata.complete) tmp.className += " complete";
-									tmp.getElementsByClassName("image")[0].getElementsByTagName("img")[0].src = objdata.thumb;
-									tmp.getElementsByClassName("content")[0].getElementsByTagName("b")[0].textContent = prop + ' - ' + objdata.string;
-									tmp.getElementsByClassName("number")[0].textContent = objdata.progress + " / " + objdata.repetitions;
-									tmp.getElementsByClassName("bar")[0].style.backgroundPosition = (100 - objdata.progress * 100 / objdata.repetitions) + "% 50%";
+									tmp.getElementsByClassName("campPage-quests-objective-thumb")[0].style.backgroundImage = "url('" + objdata.thumb + "')";
+									tmp.getElementsByClassName("campPage-quests-objective-task")[0].textContent = prop + ' - ' + objdata.string;
+									tmp.getElementsByClassName("campPage-quests-objective-progress")[0].textContent = objdata.progress + " / " + objdata.repetitions;
+									tmp.getElementsByClassName("campPage-quests-objective-progressBar")[0].firstElementChild.style.width = objdata.progress * 100 / objdata.repetitions + "%";
 									questContainer.appendChild(tmp);
 								}
 							}
@@ -3354,10 +2981,10 @@ function defaultFullSkin() {
 	++i;
 	
 	//add personal note to the Larry hunting tips
-	var huntingTips = document.getElementById('huntingTips');
-	if (huntingTips != undefined) //if there are Larry around then he will announce personal note for us ^_^ or if there are something  to announce
+	var huntingTips = document.getElementsByClassName('campPage-tabs-tabContent-larryTip-container');
+	if (huntingTips.length != 0) //if there are Larry around then he will announce personal note for us ^_^ or if there are something  to announce
 	{
-		huntingTips = huntingTips.getElementsByClassName('content')[0];
+		huntingTips = huntingTips[0];
 		var newHuntingNode = null;
 		newHuntingNode = document.createElement("p");
 		newHuntingNode.innerHTML = "_______________________________________________________<br>Personal Note:<br>";
@@ -3387,11 +3014,6 @@ function defaultFullSkin() {
 		personalNoteTextareaDiv.appendChild(personalNoteTextareaSaveButton);
 	}
 		
-	//==========Change the container (main page) of mousehunt==============
-	var container = document.getElementsByClassName('container')[0];
-	var containerclear = container.getElementsByClassName('clear');
-	if (containerclear.length > 0) containerclear[0].parentNode.removeChild(containerclear[0]);//remove the like button in the bottom of the pages
-	
 	//=======gameinfo changes=======
 	//add Golden shield expires day (more obvious)
 	O_LGSTimerHourMin = document.createElement("div");
@@ -3404,283 +3026,36 @@ function defaultFullSkin() {
 	O_LGSTimerDayLeft.id = "UOP_LGSTimerDayLeft";
 	O_gamelogo.appendChild(O_LGSTimerDayLeft);
 	
-	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.innerHTML = "<a>Toolbox</a>";
-	document.getElementsByClassName('gameinfo')[0].firstChild.lastChild.firstChild.addEventListener("click",showToolbox,false);
+	document.getElementsByClassName('mousehuntHud-gameInfo')[0].innerHTML = "<a>Toolbox</a>";
+	document.getElementsByClassName('mousehuntHud-gameInfo')[0].firstChild.addEventListener("click",showToolbox,false);
 	
 	//=======NAVIGATOR changes======
-	//move camp and marketplace button
-	var campbtn = document.getElementsByClassName('campbutton')[0];
-	var donationarea = document.getElementsByClassName('donatebuttonarea')[0];
-	campbtn.parentNode.removeChild(campbtn);//move the camp button to donation area for moving easier
-	donationarea.insertBefore(campbtn,donationarea.firstChild);
-	
-	document.getElementById('hornArea').style.marginLeft = "101px";
-	
-	//nav num:
-	var navnum = 'nav1';
-	//on the last version, we can't make button friend go a bit far because of the limit of list but
-	//on this version, we will change the travel button into campbutton, so it look like the camp button moved back to it place
-	//and camp button (on the right side) to friend button and have the toggle animation so it look like the old friend button
-	//and so we just hide the friend button
-	////change camp => friend
-	campbtn = document.getElementById('campButton');
-	campbtn.id = "btn-friend";
-	campbtn.parentNode.setAttribute('onmouseover',"toggleNavCategory('" + navnum + ".teams', 'visible');");
-	campbtn.parentNode.setAttribute('onmouseout',"toggleNavCategory('" + navnum + ".teams', 'hidden');");
-
-	////change travel => camp
-	var travelbtn = document.getElementById('btn-travel');
-	travelbtn.className = "navitem";
-	travelbtn.id = "campButton";
-	////change their href
-	travelbtn.href = campbtn.href;
-	friendbtn = document.getElementById('btn-friends');
-	campbtn.href = friendbtn.href;
-	
-	//combining friend & team & add scoreboard from lore
-	var teamnav = document.getElementById(navnum + '.teams');
-	var teamnavarr = teamnav.childNodes;
-	
-	var lorenav = document.getElementById(navnum + '.lore');
-	var lorenavarr = lorenav.childNodes;
-	
-	for (i = 0;i < teamnavarr.length;++i)
-		if (teamnavarr[i].firstChild.textContent.indexOf("Scoreboards") != -1) //remove all scoreboards
-		{
-			teamnav.removeChild(teamnavarr[i]);
-			--i;
-		}
-	
-	var friendnav = document.getElementById(navnum + '.friends');
-	if (friendnav != null)
-	{
-		var friendnavarr = friendnav.childNodes;
-		for (i = 0;i < friendnavarr.length;++i)
-		{
-			if (friendnavarr[i].firstChild.textContent != "Invite Friends")
-			{
-				teamnav.insertBefore(friendnavarr[i],teamnav.firstChild);
-				--i;
-			}
-		}
-	}
-	teamnav.appendChild(lorenavarr[0]); //add scoreboard from lore
-	
-	//add Mice to inventory
-	var inventory = document.getElementById(navnum + '.inventory');
-	var micepage = inventory.lastChild.cloneNode(true);
-	inventory.appendChild(micepage);
-	micepage = micepage.firstChild;
-	micepage.href = document.getElementsByClassName('navitem micebutton')[0].href;
-	micepage.innerHTML = "Mice";
-	
-	//remove the following button, it will be replaced on a different place: Donate, travel, mice, lore, forum, friend
-	donationarea.removeChild(document.getElementsByClassName('donatebutton')[0]);
-	var mainnav = document.getElementsByClassName('navitem lorebutton')[0].parentNode.parentNode;
-	friendbtn.style.display = "none";	//mainnav.removeChild(document.getElementsByClassName('navitem travelbutton')[0].parentNode);
-	//mainnav.removeChild(document.getElementsByClassName('navitem shopsbutton')[0].parentNode);
-	mainnav.removeChild(document.getElementsByClassName('navitem micebutton')[0].parentNode);
-	mainnav.removeChild(document.getElementsByClassName('navitem lorebutton')[0].parentNode);
-	document.getElementById('btn-team').style.display = "none"; //mainnav.removeChild(document.getElementsByClassName('navitem newsbutton')[0].parentNode);
-	
-	mainnav.removeChild(document.getElementsByClassName('navitem forumsbutton')[0].parentNode);
-	//fix the dropdown
-	//document.getElementById(navnum + '.shops').style.left = "308px";
-	document.getElementById(navnum + '.inventory').style.left = "213px";
-	teamnav.style.left = "645px";
-	teamnav.style.width = "110px";
-	
-	//======HUD change======
-	var hud_base_parent = document.getElementById('hud_base').parentNode.parentNode.parentNode;
-	hud_base_parent.style.display = "none";
-
-	var hud_bait = document.getElementById('hud_baitName').parentNode;
-	var hud_gold_list = hud_bait.parentNode;
-	hud_bait.style.display = "none";
-	
-	var hud_team = document.getElementById('hud_team');
-	if (hud_team != undefined)
-	{
-		hud_team = hud_team.parentNode;
-		//hud_team.parentNode.parentNode.style.display = "none";
-		hud_gold_list.appendChild(hud_team); //move the "Team" information to the place of the bait we had just removed
-	}
-	
-	var tabbar = document.getElementById('tabbarContent_page').getElementsByClassName('campLeft');
-	if ((tabbar.length > 0) && atCamp)
-	{
-		travelToTabBar();
-		shopToTabBar();
-		potToTabBar();
-		craftToTabBar();
-		supplyToTabBar();
-		giftToTabBar();
-		
-		//hide daily & part of friends
-		tabbar = tabbar[0];
-		tmp = tabbar.getElementsByClassName('bar')[0].firstChild.getElementsByClassName('inactive');
-		tmp[0].style.display = "none";
-		
-		var friendtmp = document.createElement('div');
-		friendtmp.id = "UOP_friendsOnlineCampTab";
-		friendtmp.className = "bcenter";
-		friendtmp.textContent = "Friends";
-		tmp = document.getElementById('friendsOnlineCampTab');
-		tmp.style.display = "none";
-		tmp.parentNode.insertBefore(friendtmp,tmp);
-		
-		tmp = document.getElementById("questBarDetails");
-		if (tmp != null) tmp.addEventListener("click",listenResearchQuest,false);
-		
-		tmp = document.getElementById("shareTrapButton")
-		if (tmp != null) tmp.parentNode.removeChild(tmp);
-		tmp = document.getElementById("saveToAlbumButton")
-		if (tmp != null) tmp.parentNode.removeChild(tmp);
-		
-		O_trapSelectorBrowser = document.getElementById('trapSelectorBrowser');
-		tmp = document.createElement('div');
-		tmp.textContent = "Short/Full Selector";
-		tmp.id = "UOP_toggleSimplifiedSelector";
-		tmp.addEventListener("click",toggleSimplifiedTrapSelector,false);
-		tmp2 = document.getElementById('trapSpecialBar');
-		tmp2.appendChild(tmp);
-		toggleSimplifiedTrapSelector();
-	}
-	
-	tabbar = document.getElementById('journalContainer');
-	if (tabbar != null)
-	{
-		if (tabbar.previousElementSibling != null) tabbar.parentNode.appendChild(tabbar.previousElementSibling);
-	}
-	tabbar = document.getElementsByClassName('mousehuntHeaderView-gameBanner');
-	if (tabbar.length > 0)
-	{
-		tabbar = tabbar[0];
-		tabbar.parentNode.style.marginTop = 0;
-		tabbar.parentNode.parentNode.appendChild(tabbar);
-	}
-	
-	if (location.pathname.indexOf("/trade.php") != -1)
-	{
-		//add quick trade ID box
-		var tabpage = document.getElementById('tabbarContent_page');
-		var tabdiv = document.createElement('div');
-		tabpage.parentNode.insertBefore(tabdiv,tabpage);
-		
-		var inputLabel = document.createElement('label');
-		inputLabel.textContent = "Trade ID: ";
-		tabdiv.appendChild(inputLabel);
-		
-		var inputBox = document.createElement('input');
-		inputBox.id = "UOP_inputTrade";
-		tabdiv.appendChild(inputBox);
-		
-		var inputButton = document.createElement('button');
-		inputButton.textContent = "Buy";
-		inputButton.addEventListener('click',tradeBuyID,false);
-		tabdiv.appendChild(inputButton);
-		
-		var slot = document.getElementById('itemTradeSlots');
-		var header = slot.getElementsByTagName('h1')[0];
-		if (header != undefined)
-		{
-			var strurl = slot.getElementsByTagName('a')[0].getAttribute('href');
-			var begin = strurl.indexOf('itid=') + 5;
-			var end = strurl.indexOf('&',begin);
-			var tradeid = strurl.substring(begin,end);
-			
-			strurl = document.createElement('h2');
-			strurl.textContent = tradeid;
-			header.parentNode.appendChild(strurl);
-		}
-		
-		//add favorite
-		var catelist = document.getElementById("acd-items");
-		O_specialPanel = catelist.lastElementChild;
-		var specialButton = O_specialPanel.previousElementSibling;
-		var collectiblePanel;
-		var collectiblePanelArr;
-		var iterationItem;
-		var cloneItem;
-		var status;
-		specialButton.lastElementChild.textContent = "Favorite";
-		for (collectiblePanel = catelist.firstElementChild;collectiblePanel != specialButton;collectiblePanel = collectiblePanel.nextElementSibling.nextElementSibling)
-		{
-			if (collectiblePanel.lastElementChild.textContent == "Collectible")
-			{
-				collectiblePanel.lastElementChild.textContent = "Collectible - Special";
-				collectiblePanel = collectiblePanel.nextElementSibling;
-				break;
-			}
-		}
-		O_specialPanel = O_specialPanel.firstElementChild;
-		collectiblePanel = collectiblePanel.firstElementChild;
-		var specialPanelArr = O_specialPanel.children;
-		
-		while(specialPanelArr.length > 0)
-		{
-			collectiblePanel.appendChild(specialPanelArr[0]);
-		}
-		
-		for (collectiblePanel = catelist.firstElementChild.nextElementSibling;collectiblePanel != catelist.lastElementChild;collectiblePanel = collectiblePanel.nextElementSibling.nextElementSibling)
-		{
-			collectiblePanelArr = collectiblePanel.firstElementChild.children;
-			for (i = 0;i < collectiblePanelArr.length;++i)
-			{
-				tmp = template.favorite.cloneNode(true);
-				tmp.addEventListener("click",toggleStatusFavoriteMarketItem,false);
-				collectiblePanelArr[i].insertBefore(tmp,collectiblePanelArr[i].firstChild);
-				status = window.localStorage["UOP_marketfavor_" + collectiblePanelArr[i].getAttribute("data-type")];
-				if (!((status == undefined) || (status == "0")))
-				{
-					tmp.classList.remove("UOP_addFavorite");
-					tmp.classList.add("UOP_removeFavorite");
-					toggleListFavoriteMarketItem(collectiblePanelArr[i],1);
-					--i;
-				}
-			}
-		}
-	}
-	
-	//precious title advancing
-	O_titleBar = document.getElementById('hud_titlebar');
-	O_titlePercentage = document.getElementById('hud_titlePercentage');
-	
-	//detailed timer
-	O_oldHuntTimer = document.getElementById('huntTimer');
-	O_huntTimer = O_oldHuntTimer.cloneNode(true);
-	O_oldHuntTimer.style.display = "none";
-	O_huntTimer.id = "UOP_huntTimer";
-	O_oldHuntTimer.parentNode.appendChild(O_huntTimer);
-	
-	//location timer
-	var headsup = document.getElementById('hud_statList1').parentNode;
-	var headsuparr = headsup.getElementsByClassName('hudstatlist');
-	var locationTimerParent = document.createElement('div');
-	locationTimerParent.className = 'hudstatlist';
-	headsup.insertBefore(locationTimerParent,headsuparr[2].nextSibling);
-	locationTimerParent.appendChild(document.createElement('ul'));
-	locationTimerParent = locationTimerParent.firstChild;
-	locationTimerParent.id = "UOP_locationTimerParent";
-	
-	var locationTimerObject;
-	O_locationTimer = new Array;
-	for (var i = 0;i < 3;++i)
-	{
-		locationTimerObject = document.createElement('li');
-		locationTimerParent.appendChild(locationTimerObject);
-		locationTimerObject.innerHTML = "<span class='hudstatlabel'>" + C_LOCATION_TIMES[i].name + ": </span><span id='" + C_LOCATION_TIMES[i].id + "'></span>";
-		O_locationTimer[i] = locationTimerObject.lastChild;
-	}
-	//document.getElementsByClassName('gameinfo')[0].firstChild.firstChild.innerHTML = "<span style='font-weight: bold;'>" + C_LOCATION_TIMES[3].name + ": </span><span id='" + C_LOCATION_TIMES[3].id + "'></span>";
-	//O_locationTimer[3] = locationTimerObject.lastChild;
-	
-	//New bait number location
-	var baitnum = document.getElementById('hud_baitIcon').parentNode;
-	baitnum.insertBefore(document.createElement('div'),baitnum.firstChild);
-	O_baitNum = baitnum.firstChild;
-	O_baitNum.id = "hud_baitQuantity";
-	
+	//remove the following button: Donate
+    tmp = document.getElementsByClassName("mousehuntHud-premiumShop")[0];
+    tmp.parentNode.removeChild(tmp);
+    
+    tmp = document.getElementsByClassName("campPage-tabs-tabRow");
+    if (tmp.length != 0)
+    {
+        tmp = tmp[0];
+        tmp = tmp.children[2];
+        tmp.addEventListener('click', showResearchUrl, false);
+    }
+    
+    tmp = document.getElementsByClassName("campPage-trap-blueprint-closeButton");
+    if (tmp.length != 0)
+    {
+        O_trapSelectorBrowser = document.getElementById("mousehuntContainer");
+        toggleSimplifiedTrapSelector();
+        
+        tmp = tmp[0];
+        tmp2 = document.createElement("div");
+        tmp2.id = "UOP_toggleSimplifiedSelector";
+        tmp2.textContent = "Toggle Short/Full Trap Selector"
+        tmp2.addEventListener("click",toggleSimplifiedTrapSelector,false);
+        tmp.parentNode.insertBefore(tmp2,tmp.nextSibling);
+    }
+    
 	if (atCamp || (location.pathname == "/journal.php"))
 	{
 		//mouse autozoom
@@ -3693,10 +3068,6 @@ function defaultFullSkin() {
 		
 		registerSoundHornWaiting.push(updateJournalBox);
 	}
-	
-	//register callbacks
-	registerSoundHornWaiting.push(updateHud);
-	registerSoundHornWaiting.push(skinSecondTimer);
 }
 /*******************FUN AREA*********************/
 function removeAds() {
@@ -3732,13 +3103,35 @@ function addCommand() {
 	O_commandInput = document.createElement("input");
 	O_commandInput.id = "UOP_commandInput";
 	O_commandDiv.appendChild(O_commandInput);
-	O_commandInput.addEventListener('keypress', function (e) {var key = e.which || e.keyCode;if (key == 13) {executeCommand()}});
+	O_commandInput.addEventListener('keypress', function (e) {var key = e.which || e.keyCode;if (key == 13) {executeCommand()}}, false);
 	
 	var O_commandButton = document.createElement("button");
 	O_commandButton.id = "UOP_clearMessageButton";
 	O_commandDiv.appendChild(O_commandButton);
-	O_commandButton.addEventListener('click', function (e) {document.getElementById('pagemessage').innerHTML = "";});
+	O_commandButton.addEventListener('click', function (e) {document.getElementById('pagemessage').innerHTML = "";}, false);
 	O_commandButton.textContent = "Clear miniscript log";
+    
+    var O_battleShipDiv = document.createElement("div");
+	O_battleShipDiv.id = "UOP_battleShipDiv";
+	O_commandDiv.appendChild(O_battleShipDiv);
+    
+    var O_battleShipCalculateButton = document.createElement("button");
+	O_battleShipCalculateButton.id = "UOP_battleShipCalculateButton";
+	O_battleShipDiv.appendChild(O_battleShipCalculateButton);
+	O_battleShipCalculateButton.addEventListener('click', calculateBattleShip, false);
+	O_battleShipCalculateButton.textContent = "Calculate";
+    
+    var O_battleShipClearButton = document.createElement("button");
+	O_battleShipClearButton.id = "UOP_battleShipClearButton";
+	O_battleShipDiv.appendChild(O_battleShipClearButton);
+	O_battleShipClearButton.addEventListener('click', clearBattleShipTrigger, false);
+	O_battleShipClearButton.textContent = "Clear";
+    
+    var O_battleShipValueButton = document.createElement("button");
+	O_battleShipValueButton.id = "UOP_battleShipValueButton";
+	O_battleShipDiv.appendChild(O_battleShipValueButton);
+	O_battleShipValueButton.addEventListener('click', battleShipValueType, false);
+	O_battleShipValueButton.textContent = "Value";
 }
 function executeCommand() {
 	var txt = O_commandInput.value;
@@ -4347,6 +3740,140 @@ function updateScoreboard() {
 	};
 	request.send(null);
 }
+function calculateBattleShip() {
+    var h = 6,w = 11,i,j,k,ii,jj,shape,max = 0,total = 0,step;
+    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
+    var cell = [],valueTable = [];
+    var isShapeFit,nHit,tHit;
+    var shapeTable = [
+    {
+        w: 4,
+        h: 2,
+        data: [[1,1,1,1],[1,1,0,0]]
+    },{
+        w: 3,
+        h: 3,
+        data: [[0,1,0],[1,1,1],[1,1,1]]
+    },{
+        w: 2,
+        h: 3,
+        data: [[1,1],[1,1],[1,1]]
+    },{
+        w: 2,
+        h: 2,
+        data: [[1,1],[1,1]]
+    }];
+    
+    nHit = 0;
+    for (i = 0;i < h;++i)
+    {
+        cell[i] = [];
+        valueTable[i] = [];
+        for (j = 0;j < w;++j)
+        {
+            valueTable[i][j] = 0;
+            if (rawcell[i * w + j].classList.contains("available")) cell[i][j] = 0;
+            else if (rawcell[i * w + j].classList.contains("hit"))
+            {
+                ++nHit;
+                cell[i][j] = 2;
+            }
+            else cell[i][j] = 1;
+        }
+    }
+    if (nHit == 0)
+    {
+        for (k = 0;k < shapeTable.length;++k)
+        {
+            shape = shapeTable[k];
+            for (i = 0;i < h;++i)
+            for (j = 0;j < w;++j)
+            {
+                if ((i + shape.h > h) || (j + shape.w > w)) continue;
+                isShapeFit = true;
+                for (ii = 0;ii < shape.h;++ii)
+                    for (jj = 0;jj < shape.w;++jj)
+                        if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
+                if (!isShapeFit) continue;
+                for (ii = 0;ii < shape.h;++ii)
+                    for (jj = 0;jj < shape.w;++jj)
+                        valueTable[i + ii][j + jj] += shape.data[ii][jj];
+            }
+        }
+    }
+    else
+    {
+        for (k = 0;k < shapeTable.length;++k)
+        {
+            shape = shapeTable[k];
+            for (i = 0;i < h;++i)
+                for (j = 0;j < w;++j)
+                {
+                    if ((i + shape.h > h) || (j + shape.w > w)) continue;
+                    tHit = 0;
+                    isShapeFit = true;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                        {
+                            if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
+                            if ((cell[i + ii][j + jj]  == 2) && (shape.data[ii][jj] == 1)) ++tHit;
+                        }
+                    if (tHit != nHit) isShapeFit = false;
+                    if (!isShapeFit) continue;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                            if (cell[i + ii][j + jj]  == 0) valueTable[i + ii][j + jj] += shape.data[ii][jj];
+                }
+        }
+    }
+    for (i = 0;i < h;++i)
+        for (j = 0;j < w;++j)
+        {
+            max = valueTable[i][j] < max ? max : valueTable[i][j];
+            total += valueTable[i][j];
+        }
+    step = (255 - 128) / (max - 1);
+    
+    for (i = 0;i < h;++i)
+        for (j = 0;j < w;++j)
+        {
+            if (battleShipValue == 0)
+                rawcell[i * w + j].firstElementChild.textContent = valueTable[i][j];
+            else
+                rawcell[i * w + j].firstElementChild.textContent = (valueTable[i][j] * 100 / total).toFixed(2);
+                
+            if (valueTable[i][j] == 0)
+                rawcell[i * w + j].firstElementChild.style.color = "red";
+            else if (valueTable[i][j] == max)
+                rawcell[i * w + j].firstElementChild.style.color = "#FF7419";
+            else
+                rawcell[i * w + j].firstElementChild.style.color = "rgb(0," + Math.floor(valueTable[i][j] * step + 128) + ",0)";
+                //1 -> 255, max -> 128
+                //so this is reversed order => color = max - value
+                //step = (255 - 128) / (max - 1)
+                //base = 128
+        }
+}
+function clearBattleShipTrigger(e) {
+    battleShipClearState = 1 - battleShipClearState;
+    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
+    
+    if (battleShipClearState == 1) e.target.textContent = "Stop"; else e.target.textContent = "Clear";
+    
+    for (i = 0;i < rawcell.length;++i)
+        if (battleShipClearState == 1)
+            rawcell[i].addEventListener('click', clearBattleShipCell, false);
+        else
+            rawcell[i].removeEventListener('click', clearBattleShipCell, false);
+}
+function clearBattleShipCell(e) {
+    e.target.classList.remove("hit");
+    e.target.classList.add("miss");
+}
+function battleShipValueType(e) {
+    battleShipValue = 1 - battleShipValue;
+    e.target.textContent = (battleShipValue == 0) ? "Value" : "  %  ";
+}
 /*******************AUTO AREA********************/
 function initAuto() {
 	manageCSSJSAdder(5);
@@ -4506,7 +4033,11 @@ function autoSounded() {
 	else if (A_soundedCounter == 50)
 	{
 		O_autoSounding.textContent = "New message !";
-		if (document.getElementById("hornResult").textContent.indexOf("King's Reward") != 0) puzzleStandardReaction();
+		if (document.getElementsByClassName("mousehuntHud-huntersHorn-responseResult")[0].textContent.indexOf("King's Reward") != 0)
+        {
+            document.getElementsByClassName("mousehuntHud-huntersHorn-responseMessage")[0].firstElementChild.click();
+            puzzleStandardReaction();
+        }
 	}
 }
 function autoHornWaiting() {
@@ -4640,13 +4171,13 @@ function submitPuzzle(str) {
 				try
 				{
 					var tmpRespondJSON = JSON.parse(request.responseText);
-					document.getElementById('pagemessage').textContent += str + " - " + tmpRespondJSON.result;
+					document.getElementsByClassName('mousehuntPage-puzzle-form-description')[0].textContent += str + " - " + tmpRespondJSON.result;
 					window.localStorage.UOP_puzzleLastResult = str + " - Attempt: " + A_solveStage + " - Result: " + tmpRespondJSON.result;
 					reloadMH();
 				}
 				catch (e)
 				{
-					document.getElementById('pagemessage').textContent += request.responseText;
+					document.getElementsByClassName('mousehuntPage-puzzle-form-description')[0].textContent += str + " - " + tmpRespondJSON.result;
 					window.localStorage.UOP_puzzleLastResult = str + " - Attempt: " + A_solveStage + " - Result: " + tmpRespondJSON.result;
 				}
 			}
@@ -4685,7 +4216,7 @@ function puzzleCoreReaction() {
 		case 3:
 		case 2:
 		case 1:KRSolverOCR();break;
-		default:alarm();document.getElementById('puzzle_answer').focus();
+		default:alarm();document.getElementsByClassName('mousehuntPage-puzzle-form-code')[0].focus();
 	}
 }
 function puzzleStandardReaction() {
@@ -4697,7 +4228,7 @@ function puzzleStandardReaction() {
 	O_autoSounding.textContent = "King's Reward";
 	document.title = "King's Reward";
 	
-	if (document.getElementsByClassName('puzzle').length == 0)
+	if (document.getElementsByClassName('mousehuntPage-puzzle-form-captcha-image').length == 0)
 	{
 		if (window.localStorage.UOP_puzzleReloaded == 0)
 		{
@@ -4705,8 +4236,6 @@ function puzzleStandardReaction() {
 			reloadMH();
 		}
 	}
-	puzzleContainer = document.getElementById('puzzleContainer');
-	document.getElementById('puzzle_answer').addEventListener('change',puzzleUserSubmit,false);
 	puzzleCoreReaction();
 		
 	O_autoCounter.style.display = "none";
@@ -4724,31 +4253,6 @@ function puzzleCounter() {
 
 	setTimeout(function() {puzzleCounter()},C_autoInterval * 1000);
 }
-function puzzleUserSubmit() {
-	var linkElementList = puzzleContainer.getElementsByTagName('img');
-	var tmp = document.getElementById('puzzle_answer');
-	if (tmp != null) tmp.removeEventListener('change',puzzleUserSubmit,false);
-	if (linkElementList.length > 0)
-	{
-		var i;
-		for (i = 0; i < linkElementList.length; ++i)
-		{
-			// check if it is a resume button
-			if (linkElementList[i].getAttribute('src').indexOf("resume_hunting_blue.gif") != -1)
-			{
-				// click the resume button
-				var resumeElement = linkElementList[i].parentNode;
-				resumeElement.click();
-				
-				// reload url if click fail
-				setTimeout(function () { reloadMH(); }, 6000);
-				
-				return;
-			}
-		}
-	}
-	setTimeout(puzzleUserSubmit, 1000);
-}
 /*******************KR SOLVER AREA*******************/
 var KR_turn = 3;
 var KR_canvas,KR_canvas2;
@@ -4765,6 +4269,7 @@ var KR_imgs = new Array;
 var KR_results = new Array;
 var KR_timeouts = new Array;
 var KR_sendResultI = 0;
+var KR_initialized = false;
 function KR_createImgArray() {
 	var arr = new Array;
 	for (i=0;i<KR_n;++i) arr[i] = new Array;
@@ -4778,6 +4283,11 @@ function KR_createCharObj() {
 	return charObj;
 }
 function KR_initKR() {
+    KR_i = 0;
+    
+    if (KR_initialized) return;
+    KR_initialized = true;
+    
 	KR_canvas = document.createElement('canvas');
 	KR_canvas.width = 200;
 	KR_canvas.height = 200;
@@ -4786,7 +4296,6 @@ function KR_initKR() {
 	KR_canvas2.width = 200;
 	KR_canvas2.height = 200;
 	KR_context2 = KR_canvas2.getContext('2d');
-	KR_i = 0;
 	KR_sampleimgData = new Array;
 	KR_sampleimgData2 = new Array;
 	KR_initDB();

@@ -24,15 +24,18 @@
 	cursor: pointer;
 }
 .freeoffers_button {right: 0px!important;}
-.marketplace_button {margin: 49px 0px 0px -514px!important;}
+.mousehuntHud-marketPlace {top: 73px;}
 .convertibledetails input[type="text"] {width:50px}
-#trapSelectorBrowser.simplified .trapComponentRow.bait,#trapSelectorBrowser.simplified  .trapComponentRow.trinket {padding-right: 0px;}
-#trapSelectorBrowser.simplified .trapComponentRow .content {font-size: 0}
-#trapSelectorBrowser.simplified .trapComponentRow .content>*:not(.quantity),#trapSelectorBrowser.simplified .trapComponentRow .content .quantity i {display: none}
-#trapSelectorBrowser.simplified .trapComponentRow .content .quantity {width: 50px;height: 20px;top: 49px;left: -55px;position: relative;}
-#trapSelectorBrowser.simplified .trapComponentRow.weapon .itemImage,#trapSelectorBrowser.simplified .trapComponentRow.base .itemImage {height:50px}
-#trapSelectorBrowser.simplified .trapComponentRow .itemImage .action {display: none}
-#trapSelectorBrowser.simplified .trapComponentRow {display: inline-block;width: 60px;}
+.campPage-trap-statsContainer .campPage-trap-itemStats {
+    height: 83px;
+    border: 1px solid #534022;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    overflow: visible;
+}
+#mousehuntContainer.simplified .campPage-trap-itemBrowser-item-content {display: none;}
+#mousehuntContainer.simplified .campPage-trap-itemBrowser-item {display: inline-block;}
+
 .inventoryitemview.convertibles .itembox .rightcol, .inventoryitemview.convertibles .itembox .convertibledetails {display:none}
 .inventoryitemview.convertibles .itembox .itemname {font-size:inherit;font-weight:inherit;overflow: hidden;white-space: nowrap;height: 13px;text-overflow: ellipsis;}
 .inventoryitemview.convertibles.columns2 .itembox {width: 50px;height:80px;float:left!important;}
@@ -48,22 +51,6 @@
 	width: 69px;
 	background: url("/images/navbuttons.en.gif") no-repeat 0px 0px;
 	background-size: 600%;
-}
-#hud_baitQuantity {
-	position: absolute;
-	right: 44px;
-	z-index: 10;
-	text-align: center;
-	cursor: pointer;
-	padding: 3px 5px;
-	-moz-border-radius: 5px;
-	border-radius: 5px;
-	border: 0 none;
-	color: #fff;
-	background-color: #549906;
-	background-image: -webkit-gradient(linear, center bottom, center top, from(#549906), to(#92c315));
-	background-image: -moz-linear-gradient(90deg, #549906, #92c315);
-	font-weight: bold;
 }
 #UOP_imagePhotoZoomBox {
 	opacity: 0;
@@ -95,13 +82,14 @@
 }
 #hgDropDownCommunity {right: 91px;}
 #hgDropDownSupport {right: 5px;}
-.gamelogo {
+.mousehuntHud-shield {
 	background-image:url("/images/LGS.png") !important;
 	transition: opacity 2s;
 }
 #UOP_LGSTimerDayLeft {
 	position: relative;
-	top: -115px;
+	top: 10px;
+    left: 2px;
 	text-align: center;
 	color: white;
 	font-weight: bold;
@@ -113,13 +101,14 @@
 	color: white;
 }
 .UOP_LGSTimerDay {
-	top: -115px;
+	top: 10px;
 	left: 41px;
 	width: 50px;
 	font-size: 24px;
 }
 .UOP_LGSTimerToday {
-	top: -100px;
+	top: 20px;
+    left: 1px;
 	font-size: 20px;
 }
 .UOP_LGSTimerToday + #UOP_LGSTimerDayLeft {
@@ -127,7 +116,7 @@
 }
 #UOP_LGSTimerHourMin {
 	position: relative;
-	top: -41px;
+	top: 84px;
 	color: #9A1107;
 	font-size: 17px;
 	font-weight: bolder;
@@ -273,15 +262,28 @@
 	background-image: url('/images/star_favorite.png');
 }
 #UOP_toggleSimplifiedSelector {
-	background: linear-gradient(lightgreen 5%, green);
-	width: 173px;
-	font-weight: bold;
-	font-size: 10px;
-	cursor: pointer;
-	text-align: center;
+    position: absolute;
+    display: none;
+    right: 240px;
+    top: 1px;
+    padding: 2px 8px;
+    text-align: center;
+    font-size: 9px;
+    color: #000;
+    background: #fff;
+    border: 1px solid #008fff;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 2px 2px 5px #333;
+    -moz-box-shadow: 2px 2px 5px #333;
+    box-shadow: 2px 2px 5px #333;
+    z-index: 10;
+    cursor: pointer;
 }
-#UOP_toggleSimplifiedSelector:hover {background: linear-gradient(white, lightgreen 80%);}
-
+.showBlueprint #UOP_toggleSimplifiedSelector {
+    display: block;
+}
 .sidebarTitle {cursor:pointer;}
 .UOP_sunkenRevealHUD {
 	display:none;
@@ -300,3 +302,18 @@
 .UOP_danger {color:red;}
 .UOP_treasure {color:gold;background-color:rgb(70, 130, 180)!important;}
 .UOP_bonus {color:rgb(123, 104, 238);}
+.winterHunt2014Minigame-board-row-cell a{
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+}
+#UOP_battleShipDiv:before {
+    content: "Battleship: ";
+}
+#UOP_battleShipDiv {
+    margin-top: 4px;
+}
+#UOP_battleShipClearButton {
+    margin-left: 1px;
+    margin-right: 1px;
+}
