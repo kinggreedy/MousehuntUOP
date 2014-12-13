@@ -300,3 +300,17 @@
 .UOP_danger {color:red;}
 .UOP_treasure {color:gold;background-color:rgb(70, 130, 180)!important;}
 .UOP_bonus {color:rgb(123, 104, 238);}
+.winterHunt2014Minigame-board-row-cell a{
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+}
+#UOP_battleShipDiv:before {
+    content: "Battleship: ";
+}
+#UOP_battleShipDiv {
+    margin-top: 4px;
+}
+#UOP_battleShipCalculateButton {
+    margin-right: 5px;
+}

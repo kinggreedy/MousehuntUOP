@@ -103,7 +103,7 @@ var registerSoundHornWaiting = new Array;
 var eval_callback;
 var nextTurnTimestamp,atCamp = false,nextUpdateScoreboardTimeLeft;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1;
+var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1, battleShipValue = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr,puzzleContainer;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 var currentScoreboardChannel,currentScoreboardChannelTeamData, initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
@@ -3739,6 +3739,22 @@ function addCommand() {
 	O_commandDiv.appendChild(O_commandButton);
 	O_commandButton.addEventListener('click', function (e) {document.getElementById('pagemessage').innerHTML = "";});
 	O_commandButton.textContent = "Clear miniscript log";
+        
+    var O_battleShipDiv = document.createElement("div");
+	O_battleShipDiv.id = "UOP_battleShipDiv";
+	O_commandDiv.appendChild(O_battleShipDiv);
+    
+    var O_battleShipCalculateButton = document.createElement("button");
+	O_battleShipCalculateButton.id = "UOP_battleShipCalculateButton";
+	O_battleShipDiv.appendChild(O_battleShipCalculateButton);
+	O_battleShipCalculateButton.addEventListener('click', listenToCalculateBattleShip, false);
+	O_battleShipCalculateButton.textContent = "Calculate";
+    
+    var O_battleShipValueButton = document.createElement("button");
+	O_battleShipValueButton.id = "UOP_battleShipValueButton";
+	O_battleShipDiv.appendChild(O_battleShipValueButton);
+	O_battleShipValueButton.addEventListener('click', battleShipValueType, false);
+	O_battleShipValueButton.textContent = "Value";
 }
 function executeCommand() {
 	var txt = O_commandInput.value;
@@ -4346,6 +4362,187 @@ function updateScoreboard() {
 		}
 	};
 	request.send(null);
+}
+function listenToCalculateBattleShip() {
+    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
+    var i;
+    for (i = 0;i < rawcell.length;++i) rawcell[i].addEventListener('click', listenToRefreshBattleShip, false);
+    calculateBattleShip();
+}
+function listenToRefreshBattleShip(e) {
+    e = {target: e.target};
+    
+    while (e.target.tagName.toUpperCase() != "DIV") e.target = e.target.parentNode;
+    
+    if (e.target.classList.contains("busy")) {
+        setTimeout(function() {listenToRefreshBattleShip(e);}, 100);
+    }
+    else {
+        calculateBattleShip();
+    }
+}
+function calculateBattleShip() {
+    var h = 6,w = 11,i,j,k,ii,jj,shape,max = 0,total = 0,step;
+    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
+    var cell = [],valueTable = [];
+    var isShapeFit,nHit,tHit;
+    var shapeTable = [
+    {
+        w: 4,
+        h: 2,
+        type: 0,
+        data: [[1,1,1,1],[1,1,0,0]]
+    },{
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[1,1],[1,1],[1,0],[1,0]]
+    },{
+        w: 4,
+        h: 2,
+        type: 0,
+        data: [[1,1,0,0],[1,1,1,1]]
+    },{
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[0,1],[0,1],[1,1],[1,1]]
+    },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[0,1,0],[1,1,1],[1,1,1]]
+        },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[1,1,1],[0,1,0]]
+    },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[0,1,1],[1,1,1]]
+    },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[1,1,0],[1,1,1]]
+    },{
+        w: 2,
+        h: 3,
+        type: 2,
+        data: [[2,2],[2,2],[2,2]]
+    },{
+        w: 3,
+        h: 2,
+        type: 2,
+        data: [[2,2,2],[2,2,2]]
+    },{
+        w: 2,
+        h: 2,
+        type: 3,
+        data: [[4,4],[4,4]]
+    }], shapeCompleted = [0,0,0,0];
+    
+    shapeCompleted[0] = document.getElementsByClassName("winterHunt2014Minigame-example candy_cane")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[1] = document.getElementsByClassName("winterHunt2014Minigame-example holiday_tree")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[2] = document.getElementsByClassName("winterHunt2014Minigame-example large_gift")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[3] = document.getElementsByClassName("winterHunt2014Minigame-example small_gift")[0].classList.contains("complete") ? 1 : 0;
+    
+    nHit = 0;
+    for (i = 0;i < h;++i)
+    {
+        cell[i] = [];
+        valueTable[i] = [];
+        for (j = 0;j < w;++j)
+        {
+            valueTable[i][j] = 0;
+            if (rawcell[i * w + j].classList.contains("available")) cell[i][j] = 0;
+            else if (rawcell[i * w + j].classList.contains("hit"))
+            {
+                ++nHit;
+                cell[i][j] = 2;
+            }
+            else cell[i][j] = 1;
+        }
+    }
+    if (nHit == 0)
+    {
+        for (k = 0;k < shapeTable.length;++k)
+        {
+            shape = shapeTable[k];
+            for (i = 0;i < h;++i)
+            for (j = 0;j < w;++j)
+            {
+                if ((i + shape.h > h) || (j + shape.w > w)) continue;
+                isShapeFit = true;
+                for (ii = 0;ii < shape.h;++ii)
+                    for (jj = 0;jj < shape.w;++jj)
+                        if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
+                if (!isShapeFit) continue;
+                for (ii = 0;ii < shape.h;++ii)
+                    for (jj = 0;jj < shape.w;++jj)
+                        valueTable[i + ii][j + jj] += shape.data[ii][jj];
+            }
+        }
+    }
+    else
+    {
+        for (k = 0;k < shapeTable.length;++k)
+        {
+            shape = shapeTable[k];
+            if (shapeCompleted[shape.type] == 1) continue;
+            for (i = 0;i < h;++i)
+                for (j = 0;j < w;++j)
+                {
+                    if ((i + shape.h > h) || (j + shape.w > w)) continue;
+                    tHit = 0;
+                    isShapeFit = true;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                        {
+                            if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
+                            if ((cell[i + ii][j + jj]  == 2) && (shape.data[ii][jj] == 1)) ++tHit;
+                        }
+                    if (tHit == 0) isShapeFit = false;
+                    if (!isShapeFit) continue;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                            if (cell[i + ii][j + jj]  == 0) valueTable[i + ii][j + jj] += shape.data[ii][jj] * tHit;
+                }
+        }
+    }
+    for (i = 0;i < h;++i)
+        for (j = 0;j < w;++j)
+        {
+            max = valueTable[i][j] < max ? max : valueTable[i][j];
+            total += valueTable[i][j];
+        }
+    step = (255 - 128) / (max - 1);
+    
+    for (i = 0;i < h;++i)
+        for (j = 0;j < w;++j)
+        {
+            if (battleShipValue == 0)
+                rawcell[i * w + j].firstElementChild.textContent = valueTable[i][j];
+            else
+                rawcell[i * w + j].firstElementChild.textContent = (valueTable[i][j] * 100 / total).toFixed(2);
+                
+            if (valueTable[i][j] == 0)
+                rawcell[i * w + j].firstElementChild.style.color = "red";
+            else if (valueTable[i][j] == max)
+                rawcell[i * w + j].firstElementChild.style.color = "darkmagenta";
+            else
+                rawcell[i * w + j].firstElementChild.style.color = "rgb(0," + Math.floor(valueTable[i][j] * step + 128) + ",0)";
+                //1 -> 255, max -> 128
+                //so this is reversed order => color = max - value
+                //step = (255 - 128) / (max - 1)
+                //base = 128
+        }
+}
+function battleShipValueType(e) {
+    battleShipValue = 1 - battleShipValue;
+    e.target.textContent = (battleShipValue == 0) ? "Value" : "  %  ";
 }
 /*******************AUTO AREA********************/
 function initAuto() {
