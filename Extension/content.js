@@ -103,7 +103,7 @@ var registerSoundHornWaiting = new Array;
 var eval_callback;
 var nextTurnTimestamp,atCamp = false,nextUpdateScoreboardTimeLeft;
 var cssArr, jsArr, cssCustomArr, cssjsSetArr;
-var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1, battleShipClearState = 0, battleShipValue = 0;
+var refreshingByError = 0,screenshotSafe = 0,lockedfeature = 1, battleShipValue = 0;
 var puzzleSubmitErrorHash,puzzleSubmitErrorStage = 0,puzzleSubmitErrorStr;
 var facebookWindow,canvasWindow = null,access_token_loaded = 0,inCanvas = 0,convertibleItem = null;
 var currentScoreboardChannel,currentScoreboardChannelTeamData, initScoreboard = 0,scoreboardController = new Array,scoreboardMyTeamID, activeGetSB = 0, scoreboardChannel = new Object, scoreboardTimestamp, scoreboardTimestatus;
@@ -3118,14 +3118,8 @@ function addCommand() {
     var O_battleShipCalculateButton = document.createElement("button");
 	O_battleShipCalculateButton.id = "UOP_battleShipCalculateButton";
 	O_battleShipDiv.appendChild(O_battleShipCalculateButton);
-	O_battleShipCalculateButton.addEventListener('click', calculateBattleShip, false);
+	O_battleShipCalculateButton.addEventListener('click', listenToCalculateBattleShip, false);
 	O_battleShipCalculateButton.textContent = "Calculate";
-    
-    var O_battleShipClearButton = document.createElement("button");
-	O_battleShipClearButton.id = "UOP_battleShipClearButton";
-	O_battleShipDiv.appendChild(O_battleShipClearButton);
-	O_battleShipClearButton.addEventListener('click', clearBattleShipTrigger, false);
-	O_battleShipClearButton.textContent = "Clear";
     
     var O_battleShipValueButton = document.createElement("button");
 	O_battleShipValueButton.id = "UOP_battleShipValueButton";
@@ -3740,6 +3734,24 @@ function updateScoreboard() {
 	};
 	request.send(null);
 }
+function listenToCalculateBattleShip() {
+    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
+    var i;
+    for (i = 0;i < rawcell.length;++i) rawcell[i].addEventListener('click', listenToRefreshBattleShip, false);
+    calculateBattleShip();
+}
+function listenToRefreshBattleShip(e) {
+    e = {target: e.target};
+    
+    while (e.target.tagName.toUpperCase() != "DIV") e.target = e.target.parentNode;
+    
+    if (e.target.classList.contains("busy")) {
+        setTimeout(function() {listenToRefreshBattleShip(e);}, 100);
+    }
+    else {
+        calculateBattleShip();
+    }
+}
 function calculateBattleShip() {
     var h = 6,w = 11,i,j,k,ii,jj,shape,max = 0,total = 0,step;
     var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
@@ -3749,20 +3761,64 @@ function calculateBattleShip() {
     {
         w: 4,
         h: 2,
+        type: 0,
         data: [[1,1,1,1],[1,1,0,0]]
+    },{
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[1,1],[1,1],[1,0],[1,0]]
+    },{
+        w: 4,
+        h: 2,
+        type: 0,
+        data: [[1,1,0,0],[1,1,1,1]]
+    },{
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[0,1],[0,1],[1,1],[1,1]]
     },{
         w: 3,
         h: 3,
+        type: 1,
         data: [[0,1,0],[1,1,1],[1,1,1]]
+        },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[1,1,1],[0,1,0]]
+    },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[0,1,1],[1,1,1]]
+    },{
+        w: 3,
+        h: 3,
+        type: 1,
+        data: [[1,1,1],[1,1,0],[1,1,1]]
     },{
         w: 2,
         h: 3,
-        data: [[1,1],[1,1],[1,1]]
+        type: 2,
+        data: [[2,2],[2,2],[2,2]]
+    },{
+        w: 3,
+        h: 2,
+        type: 2,
+        data: [[2,2,2],[2,2,2]]
     },{
         w: 2,
         h: 2,
-        data: [[1,1],[1,1]]
-    }];
+        type: 3,
+        data: [[4,4],[4,4]]
+    }], shapeCompleted = [0,0,0,0];
+    
+    shapeCompleted[0] = document.getElementsByClassName("winterHunt2014Minigame-example candy_cane")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[1] = document.getElementsByClassName("winterHunt2014Minigame-example holiday_tree")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[2] = document.getElementsByClassName("winterHunt2014Minigame-example large_gift")[0].classList.contains("complete") ? 1 : 0;
+    shapeCompleted[3] = document.getElementsByClassName("winterHunt2014Minigame-example small_gift")[0].classList.contains("complete") ? 1 : 0;
     
     nHit = 0;
     for (i = 0;i < h;++i)
@@ -3806,6 +3862,7 @@ function calculateBattleShip() {
         for (k = 0;k < shapeTable.length;++k)
         {
             shape = shapeTable[k];
+            if (shapeCompleted[shape.type] == 1) continue;
             for (i = 0;i < h;++i)
                 for (j = 0;j < w;++j)
                 {
@@ -3818,11 +3875,11 @@ function calculateBattleShip() {
                             if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
                             if ((cell[i + ii][j + jj]  == 2) && (shape.data[ii][jj] == 1)) ++tHit;
                         }
-                    if (tHit != nHit) isShapeFit = false;
+                    if (tHit == 0) isShapeFit = false;
                     if (!isShapeFit) continue;
                     for (ii = 0;ii < shape.h;++ii)
                         for (jj = 0;jj < shape.w;++jj)
-                            if (cell[i + ii][j + jj]  == 0) valueTable[i + ii][j + jj] += shape.data[ii][jj];
+                            if (cell[i + ii][j + jj]  == 0) valueTable[i + ii][j + jj] += shape.data[ii][jj] * tHit;
                 }
         }
     }
@@ -3845,7 +3902,7 @@ function calculateBattleShip() {
             if (valueTable[i][j] == 0)
                 rawcell[i * w + j].firstElementChild.style.color = "red";
             else if (valueTable[i][j] == max)
-                rawcell[i * w + j].firstElementChild.style.color = "#FF7419";
+                rawcell[i * w + j].firstElementChild.style.color = "darkmagenta";
             else
                 rawcell[i * w + j].firstElementChild.style.color = "rgb(0," + Math.floor(valueTable[i][j] * step + 128) + ",0)";
                 //1 -> 255, max -> 128
@@ -3854,22 +3911,7 @@ function calculateBattleShip() {
                 //base = 128
         }
 }
-function clearBattleShipTrigger(e) {
-    battleShipClearState = 1 - battleShipClearState;
-    var rawcell = document.getElementsByClassName("winterHunt2014Minigame-layer tiles")[0].getElementsByClassName("winterHunt2014Minigame-board-row-cell");
-    
-    if (battleShipClearState == 1) e.target.textContent = "Stop"; else e.target.textContent = "Clear";
-    
-    for (i = 0;i < rawcell.length;++i)
-        if (battleShipClearState == 1)
-            rawcell[i].addEventListener('click', clearBattleShipCell, false);
-        else
-            rawcell[i].removeEventListener('click', clearBattleShipCell, false);
-}
-function clearBattleShipCell(e) {
-    e.target.classList.remove("hit");
-    e.target.classList.add("miss");
-}
+
 function battleShipValueType(e) {
     battleShipValue = 1 - battleShipValue;
     e.target.textContent = (battleShipValue == 0) ? "Value" : "  %  ";

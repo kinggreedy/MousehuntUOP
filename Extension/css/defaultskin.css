@@ -313,7 +313,6 @@
 #UOP_battleShipDiv {
     margin-top: 4px;
 }
-#UOP_battleShipClearButton {
-    margin-left: 1px;
-    margin-right: 1px;
+#UOP_battleShipCalculateButton {
+    margin-right: 5px;
 }
