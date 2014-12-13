@@ -3547,11 +3547,6 @@ function defaultFullSkin() {
 		toggleSimplifiedTrapSelector();
 	}
 	
-	tabbar = document.getElementById('journalContainer');
-	if (tabbar != null)
-	{
-		if (tabbar.previousElementSibling != null) tabbar.parentNode.appendChild(tabbar.previousElementSibling);
-	}
 	tabbar = document.getElementsByClassName('mousehuntHeaderView-gameBanner');
 	if (tabbar.length > 0)
 	{
