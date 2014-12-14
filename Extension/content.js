@@ -4427,7 +4427,7 @@ function calculateBattleShip() {
         h: 3,
         type: 1,
         data: [[0,2,0],[2,2,2],[2,2,2]]
-    },{
+        },{
         w: 3,
         h: 3,
         type: 1,
@@ -4472,7 +4472,7 @@ function calculateBattleShip() {
         for (j = 0;j < w;++j)
         {
             valueTable[i][j] = 0;
-            if (rawcell[i * w + j].classList.contains("available")) cell[i][j] = 0;
+            if (rawcell[i * w + j].classList.contains("available") || rawcell[i * w + j].classList.contains("disabled")) cell[i][j] = 0;
             else if (rawcell[i * w + j].classList.contains("hit"))
             {
                 ++nHit;
@@ -4481,43 +4481,34 @@ function calculateBattleShip() {
             else cell[i][j] = 1;
         }
     }
-    if (nHit == 0)
+    for (k = 0;k < shapeTable.length;++k)
     {
-        for (k = 0;k < shapeTable.length;++k)
-        {
-            shape = shapeTable[k];
-            for (i = 0;i < h;++i)
+        shape = shapeTable[k];
+        if (shapeCompleted[shape.type] == 1) continue;
+        for (i = 0;i < h;++i)
             for (j = 0;j < w;++j)
             {
                 if ((i + shape.h > h) || (j + shape.w > w)) continue;
-                isShapeFit = true;
-                for (ii = 0;ii < shape.h;++ii)
-                    for (jj = 0;jj < shape.w;++jj)
-                        if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
-                if (!isShapeFit) continue;
-                for (ii = 0;ii < shape.h;++ii)
-                    for (jj = 0;jj < shape.w;++jj)
-                        valueTable[i + ii][j + jj] += shape.data[ii][jj];
-            }
-        }
-    }
-    else
-    {
-        for (k = 0;k < shapeTable.length;++k)
-        {
-            shape = shapeTable[k];
-            if (shapeCompleted[shape.type] == 1) continue;
-            for (i = 0;i < h;++i)
-                for (j = 0;j < w;++j)
+                if (nHit == 0)
                 {
-                    if ((i + shape.h > h) || (j + shape.w > w)) continue;
+                    isShapeFit = true;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                            if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] != 0)) isShapeFit = false;
+                    if (!isShapeFit) continue;
+                    for (ii = 0;ii < shape.h;++ii)
+                        for (jj = 0;jj < shape.w;++jj)
+                            valueTable[i + ii][j + jj] += shape.data[ii][jj];
+                }
+                else
+                {
                     tHit = 0;
                     isShapeFit = true;
                     for (ii = 0;ii < shape.h;++ii)
                         for (jj = 0;jj < shape.w;++jj)
                         {
-                            if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] == 1)) isShapeFit = false;
-                            if ((cell[i + ii][j + jj]  == 2) && (shape.data[ii][jj] == 1)) ++tHit;
+                            if ((cell[i + ii][j + jj]  == 1) && (shape.data[ii][jj] != 0)) isShapeFit = false;
+                            if ((cell[i + ii][j + jj]  == 2) && (shape.data[ii][jj] != 0)) ++tHit;
                         }
                     if (tHit == 0) isShapeFit = false;
                     if (!isShapeFit) continue;
@@ -4525,7 +4516,7 @@ function calculateBattleShip() {
                         for (jj = 0;jj < shape.w;++jj)
                             if (cell[i + ii][j + jj]  == 0) valueTable[i + ii][j + jj] += shape.data[ii][jj] * tHit;
                 }
-        }
+            }
     }
     for (i = 0;i < h;++i)
         for (j = 0;j < w;++j)
