@@ -4396,7 +4396,7 @@ function calculateBattleShip() {
         w: 4,
         h: 2,
         type: 0,
-        data: [[1,1,0,0],[1,1,1,1]]
+        data: [[0,0,1,1],[1,1,1,1]]
     },{//rotate 270
         w: 2,
         h: 4,
