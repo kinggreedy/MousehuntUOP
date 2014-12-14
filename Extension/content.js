@@ -3758,61 +3758,81 @@ function calculateBattleShip() {
     var cell = [],valueTable = [];
     var isShapeFit,nHit,tHit;
     var shapeTable = [
-    {
+    {//default
         w: 4,
         h: 2,
         type: 0,
         data: [[1,1,1,1],[1,1,0,0]]
-    },{
+    },{//rotate 90
         w: 2,
         h: 4,
         type: 0,
         data: [[1,1],[1,1],[1,0],[1,0]]
-    },{
+    },{//rotate 180
         w: 4,
         h: 2,
         type: 0,
         data: [[1,1,0,0],[1,1,1,1]]
-    },{
+    },{//rotate 270
         w: 2,
         h: 4,
         type: 0,
         data: [[0,1],[0,1],[1,1],[1,1]]
+    },{//reflect H
+        w: 4,
+        h: 2,
+        type: 0,
+        data: [[1,1,0,0],[1,1,1,1]]
+    },{//reflect V
+        w: 4,
+        h: 2,
+        type: 0,
+        data: [[1,1,1,1],[0,0,1,1]]
+    },{//rotate 90, then reflect H
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[1,0],[1,0],[1,1],[1,1]]
+    },{//rotate 90, then reflect V
+        w: 2,
+        h: 4,
+        type: 0,
+        data: [[1,1],[1,1],[0,1],[0,1]]
     },{
         w: 3,
         h: 3,
         type: 1,
-        data: [[0,1,0],[1,1,1],[1,1,1]]
+        data: [[0,2,0],[2,2,2],[2,2,2]]
         },{
         w: 3,
         h: 3,
         type: 1,
-        data: [[1,1,1],[1,1,1],[0,1,0]]
+        data: [[2,2,2],[2,2,2],[0,2,0]]
     },{
         w: 3,
         h: 3,
         type: 1,
-        data: [[1,1,1],[0,1,1],[1,1,1]]
+        data: [[0,2,2],[2,2,2],[0,2,2]]
     },{
         w: 3,
         h: 3,
         type: 1,
-        data: [[1,1,1],[1,1,0],[1,1,1]]
+        data: [[2,2,0],[2,2,2],[2,2,0]]
     },{
         w: 2,
         h: 3,
         type: 2,
-        data: [[2,2],[2,2],[2,2]]
+        data: [[4,4],[4,4],[4,4]]
     },{
         w: 3,
         h: 2,
         type: 2,
-        data: [[2,2,2],[2,2,2]]
+        data: [[4,4,4],[4,4,4]]
     },{
         w: 2,
         h: 2,
         type: 3,
-        data: [[4,4],[4,4]]
+        data: [[8,8],[8,8]]
     }], shapeCompleted = [0,0,0,0];
     
     shapeCompleted[0] = document.getElementsByClassName("winterHunt2014Minigame-example candy_cane")[0].classList.contains("complete") ? 1 : 0;
@@ -3911,7 +3931,6 @@ function calculateBattleShip() {
                 //base = 128
         }
 }
-
 function battleShipValueType(e) {
     battleShipValue = 1 - battleShipValue;
     e.target.textContent = (battleShipValue == 0) ? "Value" : "  %  ";
