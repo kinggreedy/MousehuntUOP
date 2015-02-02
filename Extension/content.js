@@ -133,7 +133,7 @@ function initialization() {
 function initVariables() {
 	O_hornHeader = document.getElementsByClassName('mousehuntHud-top')[0];
 	O_hgRow = document.getElementsByClassName('mousehuntHeaderView-gameTabs')[0];
-	O_gamelogo = document.getElementsByClassName('mousehuntHud-shield golden')[0];
+	O_gamelogo = document.getElementsByClassName('mousehuntHud-shield')[0];
 	O_hornButton = document.getElementsByClassName('mousehuntHud-huntersHorn')[0];
 	O_hornButton.addEventListener('click',soundHorn,false);
 	
@@ -696,7 +696,7 @@ function checkBrowser() {
 	{
 		if (atCamp) // at camp => error
 		{
-			reloadMH();
+			reloadMH(300000);
 		}
 		return 1;
 	}
@@ -1624,10 +1624,11 @@ function formatWeek(sec) {
 function callArrayFunction(element, index, array) {
 	element();
 }
-function reloadMH() {
+function reloadMH(sec) {
 	if (S_reloadInAction) return;
 	else S_reloadInAction = true;
-	setTimeout(function() {location.reload()},10000);
+    if (sec == undefined) sec = 10000;
+	setTimeout(function() {location.reload()},sec);
 }
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
@@ -6416,7 +6417,7 @@ function shdefaultLivingGarden(){
 			{
 				if (LGObject.minigame.timer == 0)
 				{
-					if (data.user.bait_item_id == 1010) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','duskshade_camembert_cheese',''),null);
+					if (data.user.bait_item_id == 1010) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','duskshade_camembert_cheese'),null);
 					if (LGObject.minigame.red_drops < 10)
 					{
 						if (((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132)) || (data.user.trinket_quantity == 0))
