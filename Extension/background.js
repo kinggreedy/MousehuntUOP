@@ -9,7 +9,7 @@ chrome.webRequest.onErrorOccurred.addListener(
 	{urls: ["*://www.mousehuntgame.com/*"],types: ["main_frame"]}
 );
 /****************REDIRECTION if INCORRECT*******************/
-chrome.webRequest.onBeforeRequest.addListener(
+/*chrome.webRequest.onBeforeRequest.addListener(
 	function (details){
 		if (details.url.indexOf("/login.php") == -1) return {redirectUrl : "http://www.mousehuntgame.com" + details.url.slice(29)};
 	},
@@ -23,7 +23,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 	},
 	{urls: ["http://apps.facebook.com/mousehunt/*"],types: ["main_frame"]},
 	["blocking"]
-);
+);*/
 /*********************LOCAL STORAGE**************************/
 chrome.runtime.onConnect.addListener(function(port) {
 	if (port.name == "APPStorage")

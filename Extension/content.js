@@ -696,7 +696,7 @@ function checkBrowser() {
 	{
 		if (atCamp) // at camp => error
 		{
-			setTimeout(function () {reloadMH();},10000);
+			reloadMH(300000);
 		}
 		return 1;
 	}
@@ -1624,10 +1624,11 @@ function formatWeek(sec) {
 function callArrayFunction(element, index, array) {
 	element();
 }
-function reloadMH() {
+function reloadMH(sec) {
 	if (S_reloadInAction) return;
 	else S_reloadInAction = true;
-	location.reload();
+    if (sec == undefined) sec = 10000;
+	setTimeout(function() {location.reload()},sec);
 }
 /*******************SYNC********************/
 function receiveWindowMessage(event) {
@@ -1684,7 +1685,7 @@ function syncUser(callbackFunction) {
 					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + ". Original Data is " + request.responseText + " Refreshing...</label>";
 					document.title = "Sync error !";
 					//setTimeout(function() {syncUser(callbackFunction);},1000);
-					setTimeout(function() {reloadMH();},10000);
+					reloadMH();
 				}
 			}
 			else
@@ -1692,7 +1693,7 @@ function syncUser(callbackFunction) {
 				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + ". Refreshing...</label>";
 				document.title = "Sync error !";
 				//setTimeout(function() {syncUser(callbackFunction);},1000);
-				setTimeout(function() {reloadMH();},10000);
+				reloadMH();
 			}
 		}
 	};
@@ -1720,7 +1721,7 @@ function syncUserTrapcheck(callbackFunction) {
 				{
 					document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = 200 but Exception = " + e.message + "</label>";
 					document.title = "Trapcheck sync error !";
-					setTimeout(function() {reloadMH();},5000);
+					reloadMH();
 					//setTimeout(function() {syncUserTrapcheck(callbackFunction);},3000);
 				}
 			}
@@ -1729,7 +1730,7 @@ function syncUserTrapcheck(callbackFunction) {
 				//syncUserTrapcheck(callbackFunction);
 				document.getElementById('pagemessage').innerHTML += "<label style='font-weight:bold;color: red;'>Error while sync, request status = " + request.status + "</label>";
 				document.title = "Trapcheck sync error !";
-				setTimeout(function() {reloadMH();},5000);
+				reloadMH();
 			}
 		}
 	};
@@ -4944,7 +4945,7 @@ function puzzleUserSubmit() {
 				resumeElement.click();
 				
 				// reload url if click fail
-				setTimeout(function () { reloadMH(); }, 6000);
+				reloadMH();
 				
 				return;
 			}
@@ -7058,7 +7059,7 @@ function shdefaultLivingGarden(){
 			{
 				if (LGObject.minigame.timer == 0)
 				{
-					if (data.user.bait_item_id == 1010) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','duskshade_camembert_cheese',''),null);
+					if (data.user.bait_item_id == 1010) shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','','duskshade_camembert_cheese'),null);
 					if (LGObject.minigame.red_drops < 10)
 					{
 						if (((data.user.trinket_item_id != 1017) && (data.user.trinket_item_id != 1132)) || (data.user.trinket_quantity == 0))
