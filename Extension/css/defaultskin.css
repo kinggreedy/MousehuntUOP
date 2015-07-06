@@ -36,12 +36,20 @@
 #mousehuntContainer.simplified .campPage-trap-itemBrowser-item-content {display: none;}
 #mousehuntContainer.simplified .campPage-trap-itemBrowser-item {display: inline-block;}
 
-.inventoryitemview.convertibles .itembox .rightcol, .inventoryitemview.convertibles .itembox .convertibledetails {display:none}
-.inventoryitemview.convertibles .itembox .itemname {font-size:inherit;font-weight:inherit;overflow: hidden;white-space: nowrap;height: 13px;text-overflow: ellipsis;}
-.inventoryitemview.convertibles.columns2 .itembox {width: 50px;height:80px;float:left!important;}
-.inventoryitemview.convertibles .larryLexicon {position: absolute;right: 2px;top: 1px;}
-.inventoryitemview.convertibles .itembox .leftcol .itemImage {margin:0;width: 50px;height: 50px;}
-.inventoryitemview.convertibles .itembox .leftcol .itemImage img {width:50px;height:50px;}
+
+
+.inventoryPage-item-contentContainer {display:none}
+.inventoryPage-item-name {font-size:inherit;font-weight:inherit;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.inventoryPage-item.full  {
+    width: 60px;
+    height:80px;
+    float:left!important;
+    margin-left: 0;
+    margin-right: 1%;
+}
+.inventoryPage-item.full .inventoryPage-item-imageContainer {padding:0}
+.inventoryPage-item-imageContainer .itemImage {margin:0;width: 60px;height: 50px;}
+.inventoryPage-item-imageContainer .itemImage img {width:50px;height:50px;}
 #btn-friend {margin: 70px 0px 0px 20px; background: url("/images/navbuttons.en.gif") no-repeat -313px -38px;
 	width: 74px;
 	height: 26px;
