@@ -6351,12 +6351,12 @@ function shdefaultTrapcheck(){
 	setTimeout(shFunctionSuccessHandler,0);
 }
 function shdefaultEventEggCycle() {
-	if (data.user.quests.QuestSpringHunt2015 != null) {
-		if ((data.user.quests.QuestSpringHunt2015.charge_quantity <= sh_scripts[sh_sid].vars.customMinCharged.val)&&(data.user.trinket_item_id != 1164))
+	if (data.user.quests.QuestSpringHunt != null) {
+		if ((data.user.quests.QuestSpringHunt.charge_quantity <= sh_scripts[sh_sid].vars.customMinCharged.val)&&(data.user.trinket_item_id != 1164))
 		{
 			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','egg_charge_trinket',''),null);
 		}
-		if ((data.user.quests.QuestSpringHunt2015.charge_quantity >= sh_scripts[sh_sid].vars.customMaxCharged.val)&&(data.user.trinket_item_id != 851))
+		if ((data.user.quests.QuestSpringHunt.charge_quantity >= sh_scripts[sh_sid].vars.customMaxCharged.val)&&(data.user.trinket_item_id != 851))
 		{
 			shLoadOnce(C_shdefaultAction.CHANGETRAP,shChangeTrap('','','eggstra_trinket',''),null);
 		}
